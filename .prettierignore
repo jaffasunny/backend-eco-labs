@@ -1,0 +1,23 @@
+
+build
+dist
+node_modules
+.next
+# images
+public
+.package.json
+.env
+.eslintrc.json
+.example.env
+.gitignore
+.github.sh
+.next-env.d.ts
+.prettierrc
+.next.config.js
+.postcss.config.js
+.README.md
+.tailwind.config.ts
+.tsconfig.json
+.yarn.lock
+package-lock.json
+.prettierrc
