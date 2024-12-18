@@ -6,6 +6,12 @@ import { ApiResponse } from '../utils/ApiResponse';
 import { asyncHandler } from '../utils/asyncHandler';
 import sendEmail from '../utils/sendMail';
 import { ROLES } from '../constants';
+import mongoose from 'mongoose';
+import { updateUserDetails } from '../services/user.service';
+import {
+  fetchPopulatedProperty,
+  findOrUpdateProperty,
+} from '../services/property.service';
 
 // Add Landowner by email
 const addLandowner = asyncHandler(async (req: Request, res: Response) => {
@@ -52,4 +58,82 @@ const addLandowner = asyncHandler(async (req: Request, res: Response) => {
   }
 });
 
-export { addLandowner };
+const updateLandowner = asyncHandler(async (req: Request, res: Response) => {
+  const { _id: userId } = req.user;
+  const {
+    name,
+    email,
+    password,
+    propertyName,
+    propertyLocation,
+    propertySize,
+    phone,
+  } = req.body;
+
+  const file = req.file;
+
+  if (!file) {
+    throw new ApiError(400, 'No file uploaded');
+  }
+
+  // Start a transaction
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    // Check if user exists
+    const user = await User.findById(userId).session(session);
+    if (!user) {
+      throw new ApiError(404, 'User does not exist!');
+    }
+
+    // Update user details
+    await updateUserDetails(
+      userId,
+      ROLES.LANDOWNER,
+      { name, email, password, phone },
+      session
+    );
+
+    // Check if property exists
+    const [property] = await findOrUpdateProperty(
+      propertyName,
+      propertyLocation,
+      propertySize,
+      file,
+      userId,
+      session
+    );
+
+    // Fetch updated property details
+    const userWithProperty = await fetchPopulatedProperty(
+      property._id,
+      session
+    );
+
+    // Commit transaction
+    await session.commitTransaction();
+
+    // Send response
+    res
+      .status(200)
+      .json(
+        new ApiResponse(
+          200,
+          userWithProperty,
+          property.isNew
+            ? 'Property created successfully!'
+            : 'Property updated successfully!'
+        )
+      );
+  } catch (error: any) {
+    // Rollback transaction
+    await session.abortTransaction();
+    throw new ApiError(500, error.message || 'Failed to update property!');
+  } finally {
+    // End session
+    session.endSession();
+  }
+});
+
+export { addLandowner, updateLandowner };

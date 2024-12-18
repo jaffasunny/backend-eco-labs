@@ -17,3 +17,5 @@ export enum ROLES {
   RESEARCHER = 'researcher',
   UNIVERSITY = 'university',
 }
+
+export type RoleType = `${ROLES}`;
