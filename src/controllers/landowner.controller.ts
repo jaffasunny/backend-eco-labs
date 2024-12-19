@@ -140,7 +140,9 @@ const updateLandowner = asyncHandler(async (req: Request, res: Response) => {
 
 const paginatedLandownerData = asyncHandler(
   async (req: Request, res: Response) => {
-    const { page = 1, limit = 10, search = '' } = req.query;
+    const { page = 1, limit = 10, search = '', assigned = null } = req.query;
+
+    const assignedFilter = assigned === 'true';
 
     const options = {
       page,
@@ -160,9 +162,18 @@ const paginatedLandownerData = asyncHandler(
         }
       : {};
 
+    const matchQuery = assigned
+      ? {
+          assigned: assignedFilter,
+          ...searchQuery,
+        }
+      : {
+          ...searchQuery,
+        };
+
     const aggregateLandownerData = User.aggregate([
       {
-        $match: { roles: ROLES.LANDOWNER },
+        $match: { roles: ROLES.LANDOWNER, ...searchQuery },
       },
       {
         $lookup: {
@@ -180,7 +191,7 @@ const paginatedLandownerData = asyncHandler(
       },
       {
         $addFields: {
-          sumOfDocs: {
+          numOfDocs: {
             $size: {
               $ifNull: ['$properties.landAssessmentReport', []],
             },
@@ -216,9 +227,7 @@ const paginatedLandownerData = asyncHandler(
         },
       },
       {
-        $match: {
-          ...searchQuery,
-        },
+        $match: matchQuery,
       },
     ]);
 

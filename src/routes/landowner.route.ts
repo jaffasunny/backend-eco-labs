@@ -23,7 +23,7 @@ router
   .post(addLandownerValidation, validateRequest, authMiddleware, addLandowner);
 
 router
-  .route(':id')
+  .route('/:id')
   .put(
     upload.array('files', 5),
     updateLandownerValidation,
