@@ -1,9 +1,10 @@
-import mongoose, { Schema } from 'mongoose';
+import mongoose, { PaginateModel, Schema } from 'mongoose';
 import bcrypt from 'bcrypt';
 import { ApiError } from '../utils/ApiError';
 import jwt from 'jsonwebtoken';
 import { IUser } from '../types/userTypes';
 import { ROLES } from './../constants';
+import aggregatePaginate from 'mongoose-aggregate-paginate-v2';
 
 const userSchema = new Schema<IUser>(
   {
@@ -84,4 +85,9 @@ userSchema.methods.generateRefreshToken = function () {
   );
 };
 
-export const User = mongoose.model<IUser>('User', userSchema);
+userSchema.plugin(aggregatePaginate);
+
+export const User = mongoose.model<IUser, PaginateModel<IUser>>(
+  'User',
+  userSchema
+);

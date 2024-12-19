@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import {
   addLandowner,
+  paginatedLandownerData,
   updateLandowner,
 } from '../controllers/landowner.controller';
 import { authMiddleware } from '../middlewares/auth.middleware';
@@ -18,7 +19,7 @@ router
   .post(addLandownerValidation, validateRequest, authMiddleware, addLandowner);
 
 router
-  .route('/landowner')
+  .route('/landowners/:id')
   .put(
     upload.array('files', 5),
     updateLandownerValidation,
@@ -26,5 +27,7 @@ router
     authMiddleware,
     updateLandowner
   );
+
+router.route('/landowners').get(authMiddleware, paginatedLandownerData);
 
 export default router;

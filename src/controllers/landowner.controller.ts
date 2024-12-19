@@ -59,7 +59,7 @@ const addLandowner = asyncHandler(async (req: Request, res: Response) => {
 });
 
 const updateLandowner = asyncHandler(async (req: Request, res: Response) => {
-  const { _id: userId } = req.user;
+  const { id: userId } = req.params;
   const {
     name,
     email,
@@ -138,4 +138,87 @@ const updateLandowner = asyncHandler(async (req: Request, res: Response) => {
   }
 });
 
-export { addLandowner, updateLandowner };
+const paginatedLandownerData = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { page = 1, limit = 10 } = req.query;
+
+    const options = {
+      page,
+      limit,
+    };
+
+    const aggregateLandownerData = User.aggregate([
+      {
+        $match: { roles: ROLES.LANDOWNER },
+      },
+      {
+        $lookup: {
+          from: 'properties',
+          localField: '_id',
+          foreignField: 'landowner',
+          as: 'properties',
+        },
+      },
+      {
+        $unwind: {
+          path: '$properties',
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $addFields: {
+          sumOfDocs: {
+            // Calculate the sum of landAssessmentReport documents
+            $size: '$properties.landAssessmentReport',
+          },
+          assigned: {
+            $gt: [{ $size: '$properties.landAssessmentReport' }, 0],
+          },
+        },
+      },
+
+      {
+        $project: {
+          name: 1,
+          email: 1,
+          phone: 1,
+          properties: {
+            // Only include relevant property fields
+            propertyName: 1,
+            propertyLocation: 1,
+            propertySize: 1,
+            landAssessmentReport: 1,
+            property: 1,
+          },
+          sumOfDocs: 1,
+          assigned: 1,
+          createdAt: 1,
+        },
+      },
+    ]);
+
+    const result = await User.aggregatePaginate(
+      aggregateLandownerData,
+      options
+    );
+
+    const { docs, ...rest } = result;
+
+    const renamedResult = {
+      landowners: docs,
+      ...rest,
+    };
+
+    res
+      .status(200)
+      .json(
+        new ApiResponse(
+          200,
+          renamedResult,
+          'Paginated data fetched successfully'
+        )
+      );
+  }
+);
+
+export { addLandowner, updateLandowner, paginatedLandownerData };
