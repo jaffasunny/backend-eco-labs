@@ -33,6 +33,10 @@ const userSchema = new Schema<IUser>(
       type: String,
       default: '',
     },
+    isArchived: {
+      type: Boolean,
+      default: false,
+    },
     refreshTokens: [{ token: String }],
   },
   {

@@ -1,4 +1,4 @@
-import { body, check } from 'express-validator';
+import { body, check, param } from 'express-validator';
 
 export const addLandownerValidation = [
   // Validate email
@@ -60,7 +60,7 @@ export const updateLandownerValidation = [
     if (!req.files || !req.files.length) {
       throw new Error('Atleast one file is required');
     }
-    
+
     // Check file type
     const allowedTypes = [
       'application/pdf',
@@ -85,4 +85,11 @@ export const updateLandownerValidation = [
 
     return true;
   }),
+];
+
+export const archiveLandownerValidation = [
+  param('id')
+    .trim()
+    .notEmpty()
+    .withMessage('Landowner Id is required'),
 ];

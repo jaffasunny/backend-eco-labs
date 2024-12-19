@@ -33,3 +33,7 @@ export const transformPaginatedResponse = (
 
   return renamedResult;
 };
+
+export const isValidObjectId = (id: string) => {
+  return mongoose.Types.ObjectId.isValid(id);
+};

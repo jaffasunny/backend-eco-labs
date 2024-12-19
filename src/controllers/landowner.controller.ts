@@ -6,7 +6,7 @@ import { ApiResponse } from '../utils/ApiResponse';
 import { asyncHandler } from '../utils/asyncHandler';
 import sendEmail from '../utils/sendMail';
 import { ROLES } from '../constants';
-import mongoose from 'mongoose';
+import mongoose, { isValidObjectId } from 'mongoose';
 import { updateUserDetails } from '../services/user.service';
 import {
   fetchPopulatedProperty,
@@ -210,6 +210,7 @@ const paginatedLandownerData = asyncHandler(
             property: 1,
           },
           numOfDocs: 1,
+          isArchived: 1,
           assigned: 1,
           createdAt: 1,
         },
@@ -240,4 +241,40 @@ const paginatedLandownerData = asyncHandler(
   }
 );
 
-export { addLandowner, updateLandowner, paginatedLandownerData };
+const archiveLandowner = asyncHandler(async (req: Request, res: Response) => {
+  const { id: landownerId } = req.params;
+
+  if (!landownerId || !isValidObjectId(landownerId)) {
+    return res
+      .status(201)
+      .json(new ApiError(400, `Please enter a valid landowner id!`));
+  }
+
+  const archivedLandowner = await User.findByIdAndUpdate(
+    {
+      _id: landownerId,
+    },
+    {
+      isArchived: true,
+    }
+  );
+
+  if (!archivedLandowner) {
+    return res
+      .status(201)
+      .json(
+        new ApiError(400, `Something went wrong while archiving landowner!`)
+      );
+  }
+
+  res
+    .status(200)
+    .json(new ApiResponse(200, 'Landowner archived successfully!'));
+});
+
+export {
+  addLandowner,
+  updateLandowner,
+  paginatedLandownerData,
+  archiveLandowner,
+};
