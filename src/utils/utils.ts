@@ -1,5 +1,6 @@
 import cloudinary from 'cloudinary';
 import DataURIParser from 'datauri/parser';
+import mongoose from 'mongoose';
 
 export const uploadCloudinary = async (fileUri: DataURIParser) => {
   const mycloud = await cloudinary.v2.uploader.upload(
@@ -17,4 +18,18 @@ export const generatePassword = () => {
     password += chars[Math.floor(Math.random() * chars.length)];
   }
   return password;
+};
+
+export const transformPaginatedResponse = (
+  result: mongoose.AggregatePaginateResult<any>
+) => {
+  const { docs, totalDocs, ...rest } = result;
+
+  const renamedResult = {
+    landowners: docs,
+    totalItems: totalDocs,
+    ...rest,
+  };
+
+  return renamedResult;
 };

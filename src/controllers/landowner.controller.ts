@@ -1,4 +1,4 @@
-import { generatePassword } from './../utils/utils';
+import { generatePassword, transformPaginatedResponse } from './../utils/utils';
 import { Response, Request } from 'express';
 import { User } from '../models/user.model';
 import { ApiError } from '../utils/ApiError';
@@ -168,22 +168,28 @@ const paginatedLandownerData = asyncHandler(
       {
         $addFields: {
           sumOfDocs: {
-            // Calculate the sum of landAssessmentReport documents
-            $size: '$properties.landAssessmentReport',
+            $size: {
+              $ifNull: ['$properties.landAssessmentReport', []],
+            },
           },
           assigned: {
-            $gt: [{ $size: '$properties.landAssessmentReport' }, 0],
+            $gt: [
+              {
+                $size: {
+                  $ifNull: ['$properties.landAssessmentReport', []],
+                },
+              },
+              0,
+            ],
           },
         },
       },
-
       {
         $project: {
           name: 1,
           email: 1,
           phone: 1,
           properties: {
-            // Only include relevant property fields
             propertyName: 1,
             propertyLocation: 1,
             propertySize: 1,
@@ -202,12 +208,7 @@ const paginatedLandownerData = asyncHandler(
       options
     );
 
-    const { docs, ...rest } = result;
-
-    const renamedResult = {
-      landowners: docs,
-      ...rest,
-    };
+    const renamedResult = transformPaginatedResponse(result);
 
     res
       .status(200)
