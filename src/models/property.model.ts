@@ -1,5 +1,5 @@
-import { IProperty } from 'interface/property.interface';
 import mongoose, { Schema } from 'mongoose';
+import { IProperty } from '../interface/property.interface';
 
 const propertySchema = new Schema<IProperty>(
   {
@@ -18,16 +18,18 @@ const propertySchema = new Schema<IProperty>(
       required: true,
       trim: true,
     },
-    landAssessmentReport: {
-      public_id: {
-        type: String,
-        required: true,
+    landAssessmentReport: [
+      {
+        public_id: {
+          type: String,
+          required: true,
+        },
+        url: {
+          type: String,
+          required: true,
+        },
       },
-      url: {
-        type: String,
-        required: true,
-      },
-    },
+    ],
     landowner: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   },
   {

@@ -70,10 +70,10 @@ const updateLandowner = asyncHandler(async (req: Request, res: Response) => {
     phone,
   } = req.body;
 
-  const file = req.file;
+  const files = req.files as Express.Multer.File[];
 
-  if (!file) {
-    throw new ApiError(400, 'No file uploaded');
+  if (!files || !files.length) {
+    throw new ApiError(400, 'No files uploaded');
   }
 
   // Start a transaction
@@ -96,36 +96,38 @@ const updateLandowner = asyncHandler(async (req: Request, res: Response) => {
     );
 
     // Check if property exists
-    const [property] = await findOrUpdateProperty(
+    const property = await findOrUpdateProperty(
       propertyName,
       propertyLocation,
       propertySize,
-      file,
+      files,
       userId,
       session
     );
 
-    // Fetch updated property details
-    const userWithProperty = await fetchPopulatedProperty(
-      property._id,
-      session
-    );
-
-    // Commit transaction
-    await session.commitTransaction();
-
-    // Send response
-    res
-      .status(200)
-      .json(
-        new ApiResponse(
-          200,
-          userWithProperty,
-          property.isNew
-            ? 'Property created successfully!'
-            : 'Property updated successfully!'
-        )
+    if (property) {
+      // Fetch updated property details
+      const userWithProperty = await fetchPopulatedProperty(
+        property._id.toString(),
+        session
       );
+
+      // Commit transaction
+      await session.commitTransaction();
+
+      // Send response
+      res
+        .status(200)
+        .json(
+          new ApiResponse(
+            200,
+            userWithProperty,
+            property.isNew
+              ? 'Property created successfully!'
+              : 'Property updated successfully!'
+          )
+        );
+    }
   } catch (error: any) {
     // Rollback transaction
     await session.abortTransaction();

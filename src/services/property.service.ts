@@ -6,7 +6,7 @@ const findOrUpdateProperty = async (
   propertyName: string,
   propertyLocation: string,
   propertySize: string,
-  file: Express.Multer.File,
+  files: Express.Multer.File[],
   userId: string,
   session: ClientSession
 ) => {
@@ -19,29 +19,30 @@ const findOrUpdateProperty = async (
     // Update existing property
     property.propertyLocation = propertyLocation;
     property.propertySize = propertySize;
-    property.landAssessmentReport = {
+    property.landAssessmentReport = files.map((file) => ({
       url: file.path,
       public_id: file.filename,
-    };
+    }));
     await property.save({ session });
     property.isNew = false; // Flag for response
   } else {
     // Create a new property
-    property = await Property.create(
+    const [createdProperty] = await Property.create(
       [
         {
           propertyName,
           propertyLocation,
           propertySize,
-          landAssessmentReport: {
+          landAssessmentReport: files.map((file) => ({
             url: file.path,
             public_id: file.filename,
-          },
+          })),
           landowner: userId,
         },
       ],
       { session }
     );
+    property = createdProperty;
     property.isNew = true; // Flag for response
   }
   return property;

@@ -5,10 +5,7 @@ import {
 } from '../controllers/landowner.controller';
 import { authMiddleware } from '../middlewares/auth.middleware';
 import upload from '../middlewares/multer';
-import {
-  uploadAndValidateRequest,
-  validateRequest,
-} from '../middlewares/validateRequest';
+import { validateRequest } from '../middlewares/validateRequest';
 import {
   addLandownerValidation,
   updateLandownerValidation,
@@ -18,19 +15,16 @@ const router = Router();
 
 router
   .route('/add-landowner')
-  .post(
-    uploadAndValidateRequest,
+  .post(addLandownerValidation, validateRequest, authMiddleware, addLandowner);
+
+router
+  .route('/landowner')
+  .put(
+    upload.array('files', 5),
+    updateLandownerValidation,
     validateRequest,
     authMiddleware,
-    addLandowner
+    updateLandowner
   );
-
-router.route('/landowner').put(
-  // updateLandownerValidation,
-  // validateRequest,
-  authMiddleware,
-  upload.single('file'),
-  updateLandowner
-);
 
 export default router;
