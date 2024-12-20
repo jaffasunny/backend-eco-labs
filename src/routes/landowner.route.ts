@@ -2,6 +2,7 @@ import { Router } from 'express';
 import {
   addLandowner,
   archiveLandowner,
+  deleteLandowner,
   paginatedLandownerData,
   updateLandowner,
 } from '../controllers/landowner.controller';
@@ -30,6 +31,12 @@ router
     validateRequest,
     authMiddleware,
     updateLandowner
+  )
+  .delete(
+    archiveLandownerValidation,
+    validateRequest,
+    authMiddleware,
+    deleteLandowner
   );
 
 router

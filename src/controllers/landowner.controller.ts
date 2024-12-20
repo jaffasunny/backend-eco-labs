@@ -278,7 +278,41 @@ const archiveLandowner = asyncHandler(async (req: Request, res: Response) => {
 
   res
     .status(200)
-    .json(new ApiResponse(200, 'Landowner archived successfully!'));
+    .json(
+      new ApiResponse(
+        200,
+        archivedLandowner,
+        'Landowner archived successfully!'
+      )
+    );
+});
+
+const deleteLandowner = asyncHandler(async (req: Request, res: Response) => {
+  const { id: landownerId } = req.params;
+
+  if (!landownerId || !isValidObjectId(landownerId)) {
+    return res
+      .status(201)
+      .json(new ApiError(400, `Please enter a valid landowner id!`));
+  }
+
+  const deletedLandowner = await User.findByIdAndDelete({
+    _id: landownerId,
+  });
+
+  if (!deletedLandowner) {
+    return res
+      .status(201)
+      .json(
+        new ApiError(400, `Something went wrong while deleting landowner!`)
+      );
+  }
+
+  res
+    .status(200)
+    .json(
+      new ApiResponse(200, deletedLandowner, 'Landowner deleted successfully!')
+    );
 });
 
 export {
@@ -286,4 +320,5 @@ export {
   updateLandowner,
   paginatedLandownerData,
   archiveLandowner,
+  deleteLandowner,
 };
