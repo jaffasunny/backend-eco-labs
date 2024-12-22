@@ -2,11 +2,11 @@
   "name": "backend-eco-labs",
   "version": "1.0.0",
   "description": "This is a backend application!!!",
-  "main": "dist/index.js",
+  "main": "../dist/index.js",
   "scripts": {
     "build": "npx tsc && tsc-alias",
     "dev": "nodemon",
-    "start": "node dist/index.ts",
+    "start": "node ../dist/index.ts",
     "prettier": "npx prettier . --write",
     "github": "./github.sh"
   },
