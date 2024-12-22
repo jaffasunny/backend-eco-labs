@@ -185,7 +185,7 @@ const refreshAccessToken = asyncHandler(async (req: Request, res: Response) => {
     }
 
     const matchingRefreshToken = user.refreshTokens.find(
-      (token) => token.token === incomingRefreshToken
+      (token: any) => token.token === incomingRefreshToken
     );
 
     if (!matchingRefreshToken) {
@@ -193,7 +193,7 @@ const refreshAccessToken = asyncHandler(async (req: Request, res: Response) => {
     }
 
     user.refreshTokens = user.refreshTokens.filter(
-      (token) => token.token !== incomingRefreshToken
+      (token: any) => token.token !== incomingRefreshToken
     );
 
     const options = {

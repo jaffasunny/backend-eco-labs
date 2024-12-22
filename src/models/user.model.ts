@@ -2,7 +2,7 @@ import mongoose, { PaginateModel, Schema } from 'mongoose';
 import bcrypt from 'bcrypt';
 import { ApiError } from '../utils/ApiError.js';
 import jwt from 'jsonwebtoken';
-import { IUser } from '../types/userTypes.js';
+import { IUser } from '../types/userTypes/index.js';
 import { ROLES } from './../constants.js';
 import aggregatePaginate from 'mongoose-aggregate-paginate-v2';
 
