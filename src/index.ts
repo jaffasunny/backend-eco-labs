@@ -1,6 +1,6 @@
 import cloudinary from 'cloudinary';
 import 'dotenv/config';
-import connectDB from './db/index';
+import connectDB from './db';
 import { app } from './app';
 
 const PORT = process.env.PORT || 8000;
