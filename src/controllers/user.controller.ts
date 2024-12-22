@@ -1,9 +1,9 @@
-import { ApiError } from '../utils/ApiError';
-import { ApiResponse } from '../utils/ApiResponse';
-import { asyncHandler } from '../utils/asyncHandler';
-import { User } from '../models/user.model';
-import { ResetPasswordToken } from '../models/resetPasswordToken.model';
-import sendEmail from '../utils/sendMail';
+import { ApiError } from '../utils/ApiError.js';
+import { ApiResponse } from '../utils/ApiResponse.js';
+import { asyncHandler } from '../utils/asyncHandler.js';
+import { User } from '../models/user.model.js';
+import { ResetPasswordToken } from '../models/resetPasswordToken.model.js';
+import sendEmail from '../utils/sendMail.js';
 import { Request, Response } from 'express';
 
 // Generate New Refresh Token and Access Token

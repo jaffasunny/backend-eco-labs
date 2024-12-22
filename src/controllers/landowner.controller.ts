@@ -1,13 +1,16 @@
-import { generatePassword, transformPaginatedResponse } from './../utils/utils';
+import {
+  generatePassword,
+  transformPaginatedResponse,
+} from './../utils/utils.js';
 import { Response, Request } from 'express';
-import { User } from '../models/user.model';
-import { ApiError } from '../utils/ApiError';
-import { ApiResponse } from '../utils/ApiResponse';
-import { asyncHandler } from '../utils/asyncHandler';
-import sendEmail from '../utils/sendMail';
-import { ROLES } from '../constants';
+import { User } from '../models/user.model.js';
+import { ApiError } from '../utils/ApiError.js';
+import { ApiResponse } from '../utils/ApiResponse.js';
+import { asyncHandler } from '../utils/asyncHandler.js';
+import sendEmail from '../utils/sendMail.js';
+import { ROLES } from '../constants.js';
 import mongoose, { isValidObjectId } from 'mongoose';
-import { updateUserDetails } from '../services/user.service';
+import { updateUserDetails } from '../services/user.service.js';
 import {
   fetchPopulatedProperty,
   findOrUpdateProperty,
