@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import { validationResult } from 'express-validator';
-import { updateLandownerValidation } from '../utils/validations/landownerValidations';
-import upload from './multer';
+import { updateLandownerValidation } from '../utils/validations/landownerValidations.js';
+import upload from './multer.js';
 
 const validateRequest = (req: Request, res: Response, next: NextFunction) => {
   const errors = validationResult(req);
