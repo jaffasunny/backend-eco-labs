@@ -14,7 +14,7 @@ import { updateUserDetails } from '../services/user.service.js';
 import {
   fetchPopulatedProperty,
   findOrUpdateProperty,
-} from '../services/property.service';
+} from '../services/property.service.js';
 
 // Add Landowner by email
 const addLandowner = asyncHandler(async (req: Request, res: Response) => {
