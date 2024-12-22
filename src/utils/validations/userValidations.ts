@@ -1,6 +1,6 @@
 // validations/userValidation.js
 import { body } from 'express-validator';
-import { ROLES } from '../../constants';
+import { ROLES } from '../../constants.js';
 
 export const registerUserValidation = [
   body('name')
