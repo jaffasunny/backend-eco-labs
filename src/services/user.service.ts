@@ -1,6 +1,6 @@
-import { ROLES, RoleType } from './../constants';
+import { ROLES, RoleType } from './../constants.js';
 import { ClientSession } from 'mongoose';
-import { User } from '../models/user.model';
+import { User } from '../models/user.model.js';
 
 const updateUserDetails = async (
   userId: string,

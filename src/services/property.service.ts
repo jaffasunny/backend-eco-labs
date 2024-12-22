@@ -1,6 +1,6 @@
 import { ClientSession } from 'mongoose';
-import { Property } from '../models/property.model';
-import { ApiError } from '../utils/ApiError';
+import { Property } from '../models/property.model.js';
+import { ApiError } from '../utils/ApiError.js';
 
 const findOrUpdateProperty = async (
   propertyName: string,
