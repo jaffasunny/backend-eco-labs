@@ -1,5 +1,5 @@
-import { User } from './../models/user.model';
-import { ROLES } from '../constants';
+import { User } from './../models/user.model.js';
+import { ROLES } from '../constants.js';
 
 export const seedSuperAdmin = async () => {
   try {

@@ -1,9 +1,9 @@
 import mongoose, { PaginateModel, Schema } from 'mongoose';
 import bcrypt from 'bcrypt';
-import { ApiError } from '../utils/ApiError';
+import { ApiError } from '../utils/ApiError.js';
 import jwt from 'jsonwebtoken';
-import { IUser } from '../types/userTypes';
-import { ROLES } from './../constants';
+import { IUser } from '../types/userTypes.js';
+import { ROLES } from './../constants.js';
 import aggregatePaginate from 'mongoose-aggregate-paginate-v2';
 
 const userSchema = new Schema<IUser>(

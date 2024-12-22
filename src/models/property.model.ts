@@ -1,5 +1,5 @@
 import mongoose, { Schema } from 'mongoose';
-import { IProperty } from '../interface/property.interface';
+import { IProperty } from '../interface/property.interface.js';
 
 const propertySchema = new Schema<IProperty>(
   {
