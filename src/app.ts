@@ -1,8 +1,8 @@
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
-import { TCorsOptions } from './types';
-import { seedSuperAdmin } from './utils/seeder';
+import { TCorsOptions } from './types/index.js';
+import { seedSuperAdmin } from './utils/seeder.js';
 
 const corsOptions: TCorsOptions = {
   origin: process.env.CORS_ORIGIN as string,
@@ -26,8 +26,8 @@ app.use(express.static('public'));
 app.use(cookieParser());
 
 // routes import
-import userRouter from './routes/user.route';
-import landownerRouter from './routes/landowner.route';
+import userRouter from './routes/user.route.js';
+import landownerRouter from './routes/landowner.route.js';
 
 // routes declaration
 app.get('/', (req, res) => {

@@ -5,10 +5,10 @@ import {
   deleteLandowner,
   paginatedLandownerData,
   updateLandowner,
-} from '../controllers/landowner.controller';
-import { authMiddleware } from '../middlewares/auth.middleware';
-import upload from '../middlewares/multer';
-import { validateRequest } from '../middlewares/validateRequest';
+} from '../controllers/landowner.controller.js';
+import { authMiddleware } from '../middlewares/auth.middleware.js';
+import upload from '../middlewares/multer.js';
+import { validateRequest } from '../middlewares/validateRequest.js';
 import {
   addLandownerValidation,
   archiveLandownerValidation,
