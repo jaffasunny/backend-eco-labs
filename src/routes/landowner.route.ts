@@ -13,7 +13,7 @@ import {
   addLandownerValidation,
   archiveLandownerValidation,
   updateLandownerValidation,
-} from '../utils/validations/landownerValidations';
+} from '../utils/validations/landownerValidations.js';
 
 const router = Router();
 
