@@ -1,7 +1,7 @@
 import aggregatePaginate from 'mongoose-aggregate-paginate-v2';
 import mongoose, { PaginateModel, Schema } from 'mongoose';
-import { IBids } from '../interface/bids.interface';
-import { PROPOSAL_STATUS } from '../constants';
+import { IBids } from '../interface/bids.interface.js';
+import { PROPOSAL_STATUS } from '../constants.js';
 
 const bidsSchema = new Schema<IBids>(
   {
