@@ -1,5 +1,5 @@
 import { body, param } from 'express-validator';
-import { PROPOSAL_STATUS } from '../../constants';
+import { PROPOSAL_STATUS } from '../../constants.js';
 
 export const placeBidResearchValidations = [
   param('id').trim().notEmpty().withMessage('Landowner Id is required'),

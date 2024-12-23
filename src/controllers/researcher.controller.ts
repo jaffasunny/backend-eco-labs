@@ -1,11 +1,10 @@
 import { Request, Response } from 'express';
-import { asyncHandler } from '../utils/asyncHandler';
-import { User } from '../models/user.model';
-import { isValidObjectId, transformPaginatedResponse } from '../utils/utils';
-import { ApiResponse } from '../utils/ApiResponse';
-import { ApiError } from '../utils/ApiError';
-import { Property } from '../models/property.model';
-import { Bids } from '../models/bids.model';
+import { asyncHandler } from '../utils/asyncHandler.js';
+import { isValidObjectId, transformPaginatedResponse } from '../utils/utils.js';
+import { ApiResponse } from '../utils/ApiResponse.js';
+import { ApiError } from '../utils/ApiError.js';
+import { Property } from '../models/property.model.js';
+import { Bids } from '../models/bids.model.js';
 
 const paginatedResearcherReportData = asyncHandler(
   async (req: Request, res: Response) => {
