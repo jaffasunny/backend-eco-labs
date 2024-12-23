@@ -176,7 +176,7 @@ const paginatedLandownerData = asyncHandler(
 
     const aggregateLandownerData = User.aggregate([
       {
-        $match: { roles: ROLES.LANDOWNER, ...searchQuery },
+        $match: { roles: ROLES.LANDOWNER },
       },
       {
         $lookup: {
@@ -239,7 +239,7 @@ const paginatedLandownerData = asyncHandler(
       options
     );
 
-    const renamedResult = transformPaginatedResponse(result);
+    const renamedResult = transformPaginatedResponse(result, 'landowner');
 
     res
       .status(200)

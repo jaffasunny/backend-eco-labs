@@ -43,17 +43,6 @@ const authMiddleware = asyncHandler(
   }
 );
 
-const roleCheck = (role: string) => {
-  return (req: Request, res: Response, next: NextFunction) => {
-    if (!req.user.roles.includes(role)) {
-      return res
-        .status(403)
-        .json(new ApiResponse(403, 'Access denied, Incorrect role!'));
-    }
-    next();
-  };
-};
-
 // Verify refresh tokens
 const verifyRefreshToken = async (
   req: Request,
@@ -78,4 +67,4 @@ const verifyRefreshToken = async (
   }
 };
 
-export { authMiddleware, roleCheck, verifyRefreshToken };
+export { authMiddleware, verifyRefreshToken };

@@ -18,4 +18,11 @@ export enum ROLES {
   UNIVERSITY = 'university',
 }
 
+export enum PROPOSAL_STATUS {
+  PENDING = 'pending',
+  APPROVED = 'approved',
+  REJECTED = 'rejected',
+  NOTSENT = 'not-sent',
+}
+
 export type RoleType = `${ROLES}`;
