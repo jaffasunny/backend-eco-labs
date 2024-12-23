@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
-import { ApiResponse } from '../utils/ApiResponse';
-import { ROLES, RoleType } from '../constants';
+import { ApiResponse } from '../utils/ApiResponse.js';
+import { ROLES, RoleType } from '../constants.js';
 
 const roleCheck = (role: RoleType) => {
   return (req: Request, res: Response, next: NextFunction) => {
