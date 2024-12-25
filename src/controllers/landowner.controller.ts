@@ -253,6 +253,115 @@ const paginatedLandownerData = asyncHandler(
   }
 );
 
+const paginatedReportData = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { page = 1, limit = 10, search = '', assigned = null } = req.query;
+
+    const assignedFilter = assigned === 'true';
+
+    const options = {
+      page,
+      limit,
+    };
+
+    const searchQuery = search
+      ? {
+          $or: [
+            { name: { $regex: search, $options: 'i' } },
+            { email: { $regex: search, $options: 'i' } },
+            { 'properties.propertyName': { $regex: search, $options: 'i' } },
+            {
+              'properties.propertyLocation': { $regex: search, $options: 'i' },
+            },
+          ],
+        }
+      : {};
+
+    const matchQuery = assigned
+      ? {
+          assigned: assignedFilter,
+          ...searchQuery,
+        }
+      : {
+          ...searchQuery,
+        };
+
+    const aggregateLandownerData = User.aggregate([
+      {
+        $lookup: {
+          from: 'properties',
+          localField: '_id',
+          foreignField: 'landowner',
+          as: 'properties',
+        },
+      },
+      {
+        $unwind: {
+          path: '$properties',
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $addFields: {
+          numOfDocs: {
+            $size: {
+              $ifNull: ['$properties.landAssessmentReport', []],
+            },
+          },
+          assigned: {
+            $gt: [
+              {
+                $size: {
+                  $ifNull: ['$properties.landAssessmentReport', []],
+                },
+              },
+              0,
+            ],
+          },
+        },
+      },
+      {
+        $project: {
+          name: 1,
+          email: 1,
+          phone: 1,
+          properties: {
+            propertyName: 1,
+            propertyLocation: 1,
+            propertySize: 1,
+            landAssessmentReport: 1,
+            property: 1,
+          },
+          numOfDocs: 1,
+          isArchived: 1,
+          assigned: 1,
+          createdAt: 1,
+        },
+      },
+      {
+        $match: matchQuery,
+      },
+    ]);
+
+    const result = await User.aggregatePaginate(
+      aggregateLandownerData,
+      options
+    );
+
+    const renamedResult = transformPaginatedResponse(result, 'landowner');
+
+    res
+      .status(200)
+      .json(
+        new ApiResponse(
+          200,
+          renamedResult,
+          'Paginated data fetched successfully'
+        )
+      );
+  }
+);
+
 const archiveLandowner = asyncHandler(async (req: Request, res: Response) => {
   const { id: landownerId } = req.params;
 
@@ -324,4 +433,5 @@ export {
   paginatedLandownerData,
   archiveLandowner,
   deleteLandowner,
+  paginatedReportData,
 };

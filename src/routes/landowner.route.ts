@@ -4,6 +4,7 @@ import {
   archiveLandowner,
   deleteLandowner,
   paginatedLandownerData,
+  paginatedReportData,
   updateLandowner,
 } from '../controllers/landowner.controller.js';
 import { authMiddleware } from '../middlewares/auth.middleware.js';
@@ -22,6 +23,10 @@ const router = Router();
 router
   .route('/')
   .get(authMiddleware, roleCheck('landowner'), paginatedLandownerData);
+
+router
+  .route('/reports')
+  .get(authMiddleware, roleCheck('landowner'), paginatedReportData);
 
 router
   .route('/add-landowner')
