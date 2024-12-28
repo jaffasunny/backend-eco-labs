@@ -21,12 +21,13 @@ export const generatePassword = () => {
 };
 
 export const transformPaginatedResponse = (
-  result: mongoose.AggregatePaginateResult<any>
+  result: mongoose.AggregatePaginateResult<any>,
+  docName: string
 ) => {
   const { docs, totalDocs, ...rest } = result;
 
   const renamedResult = {
-    landowners: docs,
+    [docName]: docs,
     totalItems: totalDocs,
     ...rest,
   };

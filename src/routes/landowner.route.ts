@@ -12,16 +12,26 @@ import { validateRequest } from '../middlewares/validateRequest.js';
 import {
   addLandownerValidation,
   archiveLandownerValidation,
+  deleteLandownerValidation,
   updateLandownerValidation,
 } from '../utils/validations/landownerValidations.js';
+import { roleCheck } from '../middlewares/roles.middleware.js';
 
 const router = Router();
 
-router.route('/').get(authMiddleware, paginatedLandownerData);
+router
+  .route('/')
+  .get(authMiddleware, roleCheck('landowner'), paginatedLandownerData);
 
 router
   .route('/add-landowner')
-  .post(addLandownerValidation, validateRequest, authMiddleware, addLandowner);
+  .post(
+    addLandownerValidation,
+    validateRequest,
+    authMiddleware,
+    roleCheck('landowner'),
+    addLandowner
+  );
 
 router
   .route('/:id')
@@ -30,12 +40,14 @@ router
     updateLandownerValidation,
     validateRequest,
     authMiddleware,
+    roleCheck('landowner'),
     updateLandowner
   )
   .delete(
-    archiveLandownerValidation,
+    deleteLandownerValidation,
     validateRequest,
     authMiddleware,
+    roleCheck('landowner'),
     deleteLandowner
   );
 
@@ -45,6 +57,7 @@ router
     archiveLandownerValidation,
     validateRequest,
     authMiddleware,
+    roleCheck('landowner'),
     archiveLandowner
   );
 

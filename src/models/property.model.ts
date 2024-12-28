@@ -1,4 +1,5 @@
-import mongoose, { Schema } from 'mongoose';
+import aggregatePaginate from 'mongoose-aggregate-paginate-v2';
+import mongoose, { PaginateModel, Schema } from 'mongoose';
 import { IProperty } from '../interface/property.interface.js';
 
 const propertySchema = new Schema<IProperty>(
@@ -37,4 +38,6 @@ const propertySchema = new Schema<IProperty>(
   }
 );
 
-export const Property = mongoose.model<IProperty>('Property', propertySchema);
+propertySchema.plugin(aggregatePaginate);
+
+export const Property = mongoose.model<IProperty, PaginateModel<IProperty>>('Property', propertySchema);

@@ -87,6 +87,13 @@ export const updateLandownerValidation = [
   }),
 ];
 
+export const deleteLandownerValidation = [
+  param('id')
+    .trim()
+    .notEmpty()
+    .withMessage('Landowner Id is required'),
+];
+
 export const archiveLandownerValidation = [
   param('id')
     .trim()
