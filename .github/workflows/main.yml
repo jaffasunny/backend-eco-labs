@@ -3,17 +3,23 @@ name: Deploy to Render
 on:
   push:
     branches:
-      - main # Adjust if you want to deploy from a different branch
+      - main
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      # Step 1: Checkout the code
+      # Step 1: Check out the code
       - name: Checkout Code
         uses: actions/checkout@v3
 
-      # Step 2: Trigger Render deployment
+      # Step 2: Install dependencies and build
+      - name: Install and Build
+        run: |
+          npm install
+          npm run build # Replace with your build command if different
+
+      # Step 3: Trigger Render Deployment
       - name: Deploy to Render
         env:
           RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
