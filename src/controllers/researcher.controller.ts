@@ -70,7 +70,7 @@ const paginatedResearchers = asyncHandler(
         new ApiResponse(
           200,
           renamedResult,
-          'Paginated data fetched successfully helloooo'
+          'Paginated data fetched successfully'
         )
       );
   }
