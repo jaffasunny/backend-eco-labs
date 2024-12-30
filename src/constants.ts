@@ -2,6 +2,8 @@ export const DB_NAME: string = 'eco-labs';
 
 export const nameless: string = 'xyz';
 
+export const PLATFORM_NAME: string = 'Eco-Labs';
+
 export const NotificationPayload = (title: string, body: string) => {
   return {
     notification: {
