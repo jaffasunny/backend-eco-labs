@@ -116,9 +116,6 @@ const updateLandowner = asyncHandler(async (req: Request, res: Response) => {
         session
       );
 
-      console.log({ property });
-      console.log('hello world');
-
       // Commit transaction
       await session.commitTransaction();
 
