@@ -109,6 +109,8 @@ const updateLandowner = asyncHandler(async (req: Request, res: Response) => {
       session
     );
 
+    console.log({ property });
+
     if (property) {
       // Fetch updated property details
       const userWithProperty = await fetchPopulatedProperty(
