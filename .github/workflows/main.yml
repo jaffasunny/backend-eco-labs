@@ -1,18 +1,31 @@
-name: My Deploy
+name: Deploy to Render
 
 on:
   push:
-    branches: main
-  pull_request:
-    branches: main
+    branches:
+      - main
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Deploy to production
-        uses: johnbeynon/render-deploy-action@v0.0.8
-        with:
-          service-id: ${{ secrets.RENDER_SERVICE_ID }}
-          api-key: ${{ secrets.RENDER_API_KEY }}
-          wait-for-success: true
+      # Step 1: Check out the code
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      # Step 2: Install dependencies and build
+      - name: Install and Build
+        run: |
+          npm install
+          npm run build # Replace with your build command if different
+
+      # Step 3: Trigger Render Deployment
+      - name: Deploy to Render
+        env:
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+        run: |
+          curl -X POST 
+            -H "Authorization: Bearer $RENDER_API_KEY" 
+            -H "Content-Type: application/json" 
+            -d '{"serviceId": "${{ secrets.RENDER_SERVICE_ID }}"}' 
+            https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID }}/deploys
