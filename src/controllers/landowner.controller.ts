@@ -15,6 +15,7 @@ import {
   fetchPopulatedProperty,
   findOrUpdateProperty,
 } from '../services/property.service.js';
+import { assign } from 'nodemailer/lib/shared/index.js';
 
 // Add Landowner by email
 const addLandowner = asyncHandler(async (req: Request, res: Response) => {
@@ -143,9 +144,23 @@ const updateLandowner = asyncHandler(async (req: Request, res: Response) => {
 
 const paginatedLandownerData = asyncHandler(
   async (req: Request, res: Response) => {
-    const { page = 1, limit = 10, search = '', assigned = null } = req.query;
+    const {
+      page = 1,
+      limit = 10,
+      search = '',
+      isArchived = null,
+      assigned = null,
+    } = req.query;
 
-    const assignedFilter = assigned === 'true';
+    const assignedFilter: Record<string, any> = {};
+
+    if (assigned !== null && assigned !== '') {
+      assignedFilter.assigned = assigned === 'true';
+    }
+
+    if (isArchived !== null && isArchived !== '') {
+      assignedFilter.isArchived = isArchived === 'true';
+    }
 
     const options = {
       page,
@@ -165,10 +180,10 @@ const paginatedLandownerData = asyncHandler(
         }
       : {};
 
-    const matchQuery = assigned
+    const matchQuery = assignedFilter
       ? {
-          assigned: assignedFilter,
           ...searchQuery,
+          ...assignedFilter,
         }
       : {
           ...searchQuery,
@@ -375,9 +390,13 @@ const archiveLandowner = asyncHandler(async (req: Request, res: Response) => {
     {
       _id: landownerId,
     },
-    {
-      isArchived: true,
-    }
+    [
+      {
+        $set: {
+          isArchived: { $not: '$isArchived' },
+        },
+      },
+    ]
   );
 
   if (!archivedLandowner) {

@@ -5,6 +5,7 @@ import { User } from '../models/user.model.js';
 import { ResetPasswordToken } from '../models/resetPasswordToken.model.js';
 import sendEmail from '../utils/sendMail.js';
 import { Request, Response } from 'express';
+import { ROLES } from '../constants.js';
 
 // Generate New Refresh Token and Access Token
 const generateAccessAndRefreshTokens = async (userId: string) => {
@@ -50,13 +51,26 @@ const registerUser = asyncHandler(async (req: Request, res: Response) => {
     throw new ApiError(409, `Username or Email has already been used.`);
   }
 
-  const user = await User.create({
-    name,
-    email,
-    password,
-    roles,
-    phone,
-  });
+  let user = null;
+
+  if (roles === ROLES.RESEARCHER) {
+    user = await User.create({
+      name,
+      email,
+      password,
+      roles,
+      phone,
+      isApproved: false,
+    });
+  } else {
+    user = await User.create({
+      name,
+      email,
+      password,
+      roles,
+      phone,
+    });
+  }
 
   return res
     .status(201)

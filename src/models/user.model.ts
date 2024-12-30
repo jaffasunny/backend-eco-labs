@@ -37,6 +37,10 @@ const userSchema = new Schema<IUser>(
       type: Boolean,
       default: false,
     },
+    isApproved: {
+      type: Boolean,
+      default: true,
+    },
     refreshTokens: [{ token: String }],
   },
   {
@@ -88,6 +92,36 @@ userSchema.methods.generateRefreshToken = function () {
     { expiresIn: process.env.REFRESH_TOKEN_EXPIRY }
   );
 };
+
+userSchema.set('toJSON', {
+  transform: (doc, ret) => {
+    // Remove sensitive fields like password and tokens from the response
+    delete ret.password;
+    delete ret.refreshTokens;
+
+    // Conditionally include `isApproved`
+    if (ret.roles !== ROLES.RESEARCHER) {
+      delete ret.isApproved;
+    }
+
+    return ret;
+  },
+});
+
+userSchema.set('toObject', {
+  transform: (doc, ret) => {
+    // Remove sensitive fields like password and tokens from the response
+    delete ret.password;
+    delete ret.refreshTokens;
+
+    // Conditionally include `isApproved`
+    if (ret.roles !== ROLES.RESEARCHER) {
+      delete ret.isApproved;
+    }
+
+    return ret;
+  },
+});
 
 userSchema.plugin(aggregatePaginate);
 
