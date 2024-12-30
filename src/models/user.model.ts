@@ -3,7 +3,7 @@ import bcrypt from 'bcrypt';
 import { ApiError } from '../utils/ApiError.js';
 import jwt from 'jsonwebtoken';
 import { IUser } from '../types/userTypes/index.js';
-import { ROLES } from './../constants.js';
+import { RESEARCHER_STATUS, ROLES } from './../constants.js';
 import aggregatePaginate from 'mongoose-aggregate-paginate-v2';
 
 const userSchema = new Schema<IUser>(
@@ -33,9 +33,14 @@ const userSchema = new Schema<IUser>(
       type: String,
       default: '',
     },
-    isArchived: {
-      type: Boolean,
-      default: false,
+    status: {
+      type: String,
+      enum: [
+        RESEARCHER_STATUS.PENDING,
+        RESEARCHER_STATUS.APPROVED,
+        RESEARCHER_STATUS.REJECTED,
+      ],
+      default: RESEARCHER_STATUS.PENDING,
     },
     refreshTokens: [{ token: String }],
   },
@@ -88,6 +93,36 @@ userSchema.methods.generateRefreshToken = function () {
     { expiresIn: process.env.REFRESH_TOKEN_EXPIRY }
   );
 };
+
+userSchema.set('toJSON', {
+  transform: (doc, ret) => {
+    // Remove sensitive fields like password and tokens from the response
+    delete ret.password;
+    delete ret.refreshTokens;
+
+    // Conditionally include `isApproved`
+    if (ret.roles !== ROLES.RESEARCHER) {
+      delete ret.isApproved;
+    }
+
+    return ret;
+  },
+});
+
+userSchema.set('toObject', {
+  transform: (doc, ret) => {
+    // Remove sensitive fields like password and tokens from the response
+    delete ret.password;
+    delete ret.refreshTokens;
+
+    // Conditionally include `isApproved`
+    if (ret.roles !== ROLES.RESEARCHER) {
+      delete ret.isApproved;
+    }
+
+    return ret;
+  },
+});
 
 userSchema.plugin(aggregatePaginate);
 

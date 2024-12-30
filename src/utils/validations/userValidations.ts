@@ -21,7 +21,14 @@ export const registerUserValidation = [
     .withMessage('Password must be at least 6 characters long')
     .matches(/\d/)
     .withMessage('Password must contain at least one number'),
-  body('roles').trim().notEmpty().withMessage('Please specify user type'),
+  body('roles')
+    .trim()
+    .notEmpty()
+    .withMessage('Please specify user type')
+    .isIn([ROLES.ADMIN, ROLES.LANDOWNER, ROLES.RESEARCHER, ROLES.UNIVERSITY])
+    .withMessage(
+      'Invalid role. Must be Admin, landowner, researcher, or university'
+    ),
 ];
 
 export const loginUserValidation = [

@@ -5,6 +5,7 @@ import { User } from '../models/user.model.js';
 import { ResetPasswordToken } from '../models/resetPasswordToken.model.js';
 import sendEmail from '../utils/sendMail.js';
 import { Request, Response } from 'express';
+import { RESEARCHER_STATUS, ROLES } from '../constants.js';
 
 // Generate New Refresh Token and Access Token
 const generateAccessAndRefreshTokens = async (userId: string) => {
@@ -50,13 +51,26 @@ const registerUser = asyncHandler(async (req: Request, res: Response) => {
     throw new ApiError(409, `Username or Email has already been used.`);
   }
 
-  const user = await User.create({
-    name,
-    email,
-    password,
-    roles,
-    phone,
-  });
+  let user = null;
+
+  if (roles === ROLES.RESEARCHER) {
+    user = await User.create({
+      name,
+      email,
+      password,
+      roles,
+      phone,
+      isApproved: false,
+    });
+  } else {
+    user = await User.create({
+      name,
+      email,
+      password,
+      roles,
+      phone,
+    });
+  }
 
   return res
     .status(201)
@@ -65,7 +79,7 @@ const registerUser = asyncHandler(async (req: Request, res: Response) => {
 
 // Login
 const loginUser = asyncHandler(async (req: Request, res: Response) => {
-  const { email, password, role } = req.body;
+  const { email, password, roles } = req.body;
 
   if (!email || !password) {
     throw new ApiError(400, 'Please fill all details!');
@@ -89,6 +103,12 @@ const loginUser = asyncHandler(async (req: Request, res: Response) => {
 
   if (!matched) {
     throw new ApiError(401, `Invalid user credentials!`);
+  }
+
+  if (roles && user.roles === ROLES.RESEARCHER) {
+    if (user.status !== RESEARCHER_STATUS.APPROVED) {
+      throw new ApiError(401, `Researcher status is ${user.status}!`);
+    }
   }
 
   // const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET_KEY);

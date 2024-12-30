@@ -5,6 +5,76 @@ import { ApiResponse } from '../utils/ApiResponse.js';
 import { ApiError } from '../utils/ApiError.js';
 import { Property } from '../models/property.model.js';
 import { Bids } from '../models/bids.model.js';
+import { User } from '../models/user.model.js';
+
+const paginatedResearchers = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { page = 1, limit = 10, search = '', isApproved = null } = req.query;
+
+    const assignedFilter: Record<string, any> = {};
+
+    if (isApproved !== null && isApproved !== '') {
+      assignedFilter.isApproved = isApproved === 'true';
+    }
+
+    assignedFilter.roles = 'researcher';
+
+    const options = {
+      page,
+      limit,
+    };
+
+    const searchQuery = search
+      ? {
+          $or: [
+            { name: { $regex: search, $options: 'i' } },
+            { email: { $regex: search, $options: 'i' } },
+            { phone: { $regex: search, $options: 'i' } },
+          ],
+        }
+      : {};
+
+    const matchQuery = assignedFilter
+      ? {
+          ...searchQuery,
+          ...assignedFilter,
+        }
+      : {
+          ...searchQuery,
+        };
+
+    const aggregateResearcherData = User.aggregate([
+      {
+        $match: {
+          ...matchQuery,
+        },
+      },
+      {
+        $project: {
+          refreshTokens: 0,
+          password: 0,
+        },
+      },
+    ]);
+
+    const result = await User.aggregatePaginate(
+      aggregateResearcherData,
+      options
+    );
+
+    const renamedResult = transformPaginatedResponse(result, 'researchers');
+
+    res
+      .status(200)
+      .json(
+        new ApiResponse(
+          200,
+          renamedResult,
+          'Paginated data fetched successfully'
+        )
+      );
+  }
+);
 
 const paginatedResearcherReportData = asyncHandler(
   async (req: Request, res: Response) => {
@@ -160,4 +230,52 @@ const placeBidResearch = asyncHandler(async (req: Request, res: Response) => {
     .json(new ApiResponse(200, createdBid, 'Bid created successfully!'));
 });
 
-export { paginatedResearcherReportData, placeBidResearch };
+const changeResearchersStatus = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { id: researcherId } = req.params;
+    const { status } = req.body;
+
+    if (!researcherId || !isValidObjectId(researcherId)) {
+      return res
+        .status(201)
+        .json(new ApiError(400, `Please enter a valid researcher id!`));
+    }
+
+    const findUser = await User.findById(researcherId);
+
+    if (!findUser) {
+      return res
+        .status(201)
+        .json(new ApiError(400, `Please enter a valid researcher id!`));
+    }
+
+    const updatedUserStatus = await User.findByIdAndUpdate(
+      {
+        _id: researcherId,
+      },
+      { status },
+      {
+        new: true,
+      }
+    );
+
+    if (!updatedUserStatus) {
+      return res
+        .status(201)
+        .json(new ApiError(400, `Something went wrong while updating User!`));
+    }
+
+    res
+      .status(200)
+      .json(
+        new ApiResponse(200, updatedUserStatus, 'User updated successfully!')
+      );
+  }
+);
+
+export {
+  paginatedResearcherReportData,
+  placeBidResearch,
+  paginatedResearchers,
+  changeResearchersStatus,
+};

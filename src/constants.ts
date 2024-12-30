@@ -26,3 +26,11 @@ export enum PROPOSAL_STATUS {
 }
 
 export type RoleType = `${ROLES}`;
+
+export enum RESEARCHER_STATUS {
+  PENDING = 'pending',
+  APPROVED = 'approved',
+  REJECTED = 'rejected',
+}
+
+export type ResearchStatusType = `${RESEARCHER_STATUS}`;
