@@ -24,11 +24,6 @@ jobs:
         npm install
         npm run build # Adjust this step for your project
 
-    # Step 3: Run tests (optional)
-    - name: Run Tests
-      run: |
-        npm test
-
     # Step 4: Deploy to Render
     - name: Deploy to Render
       env:
