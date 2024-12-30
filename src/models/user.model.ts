@@ -3,7 +3,7 @@ import bcrypt from 'bcrypt';
 import { ApiError } from '../utils/ApiError.js';
 import jwt from 'jsonwebtoken';
 import { IUser } from '../types/userTypes/index.js';
-import { ROLES } from './../constants.js';
+import { RESEARCHER_STATUS, ROLES } from './../constants.js';
 import aggregatePaginate from 'mongoose-aggregate-paginate-v2';
 
 const userSchema = new Schema<IUser>(
@@ -33,13 +33,14 @@ const userSchema = new Schema<IUser>(
       type: String,
       default: '',
     },
-    isArchived: {
-      type: Boolean,
-      default: false,
-    },
-    isApproved: {
-      type: Boolean,
-      default: true,
+    status: {
+      type: String,
+      enum: [
+        RESEARCHER_STATUS.PENDING,
+        RESEARCHER_STATUS.APPROVED,
+        RESEARCHER_STATUS.REJECTED,
+      ],
+      default: RESEARCHER_STATUS.PENDING,
     },
     refreshTokens: [{ token: String }],
   },
