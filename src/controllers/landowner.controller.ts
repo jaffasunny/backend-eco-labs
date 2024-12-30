@@ -8,18 +8,17 @@ import { ApiError } from '../utils/ApiError.js';
 import { ApiResponse } from '../utils/ApiResponse.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import sendEmail from '../utils/sendMail.js';
-import { ROLES } from '../constants.js';
+import { PLATFORM_NAME, ROLES } from '../constants.js';
 import mongoose, { isValidObjectId } from 'mongoose';
 import { updateUserDetails } from '../services/user.service.js';
 import {
   fetchPopulatedProperty,
   findOrUpdateProperty,
 } from '../services/property.service.js';
-import { assign } from 'nodemailer/lib/shared/index.js';
 
 // Add Landowner by email
 const addLandowner = asyncHandler(async (req: Request, res: Response) => {
-  const { email } = req.body;
+  const { name, email, phone } = req.body;
 
   const existedUser = await User.findOne({ $or: [{ email }] });
 
@@ -32,8 +31,9 @@ const addLandowner = asyncHandler(async (req: Request, res: Response) => {
   const password = generatePassword();
 
   const user = await User.create({
-    name: 'Auto generated Landowner',
+    name,
     email,
+    phone,
     password,
     roles: ROLES.LANDOWNER,
   });
@@ -43,7 +43,7 @@ const addLandowner = asyncHandler(async (req: Request, res: Response) => {
     await sendEmail(
       email,
       'Your System Generated Password',
-      `Welcome! Here is your system-generated password: ${password}`
+      `Welcome to ${PLATFORM_NAME}! Here is your system-generated password: ${password}`
     );
 
     return res
@@ -52,7 +52,7 @@ const addLandowner = asyncHandler(async (req: Request, res: Response) => {
         new ApiResponse(
           201,
           user,
-          'Email added successfully. Password has been sent to the email.'
+          'Landowner added successfully. Password has been sent to the email.'
         )
       );
   } catch (error: any) {
