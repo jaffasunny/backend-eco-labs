@@ -15,50 +15,75 @@ import {
   fetchPopulatedProperty,
   findOrUpdateProperty,
 } from '../services/property.service.js';
+import { createReportService } from '../services/report.service.js';
+import { IUpdateLandowner } from '../interface/property.interface.js';
+import { findOrUpdateLandowner } from '../services/landowner.service.js';
+import { IAddLandownerParams } from '../interface/landowner.interface.js';
 
 // Add Landowner by email
 const addLandowner = asyncHandler(async (req: Request, res: Response) => {
-  const { name, email, phone } = req.body;
+  const {
+    name,
+    email,
+    phone,
+    propertyName,
+    propertyLocation,
+    propertySize,
+  }: IAddLandownerParams = req.body;
 
-  const existedUser = await User.findOne({ $or: [{ email }] });
-
-  // Check if the email already exists (replace with actual DB logic)
-  if (existedUser) {
-    return res.status(400).json({ message: 'Email already exists' });
-  }
+  // Start a transaction
+  const session = await mongoose.startSession();
+  session.startTransaction();
 
   // Generate system-generated password
   const password = generatePassword();
 
-  const user = await User.create({
+  const landownerData = {
     name,
     email,
     phone,
     password,
     roles: ROLES.LANDOWNER,
-  });
+  };
 
   // Send the password to the user's email
   try {
-    await sendEmail(
+    const user = await findOrUpdateLandowner(landownerData, session);
+
+    const property = await findOrUpdateProperty(
+      propertyName,
+      propertyLocation,
+      propertySize,
+      user._id,
+      session
+    );
+
+    // Commit transaction
+    await session.commitTransaction();
+
+    // Send email asynchronously (outside of transaction)
+    sendEmail(
       email,
       'Your System Generated Password',
       `Welcome to ${PLATFORM_NAME}! Here is your system-generated password: ${password}`
-    );
+    ).catch((err) => console.error('Email sending failed:', err));
 
     return res
       .status(201)
       .json(
         new ApiResponse(
           201,
-          user,
+          { user, property },
           'Landowner added successfully. Password has been sent to the email.'
         )
       );
   } catch (error: any) {
-    return res
-      .status(201)
-      .json(new ApiError(500, `Error sending email ${error.message}`));
+    // Rollback transaction
+    await session.abortTransaction();
+    throw new ApiError(500, error.message || 'Failed to create landowner!');
+  } finally {
+    // End session
+    session.endSession();
   }
 });
 
@@ -71,13 +96,20 @@ const updateLandowner = asyncHandler(async (req: Request, res: Response) => {
     propertyName,
     propertyLocation,
     propertySize,
+    landAssessmentReport,
     phone,
-  } = req.body;
+  }: IUpdateLandowner = req.body;
 
-  const files = req.files as Express.Multer.File[];
+  // const files = req.files as Express.Multer.File[];
 
-  if (!files || !files.length) {
-    throw new ApiError(400, 'No files uploaded');
+  // if (!files || !files.length) {
+  //   throw new ApiError(400, 'No files uploaded');
+  // }
+
+  if (!userId || !isValidObjectId(userId)) {
+    return res
+      .status(201)
+      .json(new ApiError(400, `Please enter a valid user id!`));
   }
 
   // Start a transaction
@@ -104,12 +136,20 @@ const updateLandowner = asyncHandler(async (req: Request, res: Response) => {
       propertyName,
       propertyLocation,
       propertySize,
-      files,
+      // files,
+      // landAssessmentReport,
       userId,
       session
     );
 
     if (property) {
+      const reportData = {
+        landAssessmentReport: landAssessmentReport || [],
+        property: property._id,
+      };
+
+      const createdReport = createReportService(reportData, session);
+
       // Fetch updated property details
       const userWithProperty = await fetchPopulatedProperty(
         property._id.toString(),
@@ -125,7 +165,7 @@ const updateLandowner = asyncHandler(async (req: Request, res: Response) => {
         .json(
           new ApiResponse(
             200,
-            userWithProperty,
+            { userWithProperty, createdReport },
             property.isNew
               ? 'Property created successfully!'
               : 'Property updated successfully!'

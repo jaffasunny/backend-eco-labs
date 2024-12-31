@@ -16,21 +16,8 @@ const propertySchema = new Schema<IProperty>(
     },
     propertySize: {
       type: String, // Use String to accommodate flexible size formats (e.g., "500 sq ft")
-      required: true,
       trim: true,
     },
-    landAssessmentReport: [
-      {
-        public_id: {
-          type: String,
-          required: true,
-        },
-        url: {
-          type: String,
-          required: true,
-        },
-      },
-    ],
     landowner: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   },
   {
@@ -40,4 +27,29 @@ const propertySchema = new Schema<IProperty>(
 
 propertySchema.plugin(aggregatePaginate);
 
-export const Property = mongoose.model<IProperty, PaginateModel<IProperty>>('Property', propertySchema);
+propertySchema.set('toJSON', {
+  transform: (doc, ret) => {
+    // Conditionally include `isApproved`
+    if (!ret.propertySize) {
+      delete ret.propertySize;
+    }
+
+    return ret;
+  },
+});
+
+propertySchema.set('toObject', {
+  transform: (doc, ret) => {
+    // Conditionally include `isApproved`
+    if (!ret.propertySize) {
+      delete ret.propertySize;
+    }
+
+    return ret;
+  },
+});
+
+export const Property = mongoose.model<IProperty, PaginateModel<IProperty>>(
+  'Property',
+  propertySchema
+);

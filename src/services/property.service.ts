@@ -1,13 +1,15 @@
-import { ClientSession } from 'mongoose';
+import mongoose, { ClientSession } from 'mongoose';
 import { Property } from '../models/property.model.js';
 import { ApiError } from '../utils/ApiError.js';
+// import { IReport } from '../interface/report.interface.js';
 
 const findOrUpdateProperty = async (
   propertyName: string,
   propertyLocation: string,
-  propertySize: string,
-  files: Express.Multer.File[],
-  userId: string,
+  propertySize: string | undefined = undefined,
+  // files: Express.Multer.File[],
+  // landAssessmentReport: IReport['landAssessmentReport'],
+  userId: mongoose.Schema.Types.ObjectId | string,
   session: ClientSession
 ) => {
   let property = await Property.findOne({
@@ -17,12 +19,13 @@ const findOrUpdateProperty = async (
 
   if (property) {
     // Update existing property
+    property.propertyName = propertyName;
     property.propertyLocation = propertyLocation;
     property.propertySize = propertySize;
-    property.landAssessmentReport = files.map((file) => ({
-      url: file.path,
-      public_id: file.filename,
-    }));
+    // property.landAssessmentReport = files.map((file) => ({
+    //   url: file.path,
+    //   public_id: file.filename,
+    // }));
     await property.save({ session });
     property.isNew = false; // Flag for response
   } else {
@@ -33,10 +36,10 @@ const findOrUpdateProperty = async (
           propertyName,
           propertyLocation,
           propertySize,
-          landAssessmentReport: files.map((file) => ({
-            url: file.path,
-            public_id: file.filename,
-          })),
+          // landAssessmentReport: files.map((file) => ({
+          //   url: file.path,
+          //   public_id: file.filename,
+          // })),
           landowner: userId,
         },
       ],
