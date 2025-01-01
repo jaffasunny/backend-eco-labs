@@ -5,7 +5,7 @@ import { PROPOSAL_STATUS } from '../constants.js';
 
 const bidsSchema = new Schema<IBids>(
   {
-    property: { type: mongoose.Schema.Types.ObjectId, ref: 'Property' },
+    report: { type: mongoose.Schema.Types.ObjectId, ref: 'Report' },
     researcher: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     status: {
       type: String,

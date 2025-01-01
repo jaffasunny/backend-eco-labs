@@ -6,4 +6,5 @@ export interface IReport {
     name: string;
   }[];
   property: mongoose.Schema.Types.ObjectId;
+  proposals: mongoose.Schema.Types.ObjectId;
 }

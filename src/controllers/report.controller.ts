@@ -73,6 +73,20 @@ const paginatedReports = asyncHandler(async (req: Request, res: Response) => {
       },
     },
     {
+      $lookup: {
+        from: 'bids',
+        let: { reportId: '$_id' }, // Pass the current report ID
+        pipeline: [
+          {
+            $match: {
+              $expr: { $eq: ['$report', '$$reportId'] }, // Match bids where report equals current report ID
+            },
+          },
+        ],
+        as: 'bids', // Add matched bids to the `bids` field
+      },
+    },
+    {
       $project: {
         _id: 1,
         landAssessmentReport: 1,
@@ -87,6 +101,13 @@ const paginatedReports = asyncHandler(async (req: Request, res: Response) => {
             name: 1,
             email: 1, // Include any additional fields you want from the landowner
           },
+        },
+        bids: {
+          _id: 1,
+          researcher: 1,
+          status: 1,
+          createdAt: 1,
+          updatedAt: 1,
         },
         createdAt: 1,
         updatedAt: 1,
