@@ -29,6 +29,7 @@ app.use(cookieParser());
 import userRouter from './routes/user.route.js';
 import landownerRouter from './routes/landowner.route.js';
 import researcherRouter from './routes/researcher.route.js';
+import reportsRouter from './routes/report.route.js';
 
 // routes declaration
 app.get('/', (req, res) => {
@@ -47,5 +48,8 @@ app.use('/api/v1/landowners', landownerRouter);
 
 // researcher routes
 app.use('/api/v1/researchers', researcherRouter);
+
+// researcher routes
+app.use('/api/v1/reports', reportsRouter);
 
 export { app };

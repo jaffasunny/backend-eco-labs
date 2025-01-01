@@ -15,7 +15,7 @@ import {
   fetchPopulatedProperty,
   findOrUpdateProperty,
 } from '../services/property.service.js';
-import { createReportService } from '../services/report.service.js';
+import { createOrUpdateReportsService } from '../services/report.service.js';
 import { IUpdateLandowner } from '../interface/property.interface.js';
 import { findOrUpdateLandowner } from '../services/landowner.service.js';
 import { IAddLandownerParams } from '../interface/landowner.interface.js';
@@ -148,7 +148,10 @@ const updateLandowner = asyncHandler(async (req: Request, res: Response) => {
         property: property._id,
       };
 
-      const createdReport = createReportService(reportData, session);
+      const createdReport = await createOrUpdateReportsService(
+        reportData,
+        session
+      );
 
       // Fetch updated property details
       const userWithProperty = await fetchPopulatedProperty(

@@ -1,8 +1,9 @@
-import mongoose, { ClientSession } from 'mongoose';
-import { ApiError } from '../utils/ApiError';
-import { Report } from '../models/reports.model';
+import { Response } from 'express';
+import mongoose, { ClientSession, isValidObjectId } from 'mongoose';
+import { Report } from '../models/reports.model.js';
+import { ApiError } from '../utils/ApiError.js';
 
-const createReportService = async (
+const createOrUpdateReportsService = async (
   reportData: {
     landAssessmentReport: {
       url: string;
@@ -12,13 +13,71 @@ const createReportService = async (
   },
   session: ClientSession
 ) => {
-  const report = await Report.create([reportData], { session });
+  const { landAssessmentReport, property } = reportData;
 
-  if (!report) {
-    throw new ApiError(500, 'Failed to create report!');
-  }
+  // First, check if any of the reports already exist with the same URL for the property
+  const existingReports = await Report.find({
+    property,
+    'landAssessmentReport.url': {
+      $in: landAssessmentReport.map((report) => report.url),
+    },
+  }).session(session);
 
-  return report;
+  // Prepare bulk operations array
+  const bulkOps = landAssessmentReport.map((report) => {
+    // Find an existing report with the same URL
+    const existingReport = existingReports.find((r) =>
+      r.landAssessmentReport.some(
+        (rpt) => rpt.url === report.url || rpt.name === report.name
+      )
+    );
+
+    if (existingReport) {
+      // If report exists, update the URL and/or name
+      return {
+        updateOne: {
+          filter: {
+            _id: existingReport._id,
+            'landAssessmentReport.url': report.url,
+          },
+          update: {
+            $set: {
+              'landAssessmentReport.$.url': report.url, // Update URL
+              'landAssessmentReport.$.name': report.name, // Update Name
+            },
+          },
+          upsert: false, // Do not insert if not found
+        },
+      };
+    } else {
+      // If no existing report is found, create a new one
+      return {
+        insertOne: {
+          document: {
+            landAssessmentReport: [report],
+            property,
+          },
+        },
+      };
+    }
+  });
+
+  // Perform the bulk operations
+  const result = await Report.bulkWrite(bulkOps, { session });
+
+  return result;
 };
 
-export { createReportService };
+const deleteReportsService = async (
+  reportId: mongoose.Types.ObjectId | string
+) => {
+  if (!isValidObjectId(reportId)) {
+    new ApiError(400, `Something went wrong while deleting landowner!`);
+  }
+
+  const deletedReport = await Report.findByIdAndDelete(reportId);
+
+  return deletedReport;
+};
+
+export { createOrUpdateReportsService, deleteReportsService };

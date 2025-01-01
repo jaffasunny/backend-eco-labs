@@ -1,9 +1,10 @@
 import { transformPaginatedResponse } from '../utils/utils.js';
 import { Response, Request } from 'express';
-import { User } from '../models/user.model.js';
 import { ApiResponse } from '../utils/ApiResponse.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
-import { ROLES } from '../constants.js';
+import { Report } from '../models/reports.model.js';
+import { deleteReportsService } from '../services/report.service.js';
+import { ApiError } from '../utils/ApiError.js';
 
 const paginatedReports = asyncHandler(async (req: Request, res: Response) => {
   const {
@@ -16,14 +17,6 @@ const paginatedReports = asyncHandler(async (req: Request, res: Response) => {
 
   const assignedFilter: Record<string, any> = {};
 
-  if (assigned !== null && assigned !== '') {
-    assignedFilter.assigned = assigned === 'true';
-  }
-
-  if (isArchived !== null && isArchived !== '') {
-    assignedFilter.isArchived = isArchived === 'true';
-  }
-
   const options = {
     page,
     limit,
@@ -31,14 +24,7 @@ const paginatedReports = asyncHandler(async (req: Request, res: Response) => {
 
   const searchQuery = search
     ? {
-        $or: [
-          { name: { $regex: search, $options: 'i' } },
-          { email: { $regex: search, $options: 'i' } },
-          { 'properties.propertyName': { $regex: search, $options: 'i' } },
-          {
-            'properties.propertyLocation': { $regex: search, $options: 'i' },
-          },
-        ],
+        $or: [],
       }
     : {};
 
@@ -51,15 +37,18 @@ const paginatedReports = asyncHandler(async (req: Request, res: Response) => {
         ...searchQuery,
       };
 
-  const aggregateLandownerData = User.aggregate([
+  const aggregateLandownerData = Report.aggregate([
     {
-      $match: { roles: ROLES.LANDOWNER },
+      $unwind: {
+        path: '$landAssessmentReport',
+        preserveNullAndEmptyArrays: true,
+      },
     },
     {
       $lookup: {
         from: 'properties',
-        localField: '_id',
-        foreignField: 'landowner',
+        localField: 'property',
+        foreignField: '_id',
         as: 'properties',
       },
     },
@@ -70,40 +59,37 @@ const paginatedReports = asyncHandler(async (req: Request, res: Response) => {
       },
     },
     {
-      $addFields: {
-        numOfDocs: {
-          $size: {
-            $ifNull: ['$properties.landAssessmentReport', []],
-          },
-        },
-        assigned: {
-          $gt: [
-            {
-              $size: {
-                $ifNull: ['$properties.landAssessmentReport', []],
-              },
-            },
-            0,
-          ],
-        },
+      $lookup: {
+        from: 'users',
+        localField: 'properties.landowner',
+        foreignField: '_id',
+        as: 'properties.landowner',
+      },
+    },
+    {
+      $unwind: {
+        path: '$properties.landowner',
+        preserveNullAndEmptyArrays: true,
       },
     },
     {
       $project: {
-        name: 1,
-        email: 1,
-        phone: 1,
+        _id: 1,
+        landAssessmentReport: 1,
         properties: {
           propertyName: 1,
           propertyLocation: 1,
           propertySize: 1,
-          landAssessmentReport: 1,
-          property: 1,
+          createdAt: 1,
+          updatedAt: 1,
+          landowner: {
+            _id: 1,
+            name: 1,
+            email: 1, // Include any additional fields you want from the landowner
+          },
         },
-        numOfDocs: 1,
-        isArchived: 1,
-        assigned: 1,
         createdAt: 1,
+        updatedAt: 1,
       },
     },
     {
@@ -111,9 +97,12 @@ const paginatedReports = asyncHandler(async (req: Request, res: Response) => {
     },
   ]);
 
-  const result = await User.aggregatePaginate(aggregateLandownerData, options);
+  const result = await Report.aggregatePaginate(
+    aggregateLandownerData,
+    options
+  );
 
-  const renamedResult = transformPaginatedResponse(result, 'landowner');
+  const renamedResult = transformPaginatedResponse(result, 'Reports');
 
   res
     .status(200)
@@ -122,4 +111,20 @@ const paginatedReports = asyncHandler(async (req: Request, res: Response) => {
     );
 });
 
-export { paginatedReports };
+const deleteReport = asyncHandler(async (req: Request, res: Response) => {
+  const { id: reportId } = req.params;
+
+  const deletedReport = await deleteReportsService(reportId);
+
+  if (!deletedReport) {
+    return res
+      .status(201)
+      .json(new ApiError(400, `Something went wrong while deleting report!`));
+  }
+
+  res
+    .status(200)
+    .json(new ApiResponse(200, deletedReport, 'Report deleted successfully'));
+});
+
+export { paginatedReports, deleteReport };

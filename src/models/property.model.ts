@@ -2,16 +2,26 @@ import aggregatePaginate from 'mongoose-aggregate-paginate-v2';
 import mongoose, { PaginateModel, Schema } from 'mongoose';
 import { IProperty } from '../interface/property.interface.js';
 
-const propertySchema = new Schema<IProperty>(
+interface IPropertyDocument extends IProperty, Document {
+  isNew: boolean; // Add Mongoose's isNew property
+}
+
+const propertySchema = new Schema<IPropertyDocument>(
   {
     propertyName: {
       type: String,
-      required: true,
+      required: function (this: IPropertyDocument) {
+        // Check if this is a new document or an update
+        return this.isNew;
+      },
       trim: true,
     },
     propertyLocation: {
       type: String,
-      required: true,
+      required: function (this: IPropertyDocument) {
+        // Check if this is a new document or an update
+        return this.isNew;
+      },
       trim: true,
     },
     propertySize: {
@@ -49,7 +59,7 @@ propertySchema.set('toObject', {
   },
 });
 
-export const Property = mongoose.model<IProperty, PaginateModel<IProperty>>(
-  'Property',
-  propertySchema
-);
+export const Property = mongoose.model<
+  IPropertyDocument,
+  PaginateModel<IPropertyDocument>
+>('Property', propertySchema);

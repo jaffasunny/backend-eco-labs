@@ -18,15 +18,14 @@ const findOrUpdateProperty = async (
   }).session(session);
 
   if (property) {
-    // Update existing property
-    property.propertyName = propertyName;
-    property.propertyLocation = propertyLocation;
-    property.propertySize = propertySize;
-    // property.landAssessmentReport = files.map((file) => ({
-    //   url: file.path,
-    //   public_id: file.filename,
-    // }));
-    await property.save({ session });
+    property.set({
+      propertyName,
+      propertyLocation,
+      propertySize,
+    });
+
+    // Ensure validation is skipped for required fields during updates
+    await property.save({ session, validateModifiedOnly: true });
     property.isNew = false; // Flag for response
   } else {
     // Create a new property
