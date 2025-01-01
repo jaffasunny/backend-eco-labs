@@ -1,6 +1,6 @@
 import { ClientSession } from 'mongoose';
-import { ROLES } from '../constants';
-import { User } from '../models/user.model';
+import { ROLES } from '../constants.js';
+import { User } from '../models/user.model.js';
 
 const findOrUpdateLandowner = async (
   landownerData: {

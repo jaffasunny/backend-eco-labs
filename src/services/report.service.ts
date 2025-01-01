@@ -1,4 +1,3 @@
-import { Response } from 'express';
 import mongoose, { ClientSession, isValidObjectId } from 'mongoose';
 import { Report } from '../models/reports.model.js';
 import { ApiError } from '../utils/ApiError.js';
