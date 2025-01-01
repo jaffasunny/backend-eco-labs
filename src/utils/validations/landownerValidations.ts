@@ -1,5 +1,5 @@
 import { body, check, param } from 'express-validator';
-import { reportsValidation } from './reportsValidations';
+import { reportsValidation } from './reportsValidations.js';
 
 export const addLandownerValidation = [
   // Validate email
@@ -64,7 +64,7 @@ export const updateLandownerValidation = [
     .trim()
     .isLength({ max: 500 })
     .withMessage('Description cannot exceed 500 characters'),
-    
+
   ...reportsValidation.map((validation) => validation.optional()),
 
   // Custom validation for files (if needed)
@@ -92,7 +92,6 @@ export const updateLandownerValidation = [
   //   return true;
   // }),
 ];
-
 
 export const deleteLandownerValidation = [
   param('id').trim().notEmpty().withMessage('Landowner Id is required'),
