@@ -22,14 +22,7 @@ const router = Router();
 
 router
   .route('/')
-  .get(authMiddleware, roleCheck('landowner'), paginatedLandownerData);
-
-router
-  .route('/reports')
-  .get(authMiddleware, roleCheck('landowner'), paginatedReportData);
-
-router
-  .route('/add-landowner')
+  .get(authMiddleware, roleCheck('landowner'), paginatedLandownerData)
   .post(
     addLandownerValidation,
     validateRequest,
@@ -39,9 +32,13 @@ router
   );
 
 router
+  .route('/reports')
+  .get(authMiddleware, roleCheck('landowner'), paginatedReportData);
+
+router
   .route('/:id')
   .put(
-    upload.array('files', 5),
+    // upload.array('files', 5),
     updateLandownerValidation,
     validateRequest,
     authMiddleware,

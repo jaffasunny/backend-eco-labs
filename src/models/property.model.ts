@@ -2,35 +2,32 @@ import aggregatePaginate from 'mongoose-aggregate-paginate-v2';
 import mongoose, { PaginateModel, Schema } from 'mongoose';
 import { IProperty } from '../interface/property.interface.js';
 
-const propertySchema = new Schema<IProperty>(
+interface IPropertyDocument extends IProperty, Document {
+  isNew: boolean; // Add Mongoose's isNew property
+}
+
+const propertySchema = new Schema<IPropertyDocument>(
   {
     propertyName: {
       type: String,
-      required: true,
+      required: function (this: IPropertyDocument) {
+        // Check if this is a new document or an update
+        return this.isNew;
+      },
       trim: true,
     },
     propertyLocation: {
       type: String,
-      required: true,
+      required: function (this: IPropertyDocument) {
+        // Check if this is a new document or an update
+        return this.isNew;
+      },
       trim: true,
     },
     propertySize: {
       type: String, // Use String to accommodate flexible size formats (e.g., "500 sq ft")
-      required: true,
       trim: true,
     },
-    landAssessmentReport: [
-      {
-        public_id: {
-          type: String,
-          required: true,
-        },
-        url: {
-          type: String,
-          required: true,
-        },
-      },
-    ],
     landowner: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   },
   {
@@ -40,4 +37,29 @@ const propertySchema = new Schema<IProperty>(
 
 propertySchema.plugin(aggregatePaginate);
 
-export const Property = mongoose.model<IProperty, PaginateModel<IProperty>>('Property', propertySchema);
+propertySchema.set('toJSON', {
+  transform: (doc, ret) => {
+    // Conditionally include `isApproved`
+    if (!ret.propertySize) {
+      delete ret.propertySize;
+    }
+
+    return ret;
+  },
+});
+
+propertySchema.set('toObject', {
+  transform: (doc, ret) => {
+    // Conditionally include `isApproved`
+    if (!ret.propertySize) {
+      delete ret.propertySize;
+    }
+
+    return ret;
+  },
+});
+
+export const Property = mongoose.model<
+  IPropertyDocument,
+  PaginateModel<IPropertyDocument>
+>('Property', propertySchema);
