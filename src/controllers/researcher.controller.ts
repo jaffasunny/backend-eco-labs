@@ -6,6 +6,7 @@ import { ApiError } from '../utils/ApiError.js';
 import { Property } from '../models/property.model.js';
 import { Bids } from '../models/bids.model.js';
 import { User } from '../models/user.model.js';
+import { Report } from '../models/reports.model.js';
 
 const paginatedResearchers = asyncHandler(
   async (req: Request, res: Response) => {
@@ -192,19 +193,27 @@ const paginatedResearcherReportData = asyncHandler(
 );
 
 const placeBidResearch = asyncHandler(async (req: Request, res: Response) => {
-  const { id: propertyId } = req.params;
+  const { id: reportId } = req.params;
   const { _id: userId } = req.user;
   const { status } = req.body;
 
-  if (!propertyId || !isValidObjectId(propertyId)) {
+  if (!reportId || !isValidObjectId(reportId)) {
     return res
       .status(201)
       .json(new ApiError(400, `Please enter a valid property id!`));
   }
 
+  const findReport = await Report.findById(reportId);
+
+  if (!findReport) {
+    return res
+      .status(201)
+      .json(new ApiResponse(400, findReport, `Report doesnot exists!`));
+  }
+
   const findBid = await Bids.find({
     researcher: userId,
-    property: propertyId,
+    report: reportId,
   });
 
   if (findBid.length) {
@@ -214,7 +223,7 @@ const placeBidResearch = asyncHandler(async (req: Request, res: Response) => {
   }
 
   const createdBid = await Bids.create({
-    property: propertyId,
+    report: reportId,
     researcher: userId,
     status,
   });
