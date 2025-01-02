@@ -1,5 +1,6 @@
 import {
   generatePassword,
+  parseBooleanQueryParam,
   transformPaginatedResponse,
 } from './../utils/utils.js';
 import { Response, Request } from 'express';
@@ -17,7 +18,10 @@ import {
 } from '../services/property.service.js';
 import { createOrUpdateReportsService } from '../services/report.service.js';
 import { IUpdateLandowner } from '../interface/property.interface.js';
-import { findOrUpdateLandowner } from '../services/landowner.service.js';
+import {
+  findOrUpdateLandowner,
+  landownerAggregatePaginationService,
+} from '../services/landowner.service.js';
 import { IAddLandownerParams } from '../interface/landowner.interface.js';
 
 // Add Landowner by email
@@ -195,126 +199,13 @@ const paginatedLandownerData = asyncHandler(
       assigned = null,
     } = req.query;
 
-    const assignedFilter: Record<string, any> = {};
-
-    if (assigned !== null && assigned !== '') {
-      assignedFilter.assigned = assigned === 'true';
-    }
-
-    if (isArchived !== null && isArchived !== '') {
-      assignedFilter.isArchived = isArchived === 'true';
-    }
-
-    const options = {
-      page,
-      limit,
-    };
-
-    const searchQuery = search
-      ? {
-          $or: [
-            { name: { $regex: search, $options: 'i' } },
-            { email: { $regex: search, $options: 'i' } },
-            { 'properties.propertyName': { $regex: search, $options: 'i' } },
-            {
-              'properties.propertyLocation': { $regex: search, $options: 'i' },
-            },
-          ],
-        }
-      : {};
-
-    const matchQuery = assignedFilter
-      ? {
-          ...searchQuery,
-          ...assignedFilter,
-        }
-      : {
-          ...searchQuery,
-        };
-
-    const aggregateLandownerData = User.aggregate([
-      {
-        $match: { roles: ROLES.LANDOWNER },
-      },
-      {
-        $lookup: {
-          from: 'properties',
-          localField: '_id',
-          foreignField: 'landowner',
-          as: 'properties',
-        },
-      },
-      {
-        $unwind: {
-          path: '$properties',
-          preserveNullAndEmptyArrays: true,
-        },
-      },
-      {
-        $lookup: {
-          from: 'reports',
-          localField: 'properties._id',
-          foreignField: 'property',
-          as: 'properties.reports',
-        },
-      },
-      {
-        $unwind: {
-          path: '$properties.reports.landAssessmentReport',
-          preserveNullAndEmptyArrays: true,
-        },
-      },
-      {
-        $project: {
-          name: 1,
-          email: 1,
-          phone: 1,
-          properties: {
-            _id: 1,
-            propertyName: 1,
-            propertyLocation: 1,
-            propertySize: 1,
-            landAssessmentReport: 1,
-            reports: {
-              $map: {
-                input: '$properties.reports',
-                as: 'report',
-                in: {
-                  _id: '$$report._id',
-                  landAssessmentReport: {
-                    url: '$$report.landAssessmentReport.url',
-                    name: '$$report.landAssessmentReport.name',
-                  },
-                  createdAt: '$$report.createdAt',
-                  updatedAt: '$$report.updatedAt',
-                },
-              },
-            },
-          },
-          isArchived: 1,
-          assigned: {
-            $cond: {
-              if: {
-                $gt: [{ $size: '$properties.reports.landAssessmentReport' }, 0],
-              },
-              then: true,
-              else: false,
-            },
-          },
-          createdAt: 1,
-        },
-      },
-      {
-        $match: matchQuery,
-      },
-    ]);
-
-    const result = await User.aggregatePaginate(
-      aggregateLandownerData,
-      options
-    );
-
-    const renamedResult = transformPaginatedResponse(result, 'landowner');
+    const renamedResult = await landownerAggregatePaginationService({
+      assigned: parseBooleanQueryParam(assigned),
+      isArchived: parseBooleanQueryParam(isArchived),
+      limit: Number(limit),
+      page: Number(page),
+      search: search.toString(),
+    });
 
     res
       .status(200)

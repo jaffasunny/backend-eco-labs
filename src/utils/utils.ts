@@ -38,3 +38,10 @@ export const transformPaginatedResponse = (
 export const isValidObjectId = (id: string) => {
   return mongoose.Types.ObjectId.isValid(id);
 };
+
+
+export const parseBooleanQueryParam = (value: unknown): boolean | null => {
+  if (value === 'true') return true;
+  if (value === 'false') return false;
+  return null;
+};
