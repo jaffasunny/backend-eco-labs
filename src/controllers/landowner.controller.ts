@@ -281,7 +281,10 @@ const paginatedLandownerData = asyncHandler(
                 as: 'report',
                 in: {
                   _id: '$$report._id',
-                  landAssessmentReport: '$$report.landAssessmentReport',
+                  landAssessmentReport: {
+                    url: '$$report.landAssessmentReport.url',
+                    name: '$$report.landAssessmentReport.name',
+                  },
                   createdAt: '$$report.createdAt',
                   updatedAt: '$$report.updatedAt',
                 },
