@@ -251,22 +251,17 @@ const paginatedLandownerData = asyncHandler(
         },
       },
       {
-        $addFields: {
-          numOfDocs: {
-            $size: {
-              $ifNull: ['$properties.landAssessmentReport', []],
-            },
-          },
-          assigned: {
-            $gt: [
-              {
-                $size: {
-                  $ifNull: ['$properties.landAssessmentReport', []],
-                },
-              },
-              0,
-            ],
-          },
+        $lookup: {
+          from: 'reports',
+          localField: 'properties._id',
+          foreignField: 'property',
+          as: 'properties.reports',
+        },
+      },
+      {
+        $unwind: {
+          path: '$properties.reports.landAssessmentReport',
+          preserveNullAndEmptyArrays: true,
         },
       },
       {
@@ -275,13 +270,27 @@ const paginatedLandownerData = asyncHandler(
           email: 1,
           phone: 1,
           properties: {
+            _id: 1,
             propertyName: 1,
             propertyLocation: 1,
             propertySize: 1,
             landAssessmentReport: 1,
-            property: 1,
+            reports: {
+              $map: {
+                input: '$properties.reports',
+                as: 'report',
+                in: {
+                  _id: '$$report._id',
+                  landAssessmentReport: {
+                    url: '$$report.landAssessmentReport.url',
+                    name: '$$report.landAssessmentReport.name',
+                  },
+                  createdAt: '$$report.createdAt',
+                  updatedAt: '$$report.updatedAt',
+                },
+              },
+            },
           },
-          numOfDocs: 1,
           isArchived: 1,
           assigned: 1,
           createdAt: 1,
