@@ -22,7 +22,6 @@ const uploadAndValidateRequest = (
     upload.array('pdfFiles', 5),
     (req: Request, res: Response, next: NextFunction) => {
       // Ensure req.body is parsed correctly
-      console.log('req.body:', req.body); // Debugging
       next();
     },
     updateLandownerValidation,
