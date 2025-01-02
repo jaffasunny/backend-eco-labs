@@ -17,7 +17,6 @@ const reportSchema = new Schema<IReport>(
       },
     ],
     property: { type: mongoose.Schema.Types.ObjectId, ref: 'Property' },
-    proposals: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   },
   {
     timestamps: true,
