@@ -19,6 +19,7 @@ export interface IUser extends IUserDocument {
   gender?: string;
   bio?: string;
   isProfileComplete: boolean;
+  isArchived: boolean;
   status: ResearchStatusType;
   refreshTokens: { token: string }[];
   _id?: mongoose.Schema.Types.ObjectId; // Optional for inferred _id type
