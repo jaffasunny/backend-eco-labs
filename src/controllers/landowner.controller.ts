@@ -292,7 +292,15 @@ const paginatedLandownerData = asyncHandler(
             },
           },
           isArchived: 1,
-          assigned: 1,
+          assigned: {
+            $cond: {
+              if: {
+                $gt: [{ $size: '$properties.reports.landAssessmentReport' }, 0],
+              },
+              then: true,
+              else: false,
+            },
+          },
           createdAt: 1,
         },
       },

@@ -8,7 +8,13 @@ import {
 
 const router = Router();
 
-router.route('/').get(authMiddleware, roleCheck('landowner'), paginatedReports);
+router
+  .route('/')
+  .get(
+    authMiddleware,
+    roleCheck(['landowner', 'researcher']),
+    paginatedReports
+  );
 
 router
   .route('/:id')

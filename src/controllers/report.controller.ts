@@ -89,7 +89,10 @@ const paginatedReports = asyncHandler(async (req: Request, res: Response) => {
     {
       $project: {
         _id: 1,
-        landAssessmentReport: 1,
+        landAssessmentReport: {
+          url: 1,
+          name: 1,
+        },
         properties: {
           propertyName: 1,
           propertyLocation: 1,
