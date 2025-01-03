@@ -39,9 +39,21 @@ export const isValidObjectId = (id: string) => {
   return mongoose.Types.ObjectId.isValid(id);
 };
 
-
 export const parseBooleanQueryParam = (value: unknown): boolean | null => {
   if (value === 'true') return true;
   if (value === 'false') return false;
   return null;
 };
+
+export function createDynamicFilter(
+  filters: Record<string, any>
+): Record<string, any> {
+  const filter: Record<string, any> = {};
+  Object.entries(filters).forEach(([key, value]) => {
+    if (value !== null && value !== undefined) {
+      filter[key] = value;
+    }
+  });
+  
+  return filter;
+}
