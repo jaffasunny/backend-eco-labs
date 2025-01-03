@@ -61,19 +61,6 @@ const landownerAggregatePaginationService = async ({
 }: IlandownerAggregatePaginationServiceParams): Promise<any> => {
   const assignedFilter = createDynamicFilter({ assigned, isArchived });
 
-  console.log({
-    assignedFilter,
-    loggingArray: {
-      ...(assignedFilter.assigned
-        ? [
-            {
-              $match: { assigned: assignedFilter.assigned },
-            },
-          ]
-        : []),
-    },
-  });
-
   const options = {
     page,
     limit,
@@ -173,6 +160,8 @@ const landownerAggregatePaginationService = async ({
         createdAt: 1,
       },
     },
+    { $skip: (page - 1) * limit },
+    { $limit: limit },
   ];
 
   const aggregateLandownerData = User.aggregate(aggregatePipeline);
