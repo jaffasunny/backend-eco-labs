@@ -9,4 +9,6 @@ export interface IProperty {
   landowner: mongoose.Schema.Types.ObjectId;
 }
 
-export interface IUpdateLandowner extends IProperty, IReport,IUser {}
+export interface IUpdateLandowner extends IProperty, IReport, IUser {}
+
+export interface IAssignReport extends IReport {}

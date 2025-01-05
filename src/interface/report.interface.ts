@@ -5,5 +5,5 @@ export interface IReport {
     url: string;
     name: string;
   }[];
-  property: mongoose.Schema.Types.ObjectId;
+  property: mongoose.Schema.Types.ObjectId | string;
 }

@@ -1,39 +1,40 @@
+import { ROLES } from './../constants';
 import { Router } from 'express';
 import {
   addLandowner,
   archiveLandowner,
+  assignReport,
   deleteLandowner,
   paginatedLandownerData,
   paginatedReportData,
   updateLandowner,
 } from '../controllers/landowner.controller.js';
 import { authMiddleware } from '../middlewares/auth.middleware.js';
-import upload from '../middlewares/multer.js';
 import { validateRequest } from '../middlewares/validateRequest.js';
 import {
   addLandownerValidation,
   archiveLandownerValidation,
+  assignReportValidation,
   deleteLandownerValidation,
   updateLandownerValidation,
 } from '../utils/validations/landownerValidations.js';
 import { roleCheck } from '../middlewares/roles.middleware.js';
+import landownerReportsRouter from './landownerReportRoute/landowner.reports.route.js';
 
 const router = Router();
 
 router
   .route('/')
-  .get(authMiddleware, roleCheck('landowner'), paginatedLandownerData)
+  .get(authMiddleware, roleCheck(ROLES.LANDOWNER), paginatedLandownerData)
   .post(
     addLandownerValidation,
     validateRequest,
     authMiddleware,
-    roleCheck('landowner'),
+    roleCheck(ROLES.LANDOWNER),
     addLandowner
   );
 
-router
-  .route('/reports')
-  .get(authMiddleware, roleCheck('landowner'), paginatedReportData);
+router.use('/reports', landownerReportsRouter);
 
 router
   .route('/:id')
@@ -42,14 +43,14 @@ router
     updateLandownerValidation,
     validateRequest,
     authMiddleware,
-    roleCheck('landowner'),
+    roleCheck(ROLES.LANDOWNER),
     updateLandowner
   )
   .delete(
     deleteLandownerValidation,
     validateRequest,
     authMiddleware,
-    roleCheck('landowner'),
+    roleCheck(ROLES.LANDOWNER),
     deleteLandowner
   );
 
@@ -59,7 +60,7 @@ router
     archiveLandownerValidation,
     validateRequest,
     authMiddleware,
-    roleCheck('landowner'),
+    roleCheck(ROLES.LANDOWNER),
     archiveLandowner
   );
 

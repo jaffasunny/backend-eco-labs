@@ -1,4 +1,5 @@
-import { body, check, param } from 'express-validator';
+import { body, param, query } from 'express-validator';
+import { PROPOSAL_STATUS } from '../../constants.js';
 import { reportsValidation } from './reportsValidations.js';
 
 export const addLandownerValidation = [
@@ -93,10 +94,49 @@ export const updateLandownerValidation = [
   // }),
 ];
 
+export const assignReportValidation = [
+  body('property').trim().isMongoId().withMessage('Is not a valid Mongo Id'),
+
+  ...reportsValidation.map((validation) => validation.optional()),
+];
+
 export const deleteLandownerValidation = [
   param('id').trim().notEmpty().withMessage('Landowner Id is required'),
 ];
 
 export const archiveLandownerValidation = [
   param('id').trim().notEmpty().withMessage('Landowner Id is required'),
+];
+
+export const changeResearcherBidStatusValidation = [
+  param('id')
+    .trim()
+    .notEmpty()
+    .withMessage('Bid Id is required')
+    .isMongoId()
+    .withMessage('Bid Id must be a mongo id'),
+  body('researcherId')
+    .trim()
+    .notEmpty()
+    .withMessage('Researcher is required')
+    .isMongoId()
+    .withMessage('Researcher must be a mongo id'),
+  body('status')
+    .trim()
+    .notEmpty()
+    .withMessage('Please specify status')
+    .isIn([
+      PROPOSAL_STATUS.APPROVED,
+      PROPOSAL_STATUS.NOTSENT,
+      PROPOSAL_STATUS.PENDING,
+      PROPOSAL_STATUS.REJECTED,
+    ])
+    .withMessage(
+      `Invalid status. Must be ${
+        (PROPOSAL_STATUS.APPROVED,
+        PROPOSAL_STATUS.NOTSENT,
+        PROPOSAL_STATUS.PENDING,
+        PROPOSAL_STATUS.REJECTED)
+      }`
+    ),
 ];

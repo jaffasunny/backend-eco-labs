@@ -3,6 +3,7 @@ import { authMiddleware } from '../middlewares/auth.middleware.js';
 import { roleCheck } from '../middlewares/roles.middleware.js';
 import {
   deleteReport,
+  getReport,
   paginatedReports,
 } from '../controllers/report.controller.js';
 
@@ -18,6 +19,7 @@ router
 
 router
   .route('/:id')
-  .delete(authMiddleware, roleCheck('landowner'), deleteReport);
+  .delete(authMiddleware, roleCheck('landowner'), deleteReport)
+  .get(authMiddleware, roleCheck('landowner'), getReport);
 
 export default router;

@@ -1,8 +1,4 @@
-import {
-  generatePassword,
-  parseBooleanQueryParam,
-  transformPaginatedResponse,
-} from './../utils/utils.js';
+import { generatePassword, parseBooleanQueryParam } from './../utils/utils.js';
 import { Response, Request } from 'express';
 import { User } from '../models/user.model.js';
 import { ApiError } from '../utils/ApiError.js';
@@ -17,13 +13,17 @@ import {
   findOrUpdateProperty,
 } from '../services/property.service.js';
 import { createOrUpdateReportsService } from '../services/report.service.js';
-import { IUpdateLandowner } from '../interface/property.interface.js';
+import {
+  IAssignReport,
+  IUpdateLandowner,
+} from '../interface/property.interface.js';
 import {
   findOrUpdateLandowner,
   landownerAggregatePaginationService,
   landownerReportAggregatePaginationService,
 } from '../services/landowner.service.js';
 import { IAddLandownerParams } from '../interface/landowner.interface.js';
+import { Bids } from '../models/bids.model.js';
 
 // Add Landowner by email
 const addLandowner = asyncHandler(async (req: Request, res: Response) => {
@@ -190,6 +190,49 @@ const updateLandowner = asyncHandler(async (req: Request, res: Response) => {
   }
 });
 
+const assignReport = asyncHandler(async (req: Request, res: Response) => {
+  const { property, landAssessmentReport }: IAssignReport = req.body;
+
+  // Start a transaction
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    if (property) {
+      const reportData = {
+        landAssessmentReport: landAssessmentReport || [],
+        property: property as string,
+      };
+
+      const createdReport = await createOrUpdateReportsService(
+        reportData,
+        session
+      );
+
+      // Fetch updated property details
+      const userWithProperty = await fetchPopulatedProperty(
+        property as string,
+        session
+      );
+
+      // Commit transaction
+      await session.commitTransaction();
+
+      // Send response
+      res
+        .status(200)
+        .json(new ApiResponse(200, { userWithProperty, createdReport }));
+    }
+  } catch (error: any) {
+    // Rollback transaction
+    await session.abortTransaction();
+    throw new ApiError(500, error.message || 'Failed to update property!');
+  } finally {
+    // End session
+    session.endSession();
+  }
+});
+
 const paginatedLandownerData = asyncHandler(
   async (req: Request, res: Response) => {
     const {
@@ -223,12 +266,14 @@ const paginatedLandownerData = asyncHandler(
 const paginatedReportData = asyncHandler(
   async (req: Request, res: Response) => {
     const { page = 1, limit = 10, search = '', assigned = null } = req.query;
+    const { _id: userId } = req.user;
 
     const renamedResult = await landownerReportAggregatePaginationService({
       assigned: parseBooleanQueryParam(assigned),
       limit: Number(limit),
       page: Number(page),
       search: search.toString(),
+      userId,
     });
 
     res
@@ -312,6 +357,44 @@ const deleteLandowner = asyncHandler(async (req: Request, res: Response) => {
     );
 });
 
+const changeResearchersBidStatus = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { id: bidId } = req.params;
+    const { status, researcherId } = req.body;
+
+    const [findBid] = await Bids.find({
+      _id: bidId,
+      researcher: researcherId,
+    });
+
+    if (!findBid) {
+      return res.status(201).json(new ApiError(400, `This user has not bid!`));
+    }
+
+    const updatedBidStatus = await Bids.findByIdAndUpdate(
+      {
+        _id: bidId,
+      },
+      { status },
+      {
+        new: true,
+      }
+    );
+
+    if (!updatedBidStatus) {
+      return res
+        .status(201)
+        .json(new ApiError(400, `Something went wrong while updating bid!`));
+    }
+
+    res
+      .status(200)
+      .json(
+        new ApiResponse(200, updatedBidStatus, 'Bid updated successfully!')
+      );
+  }
+);
+
 export {
   addLandowner,
   updateLandowner,
@@ -319,4 +402,6 @@ export {
   archiveLandowner,
   deleteLandowner,
   paginatedReportData,
+  assignReport,
+  changeResearchersBidStatus,
 };

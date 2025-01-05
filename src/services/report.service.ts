@@ -1,4 +1,5 @@
 import mongoose, { ClientSession, isValidObjectId } from 'mongoose';
+import { Property } from '../models/property.model.js';
 import { Report } from '../models/reports.model.js';
 import { ApiError } from '../utils/ApiError.js';
 
@@ -8,11 +9,17 @@ const createOrUpdateReportsService = async (
       url: string;
       name: string;
     }[];
-    property: mongoose.Types.ObjectId;
+    property: mongoose.Types.ObjectId | string;
   },
   session: ClientSession
 ) => {
   const { landAssessmentReport, property } = reportData;
+
+  const fetchedProperty = await Property.findById(property).session(session);
+
+  if (!fetchedProperty) {
+    throw new ApiError(401, 'Property not found!');
+  }
 
   // First, check if any of the reports already exist with the same URL for the property
   const existingReports = await Report.find({
@@ -67,11 +74,34 @@ const createOrUpdateReportsService = async (
   return result;
 };
 
+const findReportService = async (
+  reportId: mongoose.Types.ObjectId | string,
+  propertyId: mongoose.Types.ObjectId | string
+) => {
+  if (!isValidObjectId(reportId)) {
+    new ApiError(400, `Please enter valid Report Id!`);
+  }
+
+  const report = await Report.find({ _id: reportId, property: propertyId });
+
+  if (!report.length) {
+    new ApiError(400, `Report not found!`);
+  }
+
+  return report;
+};
+
 const deleteReportsService = async (
   reportId: mongoose.Types.ObjectId | string
 ) => {
   if (!isValidObjectId(reportId)) {
-    new ApiError(400, `Something went wrong while deleting landowner!`);
+    new ApiError(400, `Please enter valid Report Id!`);
+  }
+
+  const report = await Report.findById(reportId);
+
+  if (!report) {
+    new ApiError(401, `Report not found!`);
   }
 
   const deletedReport = await Report.findByIdAndDelete(reportId);
@@ -79,4 +109,19 @@ const deleteReportsService = async (
   return deletedReport;
 };
 
-export { createOrUpdateReportsService, deleteReportsService };
+const getReportService = async (reportId: mongoose.Types.ObjectId | string) => {
+  if (!isValidObjectId(reportId)) {
+    new ApiError(400, `Please enter valid Report Id!`);
+  }
+
+  const report = await Report.findById(reportId);
+
+  return report;
+};
+
+export {
+  createOrUpdateReportsService,
+  deleteReportsService,
+  getReportService,
+  findReportService,
+};

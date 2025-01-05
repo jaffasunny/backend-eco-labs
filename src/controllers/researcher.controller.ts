@@ -211,15 +211,15 @@ const placeBidResearch = asyncHandler(async (req: Request, res: Response) => {
       .json(new ApiResponse(400, findReport, `Report doesnot exists!`));
   }
 
-  const findBid = await Bids.find({
+  const [findBid] = await Bids.find({
     researcher: userId,
     report: reportId,
   });
 
-  if (findBid.length) {
+  if (findBid) {
     return res
       .status(201)
-      .json(new ApiResponse(400, findBid[0], `Bid already exists!`));
+      .json(new ApiResponse(400, findBid, `Bid already exists!`));
   }
 
   const createdBid = await Bids.create({

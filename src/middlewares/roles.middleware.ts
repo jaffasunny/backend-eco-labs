@@ -13,6 +13,7 @@ const roleCheck = (role: RoleType[] | RoleType) => {
           .json(new ApiResponse(403, 'Access denied, Incorrect role!'));
       }
     }
+
     next();
   };
 };

@@ -61,19 +61,6 @@ const landownerAggregatePaginationService = async ({
 }: IlandownerAggregatePaginationServiceParams): Promise<any> => {
   const assignedFilter = createDynamicFilter({ assigned, isArchived });
 
-  console.log({
-    assignedFilter,
-    loggingArray: {
-      ...(assignedFilter.assigned
-        ? [
-            {
-              $match: { assigned: assignedFilter.assigned },
-            },
-          ]
-        : []),
-    },
-  });
-
   const options = {
     page,
     limit,
@@ -187,6 +174,7 @@ const landownerReportAggregatePaginationService = async ({
   limit,
   search,
   assigned,
+  userId,
 }: IlandownerReportAggregatePaginationServiceParams): Promise<any> => {
   const assignedFilter = createDynamicFilter({ assigned });
 
@@ -201,21 +189,21 @@ const landownerReportAggregatePaginationService = async ({
           { name: { $regex: search, $options: 'i' } },
           { email: { $regex: search, $options: 'i' } },
           { 'properties.propertyName': { $regex: search, $options: 'i' } },
-          {
-            'properties.propertyLocation': { $regex: search, $options: 'i' },
-          },
+          { 'properties.propertyLocation': { $regex: search, $options: 'i' } },
         ],
       }
     : {};
 
-  const afterMatchQuery = Object.hasOwn(assignedFilter, 'assigned')
-    ? { assigned: assignedFilter.assigned }
-    : {};
+  const afterMatchQuery =
+    assignedFilter.assigned !== undefined
+      ? { assigned: assignedFilter.assigned }
+      : {};
 
-  const aggregateLandownerData = User.aggregate([
+  const aggregatePipeline = [
     {
       $match: {
         ...searchQuery,
+        _id: userId,
       },
     },
     {
@@ -233,21 +221,66 @@ const landownerReportAggregatePaginationService = async ({
       },
     },
     {
-      $addFields: {
-        numOfDocs: {
-          $size: {
-            $ifNull: ['$properties.landAssessmentReport', []],
-          },
-        },
-        assigned: {
-          $gt: [
-            {
-              $size: {
-                $ifNull: ['$properties.landAssessmentReport', []],
-              },
+      $lookup: {
+        from: 'reports',
+        let: { propertyId: '$properties._id' },
+        pipeline: [
+          { $match: { $expr: { $eq: ['$property', '$$propertyId'] } } },
+          {
+            $lookup: {
+              from: 'bids',
+              let: { reportId: '$_id' },
+              pipeline: [
+                { $match: { $expr: { $eq: ['$report', '$$reportId'] } } },
+                {
+                  $lookup: {
+                    from: 'users',
+                    localField: 'researcher',
+                    foreignField: '_id',
+                    as: 'researcher',
+                  },
+                },
+                {
+                  $unwind: {
+                    path: '$researcher',
+                    preserveNullAndEmptyArrays: true,
+                  },
+                },
+                {
+                  $project: {
+                    _id: 1,
+                    researcher: {
+                      _id: 1,
+                      name: 1,
+                      email: 1,
+                    },
+                    status: 1,
+                    createdAt: 1,
+                    updatedAt: 1,
+                  },
+                },
+              ],
+              as: 'bids',
             },
-            0,
-          ],
+          },
+          {
+            $project: {
+              _id: 1,
+              landAssessmentReport: 1,
+              createdAt: 1,
+              updatedAt: 1,
+              bids: 1,
+            },
+          },
+        ],
+        as: 'properties.reports',
+      },
+    },
+    {
+      $addFields: {
+        numOfDocs: { $size: { $ifNull: ['$properties.reports', []] } },
+        assigned: {
+          $gt: [{ $size: { $ifNull: ['$properties.reports', []] } }, 0],
         },
       },
     },
@@ -260,8 +293,7 @@ const landownerReportAggregatePaginationService = async ({
           propertyName: 1,
           propertyLocation: 1,
           propertySize: 1,
-          landAssessmentReport: 1,
-          property: 1,
+          reports: 1, // Includes populated reports with bids and researcher details
         },
         numOfDocs: 1,
         isArchived: 1,
@@ -274,11 +306,13 @@ const landownerReportAggregatePaginationService = async ({
         ...afterMatchQuery,
       },
     },
-  ]);
+  ];
+
+  const aggregateLandownerData = User.aggregate(aggregatePipeline);
 
   const result = await User.aggregatePaginate(aggregateLandownerData, options);
 
-  return transformPaginatedResponse(result, 'landowner');
+  return transformPaginatedResponse(result, 'reports');
 };
 
 export {

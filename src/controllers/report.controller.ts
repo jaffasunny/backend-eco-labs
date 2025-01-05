@@ -3,7 +3,10 @@ import { Response, Request } from 'express';
 import { ApiResponse } from '../utils/ApiResponse.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { Report } from '../models/reports.model.js';
-import { deleteReportsService } from '../services/report.service.js';
+import {
+  deleteReportsService,
+  getReportService,
+} from '../services/report.service.js';
 import { ApiError } from '../utils/ApiError.js';
 
 const paginatedReports = asyncHandler(async (req: Request, res: Response) => {
@@ -151,4 +154,18 @@ const deleteReport = asyncHandler(async (req: Request, res: Response) => {
     .json(new ApiResponse(200, deletedReport, 'Report deleted successfully'));
 });
 
-export { paginatedReports, deleteReport };
+const getReport = asyncHandler(async (req: Request, res: Response) => {
+  const { id: reportId } = req.params;
+
+  const report = await getReportService(reportId);
+
+  if (!report) {
+    return res.status(201).json(new ApiError(400, `Report not found!`));
+  }
+
+  res
+    .status(200)
+    .json(new ApiResponse(200, report, 'Report fetched successfully'));
+});
+
+export { paginatedReports, deleteReport, getReport };
