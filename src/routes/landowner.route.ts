@@ -1,12 +1,10 @@
-import { ROLES } from './../constants';
+import { ROLES } from './../constants.js';
 import { Router } from 'express';
 import {
   addLandowner,
   archiveLandowner,
-  assignReport,
   deleteLandowner,
   paginatedLandownerData,
-  paginatedReportData,
   updateLandowner,
 } from '../controllers/landowner.controller.js';
 import { authMiddleware } from '../middlewares/auth.middleware.js';
@@ -14,7 +12,6 @@ import { validateRequest } from '../middlewares/validateRequest.js';
 import {
   addLandownerValidation,
   archiveLandownerValidation,
-  assignReportValidation,
   deleteLandownerValidation,
   updateLandownerValidation,
 } from '../utils/validations/landownerValidations.js';
