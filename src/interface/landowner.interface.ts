@@ -13,4 +13,5 @@ export interface IlandownerAggregatePaginationServiceParams
 export interface IlandownerReportAggregatePaginationServiceParams
   extends IPagination {
   assigned: boolean | null;
+  userId?: string;
 }
