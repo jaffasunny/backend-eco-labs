@@ -160,6 +160,8 @@ const landownerAggregatePaginationService = async ({
         createdAt: 1,
       },
     },
+    { $skip: (page - 1) * limit },
+    { $limit: limit },
   ];
 
   const aggregateLandownerData = User.aggregate(aggregatePipeline);
