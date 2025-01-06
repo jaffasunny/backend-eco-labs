@@ -129,7 +129,7 @@ const paginatedReports = asyncHandler(async (req: Request, res: Response) => {
     options
   );
 
-  const renamedResult = transformPaginatedResponse(result, 'Reports');
+  const renamedResult = transformPaginatedResponse(result, 'reports');
 
   res
     .status(200)
