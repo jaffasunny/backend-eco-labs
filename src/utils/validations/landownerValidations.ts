@@ -140,3 +140,12 @@ export const changeResearcherBidStatusValidation = [
       }`
     ),
 ];
+
+export const paginatedReportsBidsValidation = [
+  query('reportId')
+    .trim()
+    .notEmpty()
+    .withMessage('Report Id is required')
+    .isMongoId()
+    .withMessage('Report Id must be a mongo id'),
+];

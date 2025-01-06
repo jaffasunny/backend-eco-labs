@@ -8,8 +8,11 @@ import {
 import {
   IlandownerAggregatePaginationServiceParams,
   IlandownerReportAggregatePaginationServiceParams,
+  IlandownerReportBidsAggregatePaginationServiceParams,
 } from '../interface/landowner.interface.js';
 import { Report } from '../models/reports.model.js';
+import { Bids } from '../models/bids.model.js';
+import { pipeline } from 'stream';
 
 const findOrUpdateLandowner = async (
   landownerData: {
@@ -329,8 +332,168 @@ const landownerReportAggregatePaginationService = async ({
   return transformPaginatedResponse(result, 'reports');
 };
 
+const landownerReportBidsPaginationService = async ({
+  page,
+  limit,
+  search,
+  reportId,
+  userId,
+}: IlandownerReportBidsAggregatePaginationServiceParams): Promise<any> => {
+  const options = {
+    page,
+    limit,
+  };
+
+  const searchQuery = search
+    ? {
+        $or: [
+          { name: { $regex: search, $options: 'i' } },
+          { email: { $regex: search, $options: 'i' } },
+          { 'properties.propertyName': { $regex: search, $options: 'i' } },
+          { 'properties.propertyLocation': { $regex: search, $options: 'i' } },
+        ],
+      }
+    : {};
+
+  const matchQuery = reportId
+    ? {
+        ...searchQuery,
+        report: reportId,
+      }
+    : {
+        ...searchQuery,
+      };
+
+  const aggregatePipeline = [
+    {
+      $match: {
+        report: new mongoose.Types.ObjectId(reportId),
+      },
+    },
+    {
+      $lookup: {
+        from: 'reports',
+        localField: 'report',
+        foreignField: '_id',
+        as: 'report',
+        pipeline: [
+          {
+            $project: {
+              _id: 1,
+              landAssessmentReport: {
+                $arrayElemAt: ['$landAssessmentReport', 0], // Fetch only the first landAssessmentReport
+              },
+              property: 1,
+            },
+          },
+        ],
+      },
+    },
+    {
+      $unwind: {
+        path: '$report',
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
+      $lookup: {
+        from: 'properties',
+        localField: 'report.property',
+        foreignField: '_id',
+        as: 'report.property',
+        pipeline: [
+          {
+            $lookup: {
+              from: 'users',
+              localField: 'landowner',
+              foreignField: '_id',
+              as: 'landowner',
+              pipeline: [
+                {
+                  $project: {
+                    _id: 1,
+                    name: 1,
+                    email: 1,
+                    phone: 1,
+                  },
+                },
+              ],
+            },
+          },
+          {
+            $unwind: {
+              path: '$landowner',
+              preserveNullAndEmptyArrays: true,
+            },
+          },
+          {
+            $project: {
+              _id: 1,
+              propertyName: 1,
+              propertyLocation: 1,
+              landowner: 1,
+            },
+          },
+        ],
+      },
+    },
+    {
+      $unwind: {
+        path: '$report.property',
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
+      $lookup: {
+        from: 'users',
+        localField: 'researcher',
+        foreignField: '_id',
+        as: 'researcher',
+        pipeline: [
+          {
+            $project: {
+              _id: 1,
+              name: 1,
+              email: 1,
+              phone: 1,
+            },
+          },
+        ],
+      },
+    },
+    {
+      $unwind: {
+        path: '$researcher',
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
+      $project: {
+        _id: 1,
+        description: 1,
+        status: 1,
+        createdAt: 1,
+        updatedAt: 1,
+        report: {
+          _id: 1,
+          landAssessmentReport: 1,
+          property: 1,
+        },
+        researcher: 1,
+      },
+    },
+  ];
+
+  const aggregateReportBidsData = Bids.aggregate(aggregatePipeline);
+
+  const result = await Bids.aggregatePaginate(aggregateReportBidsData, options);
+
+  return transformPaginatedResponse(result, 'bids');
+};
+
 export {
   findOrUpdateLandowner,
   landownerAggregatePaginationService,
   landownerReportAggregatePaginationService,
+  landownerReportBidsPaginationService,
 };
