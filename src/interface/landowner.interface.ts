@@ -15,3 +15,9 @@ export interface IlandownerReportAggregatePaginationServiceParams
   assigned: boolean | null;
   userId?: string;
 }
+
+export interface IlandownerReportBidsAggregatePaginationServiceParams
+  extends IPagination {
+  reportId: string;
+  userId?: string;
+}

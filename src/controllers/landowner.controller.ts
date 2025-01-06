@@ -21,6 +21,7 @@ import {
   findOrUpdateLandowner,
   landownerAggregatePaginationService,
   landownerReportAggregatePaginationService,
+  landownerReportBidsPaginationService,
 } from '../services/landowner.service.js';
 import { IAddLandownerParams } from '../interface/landowner.interface.js';
 import { Bids } from '../models/bids.model.js';
@@ -288,6 +289,37 @@ const paginatedReportData = asyncHandler(
   }
 );
 
+const paginatedReportBidsData = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { page = 1, limit = 10, search = '', reportId } = req.query;
+    const { _id: userId } = req.user;
+
+    if (!reportId || typeof reportId !== 'string') {
+      return res
+        .status(400)
+        .json(new ApiResponse(400, null, 'Report ID is required'));
+    }
+
+    const renamedResult = await landownerReportBidsPaginationService({
+      reportId,
+      limit: Number(limit),
+      page: Number(page),
+      search: search.toString(),
+      userId,
+    });
+
+    res
+      .status(200)
+      .json(
+        new ApiResponse(
+          200,
+          renamedResult,
+          'Paginated data fetched successfully'
+        )
+      );
+  }
+);
+
 const archiveLandowner = asyncHandler(async (req: Request, res: Response) => {
   const { id: landownerId } = req.params;
 
@@ -404,4 +436,5 @@ export {
   paginatedReportData,
   assignReport,
   changeResearchersBidStatus,
+  paginatedReportBidsData,
 };

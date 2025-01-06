@@ -195,7 +195,7 @@ const paginatedResearcherReportData = asyncHandler(
 const placeBidResearch = asyncHandler(async (req: Request, res: Response) => {
   const { id: reportId } = req.params;
   const { _id: userId } = req.user;
-  const { status } = req.body;
+  const { status, description } = req.body;
 
   if (!reportId || !isValidObjectId(reportId)) {
     return res
@@ -226,6 +226,7 @@ const placeBidResearch = asyncHandler(async (req: Request, res: Response) => {
     report: reportId,
     researcher: userId,
     status,
+    description,
   });
 
   if (!createdBid) {

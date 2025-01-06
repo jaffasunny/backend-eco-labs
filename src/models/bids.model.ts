@@ -12,6 +12,10 @@ const bidsSchema = new Schema<IBids>(
       enum: PROPOSAL_STATUS,
       default: PROPOSAL_STATUS.NOTSENT,
     },
+    description: {
+      type: String,
+      required: true,
+    },
   },
   {
     timestamps: true,
