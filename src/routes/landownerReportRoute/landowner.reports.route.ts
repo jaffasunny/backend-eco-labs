@@ -17,7 +17,11 @@ const router = Router();
 
 router
   .route('/')
-  .get(authMiddleware, roleCheck(ROLES.LANDOWNER), paginatedReportData);
+  .get(
+    authMiddleware,
+    roleCheck([ROLES.LANDOWNER]),
+    paginatedReportData
+  );
 
 router
   .route('/assignReport')

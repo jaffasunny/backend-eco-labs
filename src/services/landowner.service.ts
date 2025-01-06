@@ -1,4 +1,4 @@
-import { ClientSession } from 'mongoose';
+import mongoose, { ClientSession } from 'mongoose';
 import { ROLES } from '../constants.js';
 import { User } from '../models/user.model.js';
 import {
@@ -9,6 +9,7 @@ import {
   IlandownerAggregatePaginationServiceParams,
   IlandownerReportAggregatePaginationServiceParams,
 } from '../interface/landowner.interface.js';
+import { Report } from '../models/reports.model.js';
 
 const findOrUpdateLandowner = async (
   landownerData: {
@@ -196,24 +197,33 @@ const landownerReportAggregatePaginationService = async ({
       }
     : {};
 
-  const afterMatchQuery =
-    assignedFilter.assigned !== undefined
-      ? { assigned: assignedFilter.assigned }
-      : {};
+  const matchQuery = assignedFilter
+    ? {
+        ...searchQuery,
+        ...assignedFilter,
+      }
+    : {
+        ...searchQuery,
+      };
 
   const aggregatePipeline = [
     {
-      $match: {
-        ...searchQuery,
-        _id: userId,
+      $unwind: {
+        path: '$landAssessmentReport',
+        preserveNullAndEmptyArrays: true,
       },
     },
     {
       $lookup: {
         from: 'properties',
-        localField: '_id',
-        foreignField: 'landowner',
+        localField: 'property',
+        foreignField: '_id',
         as: 'properties',
+      },
+    },
+    {
+      $match: {
+        'properties.landowner': userId,
       },
     },
     {
@@ -224,95 +234,97 @@ const landownerReportAggregatePaginationService = async ({
     },
     {
       $lookup: {
-        from: 'reports',
-        let: { propertyId: '$properties._id' },
+        from: 'users',
+        localField: 'properties.landowner',
+        foreignField: '_id',
+        as: 'properties.landowner',
+      },
+    },
+    {
+      $unwind: {
+        path: '$properties.landowner',
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
+      $lookup: {
+        from: 'bids',
+        let: { reportId: '$_id' }, // Pass the current report ID
         pipeline: [
-          { $match: { $expr: { $eq: ['$property', '$$propertyId'] } } },
+          {
+            $match: {
+              $expr: { $eq: ['$report', '$$reportId'] }, // Match bids where report equals current report ID
+            },
+          },
           {
             $lookup: {
-              from: 'bids',
-              let: { reportId: '$_id' },
-              pipeline: [
-                { $match: { $expr: { $eq: ['$report', '$$reportId'] } } },
-                {
-                  $lookup: {
-                    from: 'users',
-                    localField: 'researcher',
-                    foreignField: '_id',
-                    as: 'researcher',
-                  },
-                },
-                {
-                  $unwind: {
-                    path: '$researcher',
-                    preserveNullAndEmptyArrays: true,
-                  },
-                },
-                {
-                  $project: {
-                    _id: 1,
-                    researcher: {
-                      _id: 1,
-                      name: 1,
-                      email: 1,
-                    },
-                    status: 1,
-                    createdAt: 1,
-                    updatedAt: 1,
-                  },
-                },
-              ],
-              as: 'bids',
+              from: 'users',
+              localField: 'researcher',
+              foreignField: '_id',
+              as: 'researcher',
+            },
+          },
+          {
+            $unwind: {
+              path: '$researcher',
+              preserveNullAndEmptyArrays: true,
             },
           },
           {
             $project: {
               _id: 1,
-              landAssessmentReport: 1,
-              createdAt: 1,
-              updatedAt: 1,
-              bids: 1,
+              'researcher._id': 1,
+              'researcher.name': 1,
+              'researcher.email': 1,
+              'researcher.phone': 1,
             },
           },
         ],
-        as: 'properties.reports',
-      },
-    },
-    {
-      $addFields: {
-        numOfDocs: { $size: { $ifNull: ['$properties.reports', []] } },
-        assigned: {
-          $gt: [{ $size: { $ifNull: ['$properties.reports', []] } }, 0],
-        },
+        as: 'bids', // Add matched bids to the `bids` field
       },
     },
     {
       $project: {
-        name: 1,
-        email: 1,
-        phone: 1,
+        _id: 1,
+        landAssessmentReport: {
+          url: 1,
+          name: 1,
+        },
         properties: {
+          _id: 1,
           propertyName: 1,
           propertyLocation: 1,
           propertySize: 1,
-          reports: 1, // Includes populated reports with bids and researcher details
+          createdAt: 1,
+          updatedAt: 1,
+          landowner: {
+            _id: 1,
+            name: 1,
+            email: 1, // Include any additional fields you want from the landowner
+          },
         },
-        numOfDocs: 1,
-        isArchived: 1,
-        assigned: 1,
+        bids: {
+          _id: 1,
+          researcher: 1,
+          status: 1,
+          createdAt: 1,
+          updatedAt: 1,
+        },
         createdAt: 1,
+        updatedAt: 1,
       },
     },
     {
-      $match: {
-        ...afterMatchQuery,
-      },
+      $match: matchQuery,
     },
   ];
 
-  const aggregateLandownerData = User.aggregate(aggregatePipeline);
+  const aggregateLandownerData = Report.aggregate(aggregatePipeline);
 
-  const result = await User.aggregatePaginate(aggregateLandownerData, options);
+  const result = await Report.aggregatePaginate(
+    aggregateLandownerData,
+    options
+  );
 
   return transformPaginatedResponse(result, 'reports');
 };
