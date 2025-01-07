@@ -1,5 +1,4 @@
-import mongoose, { ObjectId } from 'mongoose';
-import { IUser } from '../userTypes';
+import mongoose, { ObjectId } from 'mongoose'; 
 
 export interface ITicket extends Document {
   _id: ObjectId;

@@ -1,4 +1,6 @@
 import cloudinary from 'cloudinary';
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
 import DataURIParser from 'datauri/parser';
 import mongoose from 'mongoose';
 
@@ -54,6 +56,6 @@ export function createDynamicFilter(
       filter[key] = value;
     }
   });
-  
+
   return filter;
 }

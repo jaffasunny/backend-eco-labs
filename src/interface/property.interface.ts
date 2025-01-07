@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
-import { IReport } from './report.interface';
-import { IUser } from '../types/userTypes';
+import { IReport } from './report.interface.js';
+import { IUser } from '../types/userTypes/index.js';
 
 export interface IProperty {
   propertyName: string;

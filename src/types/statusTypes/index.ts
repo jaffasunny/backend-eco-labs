@@ -1,5 +1,4 @@
 import mongoose from 'mongoose';
-import { IUser } from '../userTypes';
 
 export interface IStatus extends Document {
   status: string;

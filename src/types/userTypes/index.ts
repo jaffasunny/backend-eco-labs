@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { ResearchStatusType } from '../../constants';
+import { ResearchStatusType } from '../../constants.js';
 
 interface IUserDocument extends Document {
   // Your existing IUser properties here...

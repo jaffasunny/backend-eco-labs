@@ -1,6 +1,6 @@
-import { IUser } from '../types/userTypes';
-import { IPagination } from './index.interface';
-import { IProperty } from './property.interface';
+import { IUser } from '../types/userTypes/index.js';
+import { IPagination } from './index.interface.js';
+import { IProperty } from './property.interface.js';
 
 export interface IAddLandownerParams extends IUser, IProperty {}
 

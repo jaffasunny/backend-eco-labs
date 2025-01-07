@@ -1,5 +1,4 @@
 import mongoose from 'mongoose';
-import { IUser } from '../userTypes';
 
 export interface IProject extends Document {
   title: string;
@@ -13,7 +12,6 @@ export interface IProject extends Document {
   description?: string;
   tickets?: mongoose.Schema.Types.ObjectId[];
 }
-// description?: object;
 
 export interface IProjectSkill extends Document {
   skillsTitle: string[];
