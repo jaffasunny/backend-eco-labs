@@ -1,12 +1,21 @@
 import { Request, Response } from 'express';
 import { asyncHandler } from '../utils/asyncHandler.js';
-import { isValidObjectId, transformPaginatedResponse } from '../utils/utils.js';
+import {
+  generatePassword,
+  isValidObjectId,
+  transformPaginatedResponse,
+} from '../utils/utils.js';
 import { ApiResponse } from '../utils/ApiResponse.js';
 import { ApiError } from '../utils/ApiError.js';
 import { Property } from '../models/property.model.js';
 import { Bids } from '../models/bids.model.js';
 import { User } from '../models/user.model.js';
 import { Report } from '../models/reports.model.js';
+import { IUpdateResearcher } from '../interface/researcher.interface.js';
+import { PLATFORM_NAME, RESEARCHER_STATUS, ROLES } from '../constants.js';
+import mongoose from 'mongoose';
+import { findOrUpdateLandowner } from '../services/landowner.service.js';
+import sendEmail from '../utils/sendMail.js';
 
 const paginatedResearchers = asyncHandler(
   async (req: Request, res: Response) => {
@@ -365,6 +374,58 @@ const updateResearcher = asyncHandler(async (req: Request, res: Response) => {
     );
 });
 
+// Add Landowner by email
+const addResearcher = asyncHandler(async (req: Request, res: Response) => {
+  const { name, email, phone }: IUpdateResearcher = req.body;
+
+  // Start a transaction
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  // Generate system-generated password
+  const password = generatePassword();
+
+  const landownerData = {
+    name,
+    email,
+    phone,
+    password,
+    roles: ROLES.RESEARCHER,
+  };
+
+  // Send the password to the user's email
+  try {
+    const user = await findOrUpdateLandowner(landownerData, session);
+
+    // Commit transaction
+    await session.commitTransaction();
+
+    // Send email asynchronously (outside of transaction)
+    sendEmail(
+      email,
+      'Your System Generated Password',
+      `Welcome to ${PLATFORM_NAME}! Here is your system-generated password: ${password}`
+    ).catch((err) => console.error('Email sending failed:', err));
+
+    return res
+      .status(201)
+      .json(
+        new ApiResponse(
+          201,
+          { user },
+          'Researcher added successfully. Password has been sent to the email.'
+        )
+      );
+  } catch (error: any) {
+    // Rollback transaction
+    await session.abortTransaction();
+    throw new ApiError(500, error.message || 'Failed to create Researcher!');
+  } finally {
+    // End session
+    session.endSession();
+  }
+});
+
 export {
   paginatedResearcherReportData,
   placeBidResearch,
@@ -373,4 +434,5 @@ export {
   archiveResearcher,
   deleteResearcher,
   updateResearcher,
+  addResearcher,
 };
