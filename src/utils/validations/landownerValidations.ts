@@ -101,11 +101,21 @@ export const assignReportValidation = [
 ];
 
 export const deleteLandownerValidation = [
-  param('id').trim().notEmpty().withMessage('Landowner Id is required'),
+  param('id')
+    .trim()
+    .notEmpty()
+    .withMessage('Landowner Id is required')
+    .isMongoId()
+    .withMessage('Landowner id is not a mongo id!'),
 ];
 
 export const archiveLandownerValidation = [
-  param('id').trim().notEmpty().withMessage('Landowner Id is required'),
+  param('id')
+    .trim()
+    .notEmpty()
+    .withMessage('Landowner Id is required')
+    .isMongoId()
+    .withMessage('Landowner id is not a mongo id!'),
 ];
 
 export const changeResearcherBidStatusValidation = [

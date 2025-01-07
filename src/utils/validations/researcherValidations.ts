@@ -51,3 +51,48 @@ export const changeResearchersStatusValidations = [
       }`
     ),
 ];
+
+export const deleteResearcherValidation = [
+  param('id')
+    .trim()
+    .notEmpty()
+    .withMessage('Researcher Id is required')
+    .isMongoId()
+    .withMessage('Researcher id is not a mongo id!'),
+];
+
+export const archiveResearcherValidation = [
+  param('id')
+    .trim()
+    .notEmpty()
+    .withMessage('Researcher Id is required')
+    .isMongoId()
+    .withMessage('Researcher id is not a mongo id!'),
+];
+
+export const updateResearcherValidation = [
+  param('id')
+    .trim()
+    .notEmpty()
+    .withMessage('Researcher Id is required')
+    .isMongoId()
+    .withMessage('Researcher id is not a mongo id!'),
+  body('name')
+    .optional()
+    .trim()
+    .isLength({ min: 3 })
+    .withMessage('Name must be at least 3 characters long'),
+  body('email')
+    .optional()
+    .trim()
+    .isEmail()
+    .withMessage('Valid email is required')
+    .normalizeEmail(),
+  body('phone')
+    .optional()
+    .trim()
+    .isNumeric()
+    .withMessage('Phone number must be numeric')
+    .isLength({ min: 10, max: 15 })
+    .withMessage('Phone number must be between 10 and 15 digits'),
+];

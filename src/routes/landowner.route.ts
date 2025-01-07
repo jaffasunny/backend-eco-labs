@@ -36,7 +36,6 @@ router.use('/reports', landownerReportsRouter);
 router
   .route('/:id')
   .put(
-    // upload.array('files', 5),
     updateLandownerValidation,
     validateRequest,
     authMiddleware,

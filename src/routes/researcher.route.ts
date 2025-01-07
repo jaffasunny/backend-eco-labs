@@ -7,8 +7,18 @@ import {
   paginatedResearcherReportData,
   paginatedResearchers,
   changeResearchersStatus,
+  updateResearcher,
+  deleteResearcher,
+  archiveResearcher,
 } from '../controllers/researcher.controller.js';
-import { changeResearchersStatusValidations, placeBidResearchValidations } from '../utils/validations/researcherValidations.js';
+import {
+  archiveResearcherValidation,
+  changeResearchersStatusValidations,
+  deleteResearcherValidation,
+  placeBidResearchValidations,
+  updateResearcherValidation,
+} from '../utils/validations/researcherValidations.js';
+import { ROLES } from '../constants.js';
 
 const router = Router();
 
@@ -22,8 +32,35 @@ router
     changeResearchersStatusValidations,
     validateRequest,
     authMiddleware,
-    roleCheck('landowner'),
+    roleCheck(ROLES.ADMIN),
     changeResearchersStatus
+  )
+  .delete(
+    deleteResearcherValidation,
+    validateRequest,
+    authMiddleware,
+    roleCheck(ROLES.ADMIN),
+    deleteResearcher
+  );
+
+router
+  .route('/:id/update')
+  .patch(
+    updateResearcherValidation,
+    validateRequest,
+    authMiddleware,
+    roleCheck(ROLES.ADMIN),
+    updateResearcher
+  );
+
+router
+  .route('/archive/:id')
+  .patch(
+    archiveResearcherValidation,
+    validateRequest,
+    authMiddleware,
+    roleCheck(ROLES.ADMIN),
+    archiveResearcher
   );
 
 router
