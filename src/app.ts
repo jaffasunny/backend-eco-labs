@@ -3,6 +3,7 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { TCorsOptions } from './types/index.js';
 import helmet from 'helmet';
+import morgan from 'morgan';
 import { seedSuperAdmin } from './utils/seeder.js';
 
 const corsOptions: TCorsOptions = {
@@ -14,6 +15,9 @@ const app = express();
 
 // Use Helmet!
 app.use(helmet());
+
+// setting up morgan
+loggerEnvironment(app);
 
 app.use(cors(corsOptions));
 
@@ -34,6 +38,8 @@ import userRouter from './routes/user.route.js';
 import landownerRouter from './routes/landowner.route.js';
 import researcherRouter from './routes/researcher.route.js';
 import reportsRouter from './routes/report.route.js';
+import { ENVIRONMENT } from './constants.js';
+import { loggerEnvironment } from './utils/utils.js';
 
 // routes declaration
 app.get('/', (req, res) => {

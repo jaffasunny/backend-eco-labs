@@ -35,3 +35,8 @@ export enum RESEARCHER_STATUS {
 }
 
 export type ResearchStatusType = `${RESEARCHER_STATUS}`;
+
+export enum ENVIRONMENT {
+  DEVELOPMENT = 'development',
+  PRODUCTION = 'production',
+}
