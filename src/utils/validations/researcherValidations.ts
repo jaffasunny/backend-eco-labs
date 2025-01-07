@@ -17,18 +17,15 @@ export const placeBidResearchValidations = [
     }),
   body('status')
     .trim()
-    .notEmpty()
-    .withMessage('Please specify status')
+    .optional()
     .isIn([
       PROPOSAL_STATUS.APPROVED,
-      PROPOSAL_STATUS.NOTSENT,
       PROPOSAL_STATUS.PENDING,
       PROPOSAL_STATUS.REJECTED,
     ])
     .withMessage(
       `Invalid status. Must be ${
         (PROPOSAL_STATUS.APPROVED,
-        PROPOSAL_STATUS.NOTSENT,
         PROPOSAL_STATUS.PENDING,
         PROPOSAL_STATUS.REJECTED)
       }`
