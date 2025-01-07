@@ -6,6 +6,7 @@ import {
   getReport,
   paginatedReports,
 } from '../controllers/report.controller.js';
+import { ROLES } from '../constants.js';
 
 const router = Router();
 
@@ -13,13 +14,17 @@ router
   .route('/')
   .get(
     authMiddleware,
-    roleCheck(['landowner', 'researcher']),
+    roleCheck([ROLES.LANDOWNER, ROLES.RESEARCHER]),
     paginatedReports
   );
 
 router
   .route('/:id')
-  .delete(authMiddleware, roleCheck('landowner'), deleteReport)
-  .get(authMiddleware, roleCheck('landowner'), getReport);
+  .delete(authMiddleware, roleCheck([ROLES.LANDOWNER]), deleteReport)
+  .get(
+    authMiddleware,
+    roleCheck([ROLES.LANDOWNER, ROLES.RESEARCHER]),
+    getReport
+  );
 
 export default router;

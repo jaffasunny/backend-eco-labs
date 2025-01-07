@@ -157,6 +157,8 @@ const deleteReport = asyncHandler(async (req: Request, res: Response) => {
 const getReport = asyncHandler(async (req: Request, res: Response) => {
   const { id: reportId } = req.params;
 
+  console.log({ reportId });
+
   const report = await getReportService(reportId);
 
   if (!report) {

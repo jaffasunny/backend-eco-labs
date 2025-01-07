@@ -110,9 +110,9 @@ const deleteReportsService = async (
 };
 
 const getReportService = async (reportId: mongoose.Types.ObjectId | string) => {
-  if (!isValidObjectId(reportId)) {
-    new ApiError(400, `Please enter valid Report Id!`);
-  }
+  // if (!isValidObjectId(reportId)) {
+  //   new ApiError(400, `Please enter valid Report Id!`);
+  // }
 
   const report = await Report.findById(reportId);
 
