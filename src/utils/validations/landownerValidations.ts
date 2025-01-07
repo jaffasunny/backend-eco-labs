@@ -127,14 +127,12 @@ export const changeResearcherBidStatusValidation = [
     .withMessage('Please specify status')
     .isIn([
       PROPOSAL_STATUS.APPROVED,
-      PROPOSAL_STATUS.NOTSENT,
       PROPOSAL_STATUS.PENDING,
       PROPOSAL_STATUS.REJECTED,
     ])
     .withMessage(
       `Invalid status. Must be ${
         (PROPOSAL_STATUS.APPROVED,
-        PROPOSAL_STATUS.NOTSENT,
         PROPOSAL_STATUS.PENDING,
         PROPOSAL_STATUS.REJECTED)
       }`

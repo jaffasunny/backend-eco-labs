@@ -10,7 +10,7 @@ const bidsSchema = new Schema<IBids>(
     status: {
       type: String,
       enum: PROPOSAL_STATUS,
-      default: PROPOSAL_STATUS.NOTSENT,
+      default: PROPOSAL_STATUS.PENDING,
     },
     description: {
       type: String,
