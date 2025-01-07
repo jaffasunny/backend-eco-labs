@@ -333,51 +333,6 @@ const resetPassword = asyncHandler(async (req: Request, res: Response) => {
     .json(new ApiResponse(200, 'Password Reset Successfully!'));
 });
 
-const roleAssign = asyncHandler(async (req: Request, res: Response) => {
-  const { userId, role } = req.body;
-
-  const user = await User.findById(userId);
-
-  if (!user) {
-    throw new ApiError(400, 'User not found!');
-  }
-
-  let roleUpdated = await User.findByIdAndUpdate(userId, {
-    assignedRole: role,
-  });
-
-  if (!roleUpdated) {
-    throw new ApiError(500, 'Something went wrong while creating role!');
-  }
-
-  return res
-    .status(200)
-    .json(new ApiResponse(200, 'Role updated Successfully!'));
-});
-
-const fetchProjectManagersOrTeamLead = asyncHandler(
-  async (req: Request, res: Response) => {
-    const { role } = req.query;
-
-    if (!['Project Manager', 'Team Lead'].includes(role as string)) {
-      throw new ApiError(400, 'Invalid Role');
-    }
-    const projectManagers = await User.find({
-      assignedRole: role,
-    });
-
-    if (!projectManagers) {
-      throw new ApiError(400, role + ' not found!');
-    }
-
-    return res
-      .status(200)
-      .json(
-        new ApiResponse(200, projectManagers, role + ' fetched Successfully!')
-      );
-  }
-);
-
 export {
   registerUser,
   loginUser,
@@ -386,7 +341,5 @@ export {
   refreshAccessToken,
   sendResetPasswordToken,
   resetPassword,
-  roleAssign,
-  fetchProjectManagersOrTeamLead,
   verifyResetPasswordOTP,
 };

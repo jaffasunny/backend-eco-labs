@@ -245,12 +245,6 @@ const changeResearchersStatus = asyncHandler(
     const { id: researcherId } = req.params;
     const { status } = req.body;
 
-    if (!researcherId || !isValidObjectId(researcherId)) {
-      return res
-        .status(201)
-        .json(new ApiError(400, `Please enter a valid researcher id!`));
-    }
-
     const findUser = await User.findById(researcherId);
 
     if (!findUser) {
@@ -283,9 +277,100 @@ const changeResearchersStatus = asyncHandler(
   }
 );
 
+const archiveResearcher = asyncHandler(async (req: Request, res: Response) => {
+  const { id: researcherId } = req.params;
+
+  const archivedResearcher = await User.findByIdAndUpdate(
+    {
+      _id: researcherId,
+    },
+    [
+      {
+        $set: {
+          isArchived: { $not: '$isArchived' },
+        },
+      },
+    ],
+    {
+      new: true,
+      runValidators: true,
+    }
+  );
+
+  if (!archivedResearcher) {
+    return res
+      .status(201)
+      .json(
+        new ApiError(400, `Something went wrong while archiving researcher!`)
+      );
+  }
+
+  res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        archivedResearcher,
+        'Researcher archived successfully!'
+      )
+    );
+});
+
+const deleteResearcher = asyncHandler(async (req: Request, res: Response) => {
+  const { id: researcherId } = req.params;
+
+  const deletedResearcher = await User.findByIdAndDelete({
+    _id: researcherId,
+  });
+
+  if (!deletedResearcher) {
+    return res
+      .status(201)
+      .json(
+        new ApiError(400, `Something went wrong while deleting researcher!`)
+      );
+  }
+
+  res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        deletedResearcher,
+        'Researcher deleted successfully!'
+      )
+    );
+});
+
+const updateResearcher = asyncHandler(async (req: Request, res: Response) => {
+  const { id: userId } = req.params;
+
+  // Check if user exists
+  const user = await User.findById(userId);
+  if (!user) {
+    throw new ApiError(404, 'User does not exist!');
+  }
+
+  // Update user details
+  const updatedResearcher = await User.findByIdAndUpdate(user, req.body, {
+    new: true,
+    runValidators: true,
+  });
+
+  // Send response
+  res
+    .status(200)
+    .json(
+      new ApiResponse(200, updatedResearcher, 'Researcher updated successfully')
+    );
+});
+
 export {
   paginatedResearcherReportData,
   placeBidResearch,
   paginatedResearchers,
   changeResearchersStatus,
+  archiveResearcher,
+  deleteResearcher,
+  updateResearcher,
 };
