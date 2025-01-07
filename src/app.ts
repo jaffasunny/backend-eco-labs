@@ -3,7 +3,6 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { TCorsOptions } from './types/index.js';
 import helmet from 'helmet';
-import morgan from 'morgan';
 import { seedSuperAdmin } from './utils/seeder.js';
 
 const corsOptions: TCorsOptions = {
