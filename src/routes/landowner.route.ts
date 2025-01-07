@@ -1,4 +1,4 @@
-import { ROLES } from './../constants';
+import { ROLES } from './../constants.js';
 import { Router } from 'express';
 import {
   addLandowner,
@@ -6,7 +6,7 @@ import {
   deleteLandowner,
   paginatedLandownerData,
   updateLandowner,
-} from '../controllers/landowner.controller';
+} from '../controllers/landowner.controller.js';
 import { authMiddleware } from '../middlewares/auth.middleware.js';
 import { validateRequest } from '../middlewares/validateRequest.js';
 import {
