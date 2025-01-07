@@ -2,7 +2,10 @@ import cloudinary from 'cloudinary';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import DataURIParser from 'datauri/parser';
+import { Express } from 'express';
 import mongoose from 'mongoose';
+import { ENVIRONMENT } from '../constants.js';
+import morgan from 'morgan';
 
 export const uploadCloudinary = async (fileUri: DataURIParser) => {
   const mycloud = await cloudinary.v2.uploader.upload(
@@ -59,3 +62,12 @@ export function createDynamicFilter(
 
   return filter;
 }
+
+export const loggerEnvironment = (app: Express) => {
+  // Use 'dev' format for development
+  if (process.env.NODE_ENV === ENVIRONMENT.DEVELOPMENT) {
+    return app.use(morgan('dev'));
+  } else {
+    return app.use(morgan('combined'));
+  }
+};
