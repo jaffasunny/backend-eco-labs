@@ -10,8 +10,10 @@ import {
   updateResearcher,
   deleteResearcher,
   archiveResearcher,
+  addResearcher,
 } from '../controllers/researcher.controller.js';
 import {
+  addResearcherValidation,
   archiveResearcherValidation,
   changeResearchersStatusValidations,
   deleteResearcherValidation,
@@ -24,7 +26,18 @@ const router = Router();
 
 router
   .route('/')
-  .get(authMiddleware, roleCheck('researcher'), paginatedResearchers);
+  .get(
+    authMiddleware,
+    roleCheck([ROLES.LANDOWNER, ROLES.RESEARCHER]),
+    paginatedResearchers
+  )
+  .post(
+    addResearcherValidation,
+    validateRequest,
+    authMiddleware,
+    roleCheck([ROLES.ADMIN]),
+    addResearcher
+  );
 
 router
   .route('/:id')

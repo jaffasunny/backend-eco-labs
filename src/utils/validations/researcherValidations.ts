@@ -96,3 +96,27 @@ export const updateResearcherValidation = [
     .isLength({ min: 10, max: 15 })
     .withMessage('Phone number must be between 10 and 15 digits'),
 ];
+
+export const addResearcherValidation = [
+  // Validate email
+  body('name')
+    .trim()
+    .notEmpty()
+    .withMessage('Name is required')
+    .isLength({ min: 3 })
+    .withMessage('Name must be at least 3 characters long'),
+  body('email')
+    .trim()
+    .notEmpty()
+    .withMessage('Email is required')
+    .isEmail()
+    .withMessage('Please provide a valid email'),
+  body('phone')
+    .trim()
+    .notEmpty()
+    .withMessage('Phone number is required')
+    .isNumeric()
+    .withMessage('Phone number must be numeric')
+    .isLength({ min: 10, max: 15 })
+    .withMessage('Phone number must be between 10 and 15 digits'),
+];
