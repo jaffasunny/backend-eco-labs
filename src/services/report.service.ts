@@ -110,11 +110,20 @@ const deleteReportsService = async (
 };
 
 const getReportService = async (reportId: mongoose.Types.ObjectId | string) => {
-  // if (!isValidObjectId(reportId)) {
-  //   new ApiError(400, `Please enter valid Report Id!`);
-  // }
+  if (!isValidObjectId(reportId)) {
+    new ApiError(400, `Please enter valid Report Id!`);
+  }
 
-  const report = await Report.findById(reportId);
+  const report = await Report.findById(reportId)
+    .select('landAssessmentReport.url landAssessmentReport.name')
+    .populate({
+      path: 'property',
+      populate: {
+        path: 'landowner',
+        model: 'User',
+        select: '_id name email phone status',
+      },
+    });
 
   return report;
 };
