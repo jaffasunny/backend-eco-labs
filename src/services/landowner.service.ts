@@ -136,12 +136,14 @@ const landownerAggregatePaginationService = async ({
     {
       $addFields: {
         assigned: {
-          $cond: {
-            if: {
-              $gt: [{ $size: { $ifNull: ['$properties.reports', []] } }, 0],
+          $anyElementTrue: {
+            $map: {
+              input: '$properties',
+              as: 'property',
+              in: {
+                $gt: [{ $size: { $ifNull: ['$$property.reports', []] } }, 0],
+              },
             },
-            then: true,
-            else: false,
           },
         },
       },
