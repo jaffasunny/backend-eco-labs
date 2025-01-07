@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { TCorsOptions } from './types/index.js';
+import helmet from 'helmet';
 import { seedSuperAdmin } from './utils/seeder.js';
 
 const corsOptions: TCorsOptions = {
@@ -10,6 +11,9 @@ const corsOptions: TCorsOptions = {
 };
 
 const app = express();
+
+// Use Helmet!
+app.use(helmet());
 
 app.use(cors(corsOptions));
 
@@ -36,7 +40,7 @@ app.get('/', (req, res) => {
   return res
     .status(200)
     .send(
-      '<h1>Testing cicd: Welcome to intial route for Backend Bits of Code...</h1>'
+      '<h1>Testing cicd: Welcome to intial route for Backend Eco Labs...</h1>'
     );
 });
 
