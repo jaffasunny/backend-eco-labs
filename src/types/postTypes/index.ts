@@ -1,5 +1,5 @@
-import { IComment } from "../commentTypes/index.js";
-import { IUser } from "../userTypes/index.js";
+import { IComment } from '../commentTypes/index.js';
+import { IUser } from '../userTypes/index.js';
 
 export interface IPost extends Document {
   title: string;

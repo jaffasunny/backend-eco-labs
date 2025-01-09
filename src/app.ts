@@ -37,7 +37,6 @@ import userRouter from './routes/user.route.js';
 import landownerRouter from './routes/landowner.route.js';
 import researcherRouter from './routes/researcher.route.js';
 import reportsRouter from './routes/report.route.js';
-import { ENVIRONMENT } from './constants.js';
 import { loggerEnvironment } from './utils/utils.js';
 
 // routes declaration
