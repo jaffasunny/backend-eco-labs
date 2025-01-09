@@ -3,7 +3,7 @@ import cloudinary from 'cloudinary';
 // @ts-ignore
 import DataURIParser from 'datauri/parser';
 import { Express } from 'express';
-import mongoose from 'mongoose';
+import mongoose, { Types } from 'mongoose';
 import { ENVIRONMENT } from '../constants.js';
 import morgan from 'morgan';
 
@@ -71,3 +71,11 @@ export const loggerEnvironment = (app: Express) => {
     return app.use(morgan('combined'));
   }
 };
+
+export function stringToObjectId(stringId: string) {
+  try {
+    return new mongoose.Types.ObjectId(stringId as string);
+  } catch (error) {
+    return null;
+  }
+}

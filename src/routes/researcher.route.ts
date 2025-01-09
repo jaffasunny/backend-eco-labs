@@ -40,6 +40,10 @@ router
   );
 
 router
+  .route('/researchReports')
+  .get(authMiddleware, roleCheck('researcher'), paginatedResearcherReportData);
+
+router
   .route('/:id')
   .patch(
     changeResearchersStatusValidations,
@@ -67,6 +71,16 @@ router
   );
 
 router
+  .route('/:id/update')
+  .patch(
+    updateResearcherValidation,
+    validateRequest,
+    authMiddleware,
+    roleCheck(ROLES.ADMIN),
+    updateResearcher
+  );
+
+router
   .route('/archive/:id')
   .patch(
     archiveResearcherValidation,
@@ -77,16 +91,12 @@ router
   );
 
 router
-  .route('/researchReports')
-  .get(authMiddleware, roleCheck('researcher'), paginatedResearcherReportData);
-
-router
   .route('/bid/:id')
   .post(
     placeBidResearchValidations,
     validateRequest,
     authMiddleware,
-    roleCheck('researcher'),
+    roleCheck(ROLES.RESEARCHER),
     placeBidResearch
   );
 

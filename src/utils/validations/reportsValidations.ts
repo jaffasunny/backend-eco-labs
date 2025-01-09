@@ -1,4 +1,4 @@
-import { body, check, param } from 'express-validator';
+import { body } from 'express-validator';
 
 export const reportsValidation = [
   // Validate email
@@ -27,4 +27,25 @@ export const reportsValidation = [
     .optional()
     .isMongoId()
     .withMessage('Property must be a valid MongoDB ObjectId.'),
+];
+
+export const assignResearcherReportValidation = [
+  body('reportId')
+    .notEmpty()
+    .withMessage('Report Id is required!')
+    .isMongoId()
+    .withMessage('Report Id must be a valid MongoDB ObjectId.'),
+  body('researcherId')
+    .notEmpty()
+    .withMessage('Researcher Id is required!')
+    .isMongoId()
+    .withMessage('Researcher Id must be a valid MongoDB ObjectId.'),
+];
+
+export const deleteReportValidation = [
+  body('id')
+    .notEmpty()
+    .withMessage('Report Id is required!')
+    .isMongoId()
+    .withMessage('Report Id must be a valid MongoDB ObjectId.'),
 ];

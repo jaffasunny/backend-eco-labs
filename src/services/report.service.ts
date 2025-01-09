@@ -1,7 +1,9 @@
 import mongoose, { ClientSession, isValidObjectId } from 'mongoose';
+import { AssignResearcherReport } from '../models/assigned-reports.model.js';
 import { Property } from '../models/property.model.js';
 import { Report } from '../models/reports.model.js';
 import { ApiError } from '../utils/ApiError.js';
+import { stringToObjectId } from '../utils/utils.js';
 
 const createOrUpdateReportsService = async (
   reportData: {
@@ -94,10 +96,6 @@ const findReportService = async (
 const deleteReportsService = async (
   reportId: mongoose.Types.ObjectId | string
 ) => {
-  if (!isValidObjectId(reportId)) {
-    new ApiError(400, `Please enter valid Report Id!`);
-  }
-
   const report = await Report.findById(reportId);
 
   if (!report) {
@@ -128,9 +126,47 @@ const getReportService = async (reportId: mongoose.Types.ObjectId | string) => {
   return report;
 };
 
+const assignResearcherReportsService = async (
+  reportId: string,
+  researcherId: string
+) => {
+  const existingReport = await AssignResearcherReport.findOne({
+    report: reportId,
+    researchers: { $in: [researcherId] },
+  }).populate('researchers');
+
+  if (existingReport) {
+    throw new ApiError(401, `Researcher is already assigned to this report!`);
+  }
+
+  const report = await AssignResearcherReport.findOne({ report: reportId });
+
+  if (report) {
+    const updatedReport = await AssignResearcherReport.findOneAndUpdate(
+      { report: reportId },
+      { $addToSet: { researchers: researcherId } },
+      { new: true, runValidators: true }
+    ).populate('researchers');
+    return updatedReport;
+  }
+
+  const assignedResearcherReport = await AssignResearcherReport.create({
+    report: reportId,
+    researchers: [researcherId],
+  });
+
+  // Populate researchers in the created report
+  const populatedReport = await AssignResearcherReport.findById(
+    assignedResearcherReport._id
+  ).populate('researchers');
+
+  return populatedReport;
+};
+
 export {
   createOrUpdateReportsService,
   deleteReportsService,
   getReportService,
   findReportService,
+  assignResearcherReportsService,
 };
