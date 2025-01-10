@@ -11,6 +11,7 @@ import {
   deleteResearcher,
   archiveResearcher,
   addResearcher,
+  fetchResearcher,
 } from '../controllers/researcher.controller.js';
 import {
   addResearcherValidation,
@@ -40,11 +41,16 @@ router
   );
 
 router
-  .route('/researchReports')
-  .get(authMiddleware, roleCheck('researcher'), paginatedResearcherReportData);
+  .route('/researchReports/:researcherId')
+  .get(
+    authMiddleware,
+    roleCheck(ROLES.RESEARCHER),
+    paginatedResearcherReportData
+  );
 
 router
   .route('/:id')
+  .get(authMiddleware, roleCheck(ROLES.RESEARCHER), fetchResearcher)
   .patch(
     changeResearchersStatusValidations,
     validateRequest,

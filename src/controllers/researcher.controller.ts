@@ -3,6 +3,7 @@ import { asyncHandler } from '../utils/asyncHandler.js';
 import {
   generatePassword,
   isValidObjectId,
+  stringToObjectId,
   transformPaginatedResponse,
 } from '../utils/utils.js';
 import { ApiResponse } from '../utils/ApiResponse.js';
@@ -177,9 +178,8 @@ const paginatedResearchers = asyncHandler(
 
 const paginatedResearcherReportData = asyncHandler(
   async (req: Request, res: Response) => {
-    const { page = 1, limit = 10, search = '', assigned = null } = req.query;
-
-    const assignedFilter = assigned === 'true';
+    const { page = 1, limit = 10, search = '' } = req.query;
+    const { researcherId } = req.params;
 
     const options = {
       page,
@@ -199,84 +199,112 @@ const paginatedResearcherReportData = asyncHandler(
         }
       : {};
 
-    const matchQuery = assigned
-      ? {
-          assigned: assignedFilter,
-          ...searchQuery,
-        }
-      : {
-          ...searchQuery,
-        };
-
-    const aggregateLandownerData = Property.aggregate([
+    const aggregateLandownerData = Report.aggregate([
       {
         $lookup: {
-          from: 'bids',
-          localField: '_id',
-          foreignField: 'property',
-          as: 'bidDetails',
-        },
-      },
-      {
-        $unwind: {
-          path: '$landAssessmentReport',
-          preserveNullAndEmptyArrays: true,
-        },
-      },
-      {
-        $lookup: {
-          from: 'users',
-          localField: 'landowner',
+          from: 'properties',
+          localField: 'property',
           foreignField: '_id',
-          as: 'landownerDetails',
-        },
-      },
-      {
-        $addFields: {
-          reportId: '$landAssessmentReport._id',
-          landownerName: {
-            $arrayElemAt: ['$landownerDetails.name', 0],
-          },
-          landownerEmail: {
-            $arrayElemAt: ['$landownerDetails.email', 0],
-          },
-          reportName: '$propertyName',
-          reportUrl: '$landAssessmentReport.url',
-          propertyId: '$_id',
-          bidId: {
-            $ifNull: [{ $arrayElemAt: ['$bidDetails._id', 0] }, null], // Extract only `_id` from `bidDetails`
-          },
-          bidStatus: {
-            $ifNull: [{ $arrayElemAt: ['$bidDetails.status', 0] }, null], // Extract only `_id` from `bidDetails`
-          },
+          as: 'property',
+          pipeline: [
+            {
+              $lookup: {
+                from: 'users',
+                localField: 'landowner',
+                foreignField: '_id',
+                as: 'landowner',
+              },
+            },
+            {
+              $addFields: {
+                landowner: { $arrayElemAt: ['$landowner', 0] },
+              },
+            },
+          ],
         },
       },
       {
         $project: {
-          reportId: 1,
-          landownerName: 1,
-          landownerEmail: 1,
-          reportName: 1,
-          reportUrl: 1,
-          propertyId: 1,
-          _id: 0,
-          bidId: 1,
-          bidStatus: 1,
+          _id: 1,
+          landAssessmentReport: 1,
+          property: {
+            _id: 1,
+            propertyName: 1,
+            propertyLocation: 1,
+            propertySize: 1,
+            landowner: {
+              name: 1,
+              email: 1,
+              phone: 1,
+            },
+            createdAt: 1,
+            updatedAt: 1,
+          },
+          landowner: 1,
+        },
+      },
+      {
+        $addFields: {
+          property: { $arrayElemAt: ['$property', 0] },
+          landAssessmentReport: { $arrayElemAt: ['$landAssessmentReport', 0] },
+        },
+      },
+      {
+        $lookup: {
+          from: 'bids',
+          localField: '_id',
+          foreignField: 'report',
+          as: 'bids',
+          pipeline: [
+            {
+              $match: {
+                researcher: stringToObjectId(researcherId),
+              },
+            },
+            {
+              $lookup: {
+                from: 'users',
+                localField: 'researcher',
+                foreignField: '_id',
+                as: 'researcher',
+              },
+            },
+            {
+              $addFields: {
+                researcher: { $arrayElemAt: ['$researcher', 0] },
+              },
+            },
+            {
+              $project: {
+                _id: 1,
+                researcher: {
+                  name: 1,
+                  email: 1,
+                  phone: 1,
+                },
+                status: 1,
+                description: 1,
+                createdAt: 1,
+                updatedAt: 1,
+              },
+            },
+          ],
         },
       },
       {
         $match: {
-          ...matchQuery,
+          'bids.0': { $exists: true },
+          ...searchQuery,
         },
       },
     ]);
 
-    const result = await Property.aggregatePaginate(
+    const result = await Report.aggregatePaginate(
       aggregateLandownerData,
       options
     );
 
-    const renamedResult = transformPaginatedResponse(result, 'bidsResult');
+    const renamedResult = transformPaginatedResponse(result, 'researchReports');
 
     res
       .status(200)
@@ -515,6 +543,124 @@ const addResearcher = asyncHandler(async (req: Request, res: Response) => {
   }
 });
 
+const fetchResearcher = asyncHandler(async (req: Request, res: Response) => {
+  const { id: userId } = req.params;
+
+  const user = await User.aggregate([
+    {
+      $match: {
+        _id: new mongoose.Types.ObjectId(userId),
+      },
+    },
+    {
+      $lookup: {
+        from: 'assignresearcherreports',
+        let: { userId: '$_id' },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $in: ['$$userId', '$researchers'],
+              },
+            },
+          },
+          {
+            $group: {
+              _id: null,
+              count: { $sum: 1 },
+            },
+          },
+          {
+            $project: {
+              _id: 0,
+              count: 1,
+            },
+          },
+        ],
+        as: 'assigned',
+      },
+    },
+    {
+      $addFields: {
+        assigned: { $arrayElemAt: ['$assigned.count', 0] },
+      },
+    },
+    {
+      $lookup: {
+        from: 'bids',
+        let: { researcherId: '$_id' },
+        pipeline: [
+          {
+            $match: {
+              $expr: { $eq: ['$researcher', '$$researcherId'] },
+            },
+          },
+          {
+            $group: {
+              _id: '$status',
+              count: { $sum: 1 },
+            },
+          },
+          {
+            $project: {
+              status: '$_id',
+              count: 1,
+              _id: 0,
+            },
+          },
+        ],
+        as: 'bidCounts',
+      },
+    },
+    {
+      $addFields: {
+        bidCounts: {
+          $arrayToObject: {
+            $map: {
+              input: '$bidCounts',
+              as: 'item',
+              in: {
+                k: '$$item.status',
+                v: '$$item.count',
+              },
+            },
+          },
+        },
+      },
+    },
+    {
+      $addFields: {
+        pending: { $ifNull: ['$bidCounts.pending', 0] },
+        inprogress: { $ifNull: ['$bidCounts.inprogress', 0] },
+        completed: { $ifNull: ['$bidCounts.completed', 0] },
+        rejected: { $ifNull: ['$bidCounts.rejected', 0] },
+      },
+    },
+    {
+      $project: {
+        _id: 1,
+        name: 1,
+        email: 1,
+        phone: 1,
+        assigned: 1,
+        pending: 1,
+        inprogress: 1,
+        completed: 1,
+        rejected: 1,
+      },
+    },
+  ]);
+
+  if (!user.length) {
+    throw new ApiError(404, 'User does not exist!');
+  }
+
+  // Send response
+  res
+    .status(200)
+    .json(new ApiResponse(200, user[0], 'Researcher user data successfully'));
+});
+
 export {
   paginatedResearcherReportData,
   placeBidResearch,
@@ -524,4 +670,5 @@ export {
   deleteResearcher,
   updateResearcher,
   addResearcher,
+  fetchResearcher,
 };
