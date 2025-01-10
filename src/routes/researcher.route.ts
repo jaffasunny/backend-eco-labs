@@ -41,8 +41,12 @@ router
   );
 
 router
-  .route('/researchReports')
-  .get(authMiddleware, roleCheck('researcher'), paginatedResearcherReportData);
+  .route('/researchReports/:researcherId')
+  .get(
+    authMiddleware,
+    roleCheck(ROLES.RESEARCHER),
+    paginatedResearcherReportData
+  );
 
 router
   .route('/:id')
