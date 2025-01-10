@@ -515,6 +515,124 @@ const addResearcher = asyncHandler(async (req: Request, res: Response) => {
   }
 });
 
+const fetchResearcher = asyncHandler(async (req: Request, res: Response) => {
+  const { id: userId } = req.params;
+
+  const user = await User.aggregate([
+    {
+      $match: {
+        _id: new mongoose.Types.ObjectId(userId),
+      },
+    },
+    {
+      $lookup: {
+        from: 'assignresearcherreports',
+        let: { userId: '$_id' },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $in: ['$$userId', '$researchers'],
+              },
+            },
+          },
+          {
+            $group: {
+              _id: null,
+              count: { $sum: 1 },
+            },
+          },
+          {
+            $project: {
+              _id: 0,
+              count: 1,
+            },
+          },
+        ],
+        as: 'assigned',
+      },
+    },
+    {
+      $addFields: {
+        assigned: { $arrayElemAt: ['$assigned.count', 0] },
+      },
+    },
+    {
+      $lookup: {
+        from: 'bids',
+        let: { researcherId: '$_id' },
+        pipeline: [
+          {
+            $match: {
+              $expr: { $eq: ['$researcher', '$$researcherId'] },
+            },
+          },
+          {
+            $group: {
+              _id: '$status',
+              count: { $sum: 1 },
+            },
+          },
+          {
+            $project: {
+              status: '$_id',
+              count: 1,
+              _id: 0,
+            },
+          },
+        ],
+        as: 'bidCounts',
+      },
+    },
+    {
+      $addFields: {
+        bidCounts: {
+          $arrayToObject: {
+            $map: {
+              input: '$bidCounts',
+              as: 'item',
+              in: {
+                k: '$$item.status',
+                v: '$$item.count',
+              },
+            },
+          },
+        },
+      },
+    },
+    {
+      $addFields: {
+        pending: { $ifNull: ['$bidCounts.pending', 0] },
+        inprogress: { $ifNull: ['$bidCounts.inprogress', 0] },
+        completed: { $ifNull: ['$bidCounts.completed', 0] },
+        rejected: { $ifNull: ['$bidCounts.rejected', 0] },
+      },
+    },
+    {
+      $project: {
+        _id: 1,
+        name: 1,
+        email: 1,
+        phone: 1,
+        assigned: 1,
+        pending: 1,
+        inprogress: 1,
+        completed: 1,
+        rejected: 1,
+      },
+    },
+  ]);
+
+  if (!user.length) {
+    throw new ApiError(404, 'User does not exist!');
+  }
+
+  // Send response
+  res
+    .status(200)
+    .json(new ApiResponse(200, user[0], 'Researcher user data successfully'));
+});
+
 export {
   paginatedResearcherReportData,
   placeBidResearch,
@@ -524,4 +642,5 @@ export {
   deleteResearcher,
   updateResearcher,
   addResearcher,
+  fetchResearcher,
 };
