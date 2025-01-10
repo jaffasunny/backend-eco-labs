@@ -12,7 +12,7 @@ import { Bids } from '../models/bids.model.js';
 import { User } from '../models/user.model.js';
 import { Report } from '../models/reports.model.js';
 import { IUpdateResearcher } from '../interface/researcher.interface.js';
-import { PLATFORM_NAME, RESEARCHER_STATUS, ROLES } from '../constants.js';
+import { PLATFORM_NAME, ROLES } from '../constants.js';
 import mongoose from 'mongoose';
 import { findOrUpdateLandowner } from '../services/landowner.service.js';
 import sendEmail from '../utils/sendMail.js';
@@ -55,14 +55,103 @@ const paginatedResearchers = asyncHandler(
 
     const aggregateResearcherData = User.aggregate([
       {
-        $match: {
-          ...matchQuery,
+        $match: matchQuery,
+      },
+      {
+        $lookup: {
+          from: 'assignresearcherreports',
+          let: { userId: '$_id' },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $in: ['$$userId', '$researchers'],
+                },
+              },
+            },
+            {
+              $group: {
+                _id: null,
+                count: { $sum: 1 },
+              },
+            },
+            {
+              $project: {
+                _id: 0,
+                count: 1,
+              },
+            },
+          ],
+          as: 'assigned',
+        },
+      },
+      {
+        $addFields: {
+          assigned: { $arrayElemAt: ['$assigned.count', 0] },
+        },
+      },
+      {
+        $lookup: {
+          from: 'bids',
+          let: { researcherId: '$_id' },
+          pipeline: [
+            {
+              $match: {
+                $expr: { $eq: ['$researcher', '$$researcherId'] },
+              },
+            },
+            {
+              $group: {
+                _id: '$status',
+                count: { $sum: 1 },
+              },
+            },
+            {
+              $project: {
+                status: '$_id',
+                count: 1,
+                _id: 0,
+              },
+            },
+          ],
+          as: 'bidCounts',
+        },
+      },
+      {
+        $addFields: {
+          bidCounts: {
+            $arrayToObject: {
+              $map: {
+                input: '$bidCounts',
+                as: 'item',
+                in: {
+                  k: '$$item.status',
+                  v: '$$item.count',
+                },
+              },
+            },
+          },
+        },
+      },
+      {
+        $addFields: {
+          pending: { $ifNull: ['$bidCounts.pending', 0] },
+          inprogress: { $ifNull: ['$bidCounts.inprogress', 0] },
+          completed: { $ifNull: ['$bidCounts.completed', 0] },
+          rejected: { $ifNull: ['$bidCounts.rejected', 0] },
         },
       },
       {
         $project: {
-          refreshTokens: 0,
-          password: 0,
+          _id: 1,
+          name: 1,
+          email: 1,
+          phone: 1,
+          assigned: 1,
+          pending: 1,
+          inprogress: 1,
+          completed: 1,
+          rejected: 1,
         },
       },
     ]);

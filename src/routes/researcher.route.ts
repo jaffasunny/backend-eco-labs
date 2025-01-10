@@ -71,16 +71,6 @@ router
   );
 
 router
-  .route('/:id/update')
-  .patch(
-    updateResearcherValidation,
-    validateRequest,
-    authMiddleware,
-    roleCheck(ROLES.ADMIN),
-    updateResearcher
-  );
-
-router
   .route('/archive/:id')
   .patch(
     archiveResearcherValidation,
