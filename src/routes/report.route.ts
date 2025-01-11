@@ -3,14 +3,17 @@ import { authMiddleware } from '../middlewares/auth.middleware.js';
 import { roleCheck } from '../middlewares/roles.middleware.js';
 import {
   assignResearcherReport,
+  assignUniversityReport,
   deleteReport,
   getReport,
   paginatedAssignedResearcherReports,
+  paginatedAssignedUniversityReports,
   paginatedReports,
 } from '../controllers/report.controller.js';
 import { ROLES } from '../constants.js';
 import {
   assignResearcherReportValidation,
+  assignUniversityReportValidation,
   deleteReportValidation,
 } from '../utils/validations/reportsValidations.js';
 import { validateRequest } from '../middlewares/validateRequest.js';
@@ -31,6 +34,14 @@ router
     authMiddleware,
     roleCheck([ROLES.ADMIN, ROLES.RESEARCHER]),
     paginatedAssignedResearcherReports
+  );
+
+router
+  .route('/assignedUniversityReports')
+  .get(
+    authMiddleware,
+    roleCheck([ROLES.ADMIN, ROLES.UNIVERSITY]),
+    paginatedAssignedUniversityReports
   );
 
 router
@@ -56,6 +67,16 @@ router
     authMiddleware,
     roleCheck([ROLES.ADMIN]),
     assignResearcherReport
+  );
+
+router
+  .route('/assignUniversityReport')
+  .post(
+    assignUniversityReportValidation,
+    validateRequest,
+    authMiddleware,
+    roleCheck([ROLES.ADMIN]),
+    assignUniversityReport
   );
 
 export default router;

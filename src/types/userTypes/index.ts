@@ -32,4 +32,7 @@ export interface IUser extends IUserDocument {
   isPasswordCorrect(password: string): Promise<boolean>;
   generateAccessToken(): string;
   generateRefreshToken(): string;
+  getUpdate(): {
+    password: string;
+  };
 }

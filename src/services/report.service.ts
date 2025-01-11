@@ -1,9 +1,9 @@
 import mongoose, { ClientSession, isValidObjectId } from 'mongoose';
 import { AssignResearcherReport } from '../models/assigned-reports.model.js';
+import { AssignUniversityReport } from '../models/assigned-university-reports.model.js';
 import { Property } from '../models/property.model.js';
 import { Report } from '../models/reports.model.js';
 import { ApiError } from '../utils/ApiError.js';
-import { stringToObjectId } from '../utils/utils.js';
 
 const createOrUpdateReportsService = async (
   reportData: {
@@ -163,10 +163,48 @@ const assignResearcherReportsService = async (
   return populatedReport;
 };
 
+const assignUniversityReportsService = async (
+  reportId: string,
+  universityId: string
+) => {
+  const existingReport = await AssignUniversityReport.findOne({
+    report: reportId,
+    universities: { $in: [universityId] },
+  }).populate('universities');
+
+  if (existingReport) {
+    throw new ApiError(401, `University is already assigned to this report!`);
+  }
+
+  const report = await AssignUniversityReport.findOne({ report: reportId });
+
+  if (report) {
+    const updatedReport = await AssignUniversityReport.findOneAndUpdate(
+      { report: reportId },
+      { $addToSet: { universities: universityId } },
+      { new: true, runValidators: true }
+    ).populate('universities');
+    return updatedReport;
+  }
+
+  const assignedUniversityReport = await AssignUniversityReport.create({
+    report: reportId,
+    universities: [universityId],
+  });
+
+  // Populate universities in the created report
+  const populatedReport = await AssignUniversityReport.findById(
+    assignedUniversityReport._id
+  ).populate('universities');
+
+  return populatedReport;
+};
+
 export {
   createOrUpdateReportsService,
   deleteReportsService,
   getReportService,
   findReportService,
   assignResearcherReportsService,
+  assignUniversityReportsService,
 };

@@ -148,6 +148,7 @@ const paginatedResearchers = asyncHandler(
           name: 1,
           email: 1,
           phone: 1,
+          status: 1,
           assigned: 1,
           pending: 1,
           inprogress: 1,
