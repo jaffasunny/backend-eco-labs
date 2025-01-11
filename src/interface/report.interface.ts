@@ -7,4 +7,5 @@ export interface IReport {
   }[];
   property: mongoose.Schema.Types.ObjectId | string;
   researchers: mongoose.Schema.Types.ObjectId[] | string;
+  status: string;
 }

@@ -21,6 +21,7 @@ export enum ROLES {
 }
 
 export enum PROPOSAL_STATUS {
+  UNASSIGNED = 'unassigned',
   PENDING = 'pending',
   INPROGRESS = 'inprogress',
   APPROVED = 'approved',

@@ -8,7 +8,6 @@ import {
 } from '../utils/utils.js';
 import { ApiResponse } from '../utils/ApiResponse.js';
 import { ApiError } from '../utils/ApiError.js';
-import { Property } from '../models/property.model.js';
 import { Bids } from '../models/bids.model.js';
 import { User } from '../models/user.model.js';
 import { Report } from '../models/reports.model.js';
