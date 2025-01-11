@@ -1,7 +1,7 @@
 import { IUser } from '../types/userTypes/index.js';
 import { IPagination } from './index.interface.js';
 import { IProperty } from './property.interface.js';
-import { IReport } from './report.interface.js';
+import { IPReport } from './report.interface.js';
 
 export interface IAddUniversityParams extends IUser, IProperty {}
 
@@ -23,4 +23,4 @@ export interface IUniversityReportBidsAggregatePaginationServiceParams
   userId?: string;
 }
 
-export interface IUpdateUniversity extends IProperty, IReport, IUser {}
+export interface IUpdateUniversity extends IProperty, IPReport, IUser {}
