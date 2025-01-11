@@ -5,7 +5,7 @@ import { ApiError } from '../utils/ApiError.js';
 import { ApiResponse } from '../utils/ApiResponse.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import sendEmail from '../utils/sendMail.js';
-import { PLATFORM_NAME, ROLES } from '../constants.js';
+import { PLATFORM_NAME, PROPOSAL_STATUS, ROLES } from '../constants.js';
 import mongoose, { isValidObjectId } from 'mongoose';
 import { updateUserDetails } from '../services/user.service.js';
 import {
@@ -25,6 +25,7 @@ import {
 } from '../services/landowner.service.js';
 import { IAddLandownerParams } from '../interface/landowner.interface.js';
 import { Bids } from '../models/bids.model.js';
+import { Report } from '../models/reports.model.js';
 
 // Add Landowner by email
 const addLandowner = asyncHandler(async (req: Request, res: Response) => {
@@ -403,27 +404,47 @@ const changeResearchersBidStatus = asyncHandler(
       return res.status(201).json(new ApiError(400, `This user has not bid!`));
     }
 
-    const updatedBidStatus = await Bids.findByIdAndUpdate(
-      {
-        _id: bidId,
-      },
-      { status },
-      {
-        new: true,
+    // Start a transaction
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
+    try {
+      const updatedBidStatus = await Bids.findByIdAndUpdate(
+        {
+          _id: bidId,
+        },
+        { status },
+        {
+          new: true,
+        }
+      ).session(session);
+
+      if (!updatedBidStatus) {
+        return res
+          .status(201)
+          .json(new ApiError(400, `Something went wrong while updating bid!`));
       }
-    );
 
-    if (!updatedBidStatus) {
-      return res
-        .status(201)
-        .json(new ApiError(400, `Something went wrong while updating bid!`));
+      await Report.findByIdAndUpdate(updatedBidStatus.report, {
+        status: PROPOSAL_STATUS.INPROGRESS,
+      }).session(session);
+
+      // Commit transaction
+      await session.commitTransaction();
+
+      res
+        .status(200)
+        .json(
+          new ApiResponse(200, updatedBidStatus, 'Bid updated successfully!')
+        );
+    } catch (error: any) {
+      // Rollback transaction
+      await session.abortTransaction();
+      throw new ApiError(500, error.message || 'Failed to update bid!');
+    } finally {
+      // End session
+      session.endSession();
     }
-
-    res
-      .status(200)
-      .json(
-        new ApiResponse(200, updatedBidStatus, 'Bid updated successfully!')
-      );
   }
 );
 
