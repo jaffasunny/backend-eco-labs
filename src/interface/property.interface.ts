@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { IReport } from './report.interface.js';
+import { IPReport, IReport } from './report.interface.js';
 import { IUser } from '../types/userTypes/index.js';
 
 export interface IProperty {
@@ -9,6 +9,6 @@ export interface IProperty {
   landowner: mongoose.Schema.Types.ObjectId;
 }
 
-export interface IUpdateLandowner extends IProperty, IReport, IUser {}
+export interface IUpdateLandowner extends IProperty, IPReport, IUser {}
 
 export interface IAssignReport extends IReport {}
