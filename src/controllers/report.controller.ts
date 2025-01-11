@@ -29,18 +29,11 @@ const paginatedReports = asyncHandler(async (req: Request, res: Response) => {
 
   const searchQuery = search
     ? {
-        $or: [],
+        $or: [
+          { 'landAssessmentReport.name': { $regex: search, $options: 'i' } },
+        ],
       }
     : {};
-
-  const matchQuery = assignedFilter
-    ? {
-        ...searchQuery,
-        ...assignedFilter,
-      }
-    : {
-        ...searchQuery,
-      };
 
   const aggregateLandownerData = Report.aggregate([
     {
@@ -48,6 +41,9 @@ const paginatedReports = asyncHandler(async (req: Request, res: Response) => {
         path: '$landAssessmentReport',
         preserveNullAndEmptyArrays: true,
       },
+    },
+    {
+      $match: { ...searchQuery },
     },
     {
       $lookup: {
@@ -120,9 +116,6 @@ const paginatedReports = asyncHandler(async (req: Request, res: Response) => {
         createdAt: 1,
         updatedAt: 1,
       },
-    },
-    {
-      $match: matchQuery,
     },
   ]);
 
