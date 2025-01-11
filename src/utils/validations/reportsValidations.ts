@@ -42,6 +42,19 @@ export const assignResearcherReportValidation = [
     .withMessage('Researcher Id must be a valid MongoDB ObjectId.'),
 ];
 
+export const assignUniversityReportValidation = [
+  body('reportId')
+    .notEmpty()
+    .withMessage('Report Id is required!')
+    .isMongoId()
+    .withMessage('Report Id must be a valid MongoDB ObjectId.'),
+  body('universityId')
+    .notEmpty()
+    .withMessage('University Id is required!')
+    .isMongoId()
+    .withMessage('University Id must be a valid MongoDB ObjectId.'),
+];
+
 export const deleteReportValidation = [
   body('id')
     .notEmpty()

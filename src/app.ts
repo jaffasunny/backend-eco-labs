@@ -4,6 +4,7 @@ import cookieParser from 'cookie-parser';
 import { TCorsOptions } from './types/index.js';
 import helmet from 'helmet';
 import { seedSuperAdmin } from './utils/seeder.js';
+import { loggerEnvironment } from './utils/utils.js';
 
 const corsOptions: TCorsOptions = {
   origin: process.env.CORS_ORIGIN as string,
@@ -32,12 +33,7 @@ app.use(express.static('public'));
 
 app.use(cookieParser());
 
-// routes import
-import userRouter from './routes/user.route.js';
-import landownerRouter from './routes/landowner.route.js';
-import researcherRouter from './routes/researcher.route.js';
-import reportsRouter from './routes/report.route.js';
-import { loggerEnvironment } from './utils/utils.js';
+import routes from './routes/index.js';
 
 // routes declaration
 app.get('/', (req, res) => {
@@ -48,16 +44,6 @@ app.get('/', (req, res) => {
     );
 });
 
-// auth routes
-app.use('/api/v1/users', userRouter);
-
-// landowner routes
-app.use('/api/v1/landowners', landownerRouter);
-
-// researcher routes
-app.use('/api/v1/researchers', researcherRouter);
-
-// researcher routes
-app.use('/api/v1/reports', reportsRouter);
+app.use('/api/v1', routes);
 
 export { app };

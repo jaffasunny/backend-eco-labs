@@ -68,11 +68,31 @@ userSchema.pre<IUser>('save', async function (next) {
   }
 });
 
+userSchema.pre<IUser>('updateOne', async function (next) {
+  try {
+    const update = this.getUpdate();
+
+    if (update && update.password) {
+      const saltRounds = Number(process.env.SALT_ROUNDS) || 10;
+
+      // Hash the password before updating
+      update.password = await bcrypt.hash(update.password, saltRounds);
+    }
+
+    next();
+  } catch (error) {
+    console.log('Error in user pre update', error);
+    next(new ApiError(500, `User update failed! ${error}`));
+  }
+});
+
 userSchema.methods.isPasswordCorrect = async function (
   this: IUser,
   password: string
 ) {
-  return await bcrypt.compare(password, this.password);
+  let correct = await bcrypt.compare(password, this.password);
+
+  return correct;
 };
 
 userSchema.methods.generateAccessToken = function () {
