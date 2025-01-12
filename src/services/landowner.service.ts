@@ -1,5 +1,5 @@
 import mongoose, { ClientSession } from 'mongoose';
-import { ROLES } from '../constants.js';
+import { ResearchStatusType, ROLES } from '../constants.js';
 import { User } from '../models/user.model.js';
 import {
   createDynamicFilter,
@@ -19,6 +19,7 @@ const findOrUpdateLandowner = async (
     email: string;
     phone: string | undefined;
     password: string;
+    status: ResearchStatusType;
     roles: ROLES;
   },
   session: ClientSession
@@ -33,6 +34,7 @@ const findOrUpdateLandowner = async (
     existedUser.email = landownerData.email;
     existedUser.phone = landownerData.phone;
     existedUser.roles = landownerData.roles;
+    existedUser.status = landownerData.status;
     await existedUser.save({ session });
     existedUser.isNew = false; // Flag for response
   } else {
@@ -45,6 +47,7 @@ const findOrUpdateLandowner = async (
           phone: landownerData.phone,
           password: landownerData.password,
           roles: landownerData.roles,
+          status: landownerData.status,
         },
       ],
       { session }

@@ -12,7 +12,7 @@ import { Bids } from '../models/bids.model.js';
 import { User } from '../models/user.model.js';
 import { Report } from '../models/reports.model.js';
 import { IUpdateResearcher } from '../interface/researcher.interface.js';
-import { PLATFORM_NAME, ROLES } from '../constants.js';
+import { PLATFORM_NAME, RESEARCHER_STATUS, ROLES } from '../constants.js';
 import mongoose from 'mongoose';
 import { findOrUpdateLandowner } from '../services/landowner.service.js';
 import sendEmail from '../utils/sendMail.js';
@@ -502,17 +502,18 @@ const addResearcher = asyncHandler(async (req: Request, res: Response) => {
   // Generate system-generated password
   const password = generatePassword();
 
-  const landownerData = {
+  const researcherData = {
     name,
     email,
     phone,
     password,
     roles: ROLES.RESEARCHER,
+    status: RESEARCHER_STATUS.APPROVED,
   };
 
   // Send the password to the user's email
   try {
-    const user = await findOrUpdateLandowner(landownerData, session);
+    const user = await findOrUpdateLandowner(researcherData, session);
 
     // Commit transaction
     await session.commitTransaction();
