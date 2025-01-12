@@ -19,7 +19,7 @@ const findOrUpdateLandowner = async (
     email: string;
     phone: string | undefined;
     password: string;
-    status: ResearchStatusType;
+    status?: ResearchStatusType;
     roles: ROLES;
   },
   session: ClientSession
@@ -34,7 +34,9 @@ const findOrUpdateLandowner = async (
     existedUser.email = landownerData.email;
     existedUser.phone = landownerData.phone;
     existedUser.roles = landownerData.roles;
-    existedUser.status = landownerData.status;
+    if (landownerData.status) {
+      existedUser.status = landownerData.status;
+    }
     await existedUser.save({ session });
     existedUser.isNew = false; // Flag for response
   } else {
