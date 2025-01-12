@@ -278,6 +278,7 @@ const paginatedResearcherReportData = asyncHandler(
               $project: {
                 _id: 1,
                 researcher: {
+                  _id: 1,
                   name: 1,
                   email: 1,
                   phone: 1,
