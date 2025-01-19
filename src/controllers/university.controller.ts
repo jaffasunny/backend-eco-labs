@@ -8,17 +8,11 @@ import sendEmail from '../utils/sendMail.js';
 import { PLATFORM_NAME, ROLES } from '../constants.js';
 import mongoose, { isValidObjectId } from 'mongoose';
 import { updateUserDetails } from '../services/user.service.js';
-import {
-  fetchPopulatedProperty,
-  findOrUpdateProperty,
-} from '../services/property.service.js';
+import { fetchPopulatedProperty } from '../services/property.service.js';
 import { createOrUpdateReportsService } from '../services/report.service.js';
+import { IAssignReport } from '../interface/property.interface.js';
 import {
-  IAssignReport,
-  IUpdateLandowner,
-} from '../interface/property.interface.js';
-import {
-  findOrUpdateLandowner,
+  findOrUpdateUser,
   landownerAggregatePaginationService,
   landownerReportAggregatePaginationService,
 } from '../services/landowner.service.js';
@@ -48,7 +42,7 @@ const addUniversity = asyncHandler(async (req: Request, res: Response) => {
 
   // Send the password to the user's email
   try {
-    const user = await findOrUpdateLandowner(landownerData, session);
+    const user = await findOrUpdateUser(landownerData, session);
 
     // Commit transaction
     await session.commitTransaction();

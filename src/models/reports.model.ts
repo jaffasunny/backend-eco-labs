@@ -1,7 +1,7 @@
 import aggregatePaginate from 'mongoose-aggregate-paginate-v2';
 import mongoose, { PaginateModel, Schema } from 'mongoose';
 import { IReport } from '../interface/report.interface.js';
-import { PROPOSAL_STATUS } from '../constants.js';
+import { MODELS, PROPOSAL_STATUS } from '../constants.js';
 
 const reportSchema = new Schema<IReport>(
   {
@@ -17,7 +17,7 @@ const reportSchema = new Schema<IReport>(
         },
       },
     ],
-    property: { type: mongoose.Schema.Types.ObjectId, ref: 'Property' },
+    property: { type: mongoose.Schema.Types.ObjectId, ref: MODELS.PROPERTIES },
     status: {
       type: String,
       enum: PROPOSAL_STATUS,
@@ -32,6 +32,6 @@ const reportSchema = new Schema<IReport>(
 reportSchema.plugin(aggregatePaginate);
 
 export const Report = mongoose.model<IReport, PaginateModel<IReport>>(
-  'Report',
+  MODELS.REPORTS,
   reportSchema
 );

@@ -16,6 +16,7 @@ import {
 import { ApiError } from '../utils/ApiError.js';
 import { AssignResearcherReport } from '../models/assigned-reports.model.js';
 import { AssignUniversityReport } from '../models/assigned-university-reports.model.js';
+import { MODELS } from '../constants.js';
 
 const paginatedReports = asyncHandler(async (req: Request, res: Response) => {
   const { page = 1, limit = 10, search = '' } = req.query;
@@ -47,7 +48,7 @@ const paginatedReports = asyncHandler(async (req: Request, res: Response) => {
     },
     {
       $lookup: {
-        from: 'properties',
+        from: MODELS.PROPERTIES,
         localField: 'property',
         foreignField: '_id',
         as: 'properties',
@@ -61,7 +62,7 @@ const paginatedReports = asyncHandler(async (req: Request, res: Response) => {
     },
     {
       $lookup: {
-        from: 'users',
+        from: MODELS.USERS,
         localField: 'properties.landowner',
         foreignField: '_id',
         as: 'properties.landowner',
@@ -75,7 +76,7 @@ const paginatedReports = asyncHandler(async (req: Request, res: Response) => {
     },
     {
       $lookup: {
-        from: 'bids',
+        from: MODELS.BIDS,
         let: { reportId: '$_id' }, // Pass the current report ID
         pipeline: [
           {
@@ -276,7 +277,7 @@ const paginatedAssignedResearcherReports = asyncHandler(
             },
             {
               $lookup: {
-                from: 'users', // Name of the User collection
+                from: MODELS.USERS, // Name of the User collection
                 localField: 'property.landowner',
                 foreignField: '_id',
                 as: 'property.landowner',
@@ -284,7 +285,7 @@ const paginatedAssignedResearcherReports = asyncHandler(
             },
             {
               $lookup: {
-                from: 'bids',
+                from: MODELS.BIDS,
                 let: { reportId: '$_id' },
                 pipeline: [
                   {
@@ -326,7 +327,7 @@ const paginatedAssignedResearcherReports = asyncHandler(
       },
       {
         $lookup: {
-          from: 'users', // Name of the User collection
+          from: MODELS.USERS, // Name of the User collection
           localField: 'researchers',
           foreignField: '_id',
           as: 'researchers',
@@ -419,7 +420,7 @@ const paginatedAssignedUniversityReports = asyncHandler(
             },
             {
               $lookup: {
-                from: 'users', // Name of the User collection
+                from: MODELS.USERS, // Name of the User collection
                 localField: 'property.landowner',
                 foreignField: '_id',
                 as: 'property.landowner',
@@ -444,7 +445,7 @@ const paginatedAssignedUniversityReports = asyncHandler(
             },
             {
               $lookup: {
-                from: 'bids',
+                from: MODELS.BIDS,
                 let: { reportId: '$_id' },
                 pipeline: [
                   {
@@ -485,7 +486,7 @@ const paginatedAssignedUniversityReports = asyncHandler(
       },
       {
         $lookup: {
-          from: 'users', // Name of the User collection
+          from: MODELS.USERS, // Name of the User collection
           localField: 'researchers',
           foreignField: '_id',
           as: 'researchers',

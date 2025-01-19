@@ -3,7 +3,7 @@ import { Property } from '../models/property.model.js';
 import { ApiError } from '../utils/ApiError.js';
 // import { IReport } from '../interface/report.interface.js';
 
-const findOrUpdateProperty = async (
+const findOrUpdatePropertySession = async (
   propertyName: string,
   propertyLocation: string,
   propertySize: string | undefined = undefined,
@@ -50,6 +50,49 @@ const findOrUpdateProperty = async (
   return property;
 };
 
+const findOrUpdateProperty = async (
+  propertyName: string,
+  propertyLocation: string,
+  propertySize: string | undefined = undefined,
+  // files: Express.Multer.File[],
+  // landAssessmentReport: IReport['landAssessmentReport'],
+  userId: mongoose.Schema.Types.ObjectId | string
+) => {
+  let property = await Property.findOne({
+    propertyName,
+    landowner: userId,
+  });
+
+  if (property) {
+    property.set({
+      propertyName,
+      propertyLocation,
+      propertySize,
+    });
+
+    // Ensure validation is skipped for required fields during updates
+    await property.save({ validateModifiedOnly: true });
+    property.isNew = false; // Flag for response
+  } else {
+    // Create a new property
+    const [createdProperty] = await Property.create([
+      {
+        propertyName,
+        propertyLocation,
+        propertySize,
+        // landAssessmentReport: files.map((file) => ({
+        //   url: file.path,
+        //   public_id: file.filename,
+        // })),
+        landowner: userId,
+      },
+    ]);
+    property = createdProperty;
+    property.isNew = true; // Flag for response
+  }
+  return property;
+};
+
 const fetchPopulatedProperty = async (
   propertyId: string,
   session: ClientSession
@@ -67,4 +110,8 @@ const fetchPopulatedProperty = async (
   return property;
 };
 
-export { fetchPopulatedProperty, findOrUpdateProperty };
+export {
+  fetchPopulatedProperty,
+  findOrUpdatePropertySession,
+  findOrUpdateProperty,
+};

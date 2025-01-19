@@ -4,6 +4,16 @@ export const nameless: string = 'xyz';
 
 export const PLATFORM_NAME: string = 'Eco-Labs';
 
+export enum MODELS {
+  USERS = 'users',
+  REPORTS = 'reports',
+  RESETPASSWORD_TOKENS = 'resetPasswordTokens',
+  PROPERTIES = 'properties',
+  BIDS = 'bids',
+  ASSIGNED_UNIVERSITY_REPORTS = 'assignUniversityReports',
+  ASSIGNED_RESEARCH_REPORTS = 'assignResearcherReports',
+}
+
 export const NotificationPayload = (title: string, body: string) => {
   return {
     notification: {

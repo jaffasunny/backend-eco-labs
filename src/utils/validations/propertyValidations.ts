@@ -1,0 +1,34 @@
+import { body } from 'express-validator';
+import { User } from '../../models/user.model.js';
+import { findModel } from '../../services/index.service.js';
+
+export const addPropertyValidation = [
+  body('propertyName')
+    .optional()
+    .trim()
+    .isLength({ min: 3 })
+    .withMessage('Property Name must be at least 3 characters long'),
+  body('propertyLocation')
+    .optional()
+    .trim()
+    .isLength({ min: 3 })
+    .withMessage('Property Location must be at least 3 characters long'),
+  body('propertySize')
+    .optional()
+    .trim()
+    .isLength({ min: 3 })
+    .withMessage('Property Size must be at least 3 characters long'),
+  body('landownerId')
+    .notEmpty()
+    .isMongoId()
+    .withMessage('Please enter a valid Landowner Id')
+    .custom(async (value) => {
+      const result = await findModel(User, { _id: value });
+
+      if (!result) {
+        return Promise.reject('User does not exist!');
+      }
+
+      return true;
+    }),
+];

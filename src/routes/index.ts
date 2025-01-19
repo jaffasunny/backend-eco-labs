@@ -5,6 +5,7 @@ import landownerRouter from '../routes/landowner.route.js';
 import universityRouter from '../routes/university.route.js';
 import researcherRouter from '../routes/researcher.route.js';
 import reportsRouter from '../routes/report.route.js';
+import propertyRouter from '../routes/property.route.js';
 
 const router = Router();
 
@@ -22,5 +23,8 @@ router.use('/researchers', researcherRouter);
 
 // reports routes
 router.use('/reports', reportsRouter);
+
+// reports routes
+router.use('/properties', propertyRouter);
 
 export default router;

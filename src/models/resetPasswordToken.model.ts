@@ -1,11 +1,12 @@
 import mongoose, { Schema } from 'mongoose';
+import { MODELS } from '../constants.js';
 import { IResetPasswordToken } from '../types/index.js';
 
 const resetPasswordTokenSchema = new Schema<IResetPasswordToken>(
   {
     userId: {
       type: Schema.Types.ObjectId,
-      ref: 'User',
+      ref: MODELS.USERS,
       required: [true, 'User is required!'],
     },
     token: {
@@ -20,6 +21,6 @@ const resetPasswordTokenSchema = new Schema<IResetPasswordToken>(
 );
 
 export const ResetPasswordToken = mongoose.model<IResetPasswordToken>(
-  'ResetPasswordToken',
+  MODELS.RESETPASSWORD_TOKENS,
   resetPasswordTokenSchema
 );

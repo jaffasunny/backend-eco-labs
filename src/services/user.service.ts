@@ -1,4 +1,4 @@
-import { ROLES, RoleType } from './../constants.js';
+import { RoleType } from './../constants.js';
 import { ClientSession } from 'mongoose';
 import { User } from '../models/user.model.js';
 
