@@ -10,7 +10,7 @@ import mongoose, { isValidObjectId } from 'mongoose';
 import { updateUserDetails } from '../services/user.service.js';
 import {
   fetchPopulatedProperty,
-  findOrUpdateProperty,
+  findOrUpdatePropertySession,
 } from '../services/property.service.js';
 import { createOrUpdateReportsService } from '../services/report.service.js';
 import {
@@ -18,7 +18,7 @@ import {
   IUpdateLandowner,
 } from '../interface/property.interface.js';
 import {
-  findOrUpdateLandowner,
+  findOrUpdateUser,
   landownerAggregatePaginationService,
   landownerReportAggregatePaginationService,
   landownerReportBidsPaginationService,
@@ -55,9 +55,9 @@ const addLandowner = asyncHandler(async (req: Request, res: Response) => {
 
   // Send the password to the user's email
   try {
-    const user = await findOrUpdateLandowner(landownerData, session);
+    const user = await findOrUpdateUser(landownerData, session);
 
-    const property = await findOrUpdateProperty(
+    const property = await findOrUpdatePropertySession(
       propertyName,
       propertyLocation,
       propertySize,
@@ -139,7 +139,7 @@ const updateLandowner = asyncHandler(async (req: Request, res: Response) => {
     );
 
     // Check if property exists
-    const property = await findOrUpdateProperty(
+    const property = await findOrUpdatePropertySession(
       propertyName,
       propertyLocation,
       propertySize,

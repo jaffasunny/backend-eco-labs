@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+import mongoose, { Schema } from 'mongoose';
 import { ResearchStatusType } from '../../constants.js';
 
 interface IUserDocument extends Document {
@@ -22,6 +22,7 @@ export interface IUser extends IUserDocument {
   isArchived: boolean;
   status: ResearchStatusType;
   refreshTokens: { token: string }[];
+  university: mongoose.Schema.Types.ObjectId;
   _id?: mongoose.Schema.Types.ObjectId; // Optional for inferred _id type
   createdAt?: Date;
   updatedAt?: Date;
@@ -34,5 +35,7 @@ export interface IUser extends IUserDocument {
   generateRefreshToken(): string;
   getUpdate(): {
     password: string;
+    roles: string;
+    university: Schema.Types.ObjectId;
   };
 }

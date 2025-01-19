@@ -1,12 +1,12 @@
 import aggregatePaginate from 'mongoose-aggregate-paginate-v2';
 import mongoose, { PaginateModel, Schema } from 'mongoose';
 import { IBids } from '../interface/bids.interface.js';
-import { PROPOSAL_STATUS } from '../constants.js';
+import { MODELS, PROPOSAL_STATUS } from '../constants.js';
 
 const bidsSchema = new Schema<IBids>(
   {
-    report: { type: mongoose.Schema.Types.ObjectId, ref: 'Report' },
-    researcher: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    report: { type: mongoose.Schema.Types.ObjectId, ref: MODELS.BIDS },
+    researcher: { type: mongoose.Schema.Types.ObjectId, ref: MODELS.USERS },
     status: {
       type: String,
       enum: PROPOSAL_STATUS,
@@ -25,6 +25,6 @@ const bidsSchema = new Schema<IBids>(
 bidsSchema.plugin(aggregatePaginate);
 
 export const Bids = mongoose.model<IBids, PaginateModel<IBids>>(
-  'Bids',
+  MODELS.BIDS,
   bidsSchema
 );

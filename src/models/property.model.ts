@@ -1,6 +1,7 @@
 import aggregatePaginate from 'mongoose-aggregate-paginate-v2';
 import mongoose, { PaginateModel, Schema } from 'mongoose';
 import { IProperty } from '../interface/property.interface.js';
+import { MODELS } from '../constants.js';
 
 interface IPropertyDocument extends IProperty, Document {
   isNew: boolean; // Add Mongoose's isNew property
@@ -28,7 +29,7 @@ const propertySchema = new Schema<IPropertyDocument>(
       type: String, // Use String to accommodate flexible size formats (e.g., "500 sq ft")
       trim: true,
     },
-    landowner: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    landowner: { type: mongoose.Schema.Types.ObjectId, ref: MODELS.USERS },
   },
   {
     timestamps: true,
@@ -62,4 +63,4 @@ propertySchema.set('toObject', {
 export const Property = mongoose.model<
   IPropertyDocument,
   PaginateModel<IPropertyDocument>
->('Property', propertySchema);
+>(MODELS.PROPERTIES, propertySchema);

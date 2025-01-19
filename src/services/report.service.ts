@@ -1,4 +1,5 @@
 import mongoose, { ClientSession, isValidObjectId } from 'mongoose';
+import { MODELS } from '../constants.js';
 import { AssignResearcherReport } from '../models/assigned-reports.model.js';
 import { AssignUniversityReport } from '../models/assigned-university-reports.model.js';
 import { Property } from '../models/property.model.js';
@@ -118,7 +119,7 @@ const getReportService = async (reportId: mongoose.Types.ObjectId | string) => {
       path: 'property',
       populate: {
         path: 'landowner',
-        model: 'User',
+        model: MODELS.USERS,
         select: '_id name email phone status',
       },
     });

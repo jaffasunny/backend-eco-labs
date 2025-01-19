@@ -12,9 +12,14 @@ import { Bids } from '../models/bids.model.js';
 import { User } from '../models/user.model.js';
 import { Report } from '../models/reports.model.js';
 import { IUpdateResearcher } from '../interface/researcher.interface.js';
-import { PLATFORM_NAME, RESEARCHER_STATUS, ROLES } from '../constants.js';
+import {
+  MODELS,
+  PLATFORM_NAME,
+  RESEARCHER_STATUS,
+  ROLES,
+} from '../constants.js';
 import mongoose from 'mongoose';
-import { findOrUpdateLandowner } from '../services/landowner.service.js';
+import { findOrUpdateUser } from '../services/landowner.service.js';
 import sendEmail from '../utils/sendMail.js';
 
 const paginatedResearchers = asyncHandler(
@@ -92,7 +97,7 @@ const paginatedResearchers = asyncHandler(
       },
       {
         $lookup: {
-          from: 'bids',
+          from: MODELS.BIDS,
           let: { researcherId: '$_id' },
           pipeline: [
             {
@@ -209,7 +214,7 @@ const paginatedResearcherReportData = asyncHandler(
           pipeline: [
             {
               $lookup: {
-                from: 'users',
+                from: MODELS.USERS,
                 localField: 'landowner',
                 foreignField: '_id',
                 as: 'landowner',
@@ -251,7 +256,7 @@ const paginatedResearcherReportData = asyncHandler(
       },
       {
         $lookup: {
-          from: 'bids',
+          from: MODELS.BIDS,
           localField: '_id',
           foreignField: 'report',
           as: 'bids',
@@ -263,7 +268,7 @@ const paginatedResearcherReportData = asyncHandler(
             },
             {
               $lookup: {
-                from: 'users',
+                from: MODELS.USERS,
                 localField: 'researcher',
                 foreignField: '_id',
                 as: 'researcher',
@@ -494,7 +499,7 @@ const updateResearcher = asyncHandler(async (req: Request, res: Response) => {
 
 // Add Landowner by email
 const addResearcher = asyncHandler(async (req: Request, res: Response) => {
-  const { name, email, phone }: IUpdateResearcher = req.body;
+  const { name, email, phone, university }: IUpdateResearcher = req.body;
 
   // Start a transaction
   const session = await mongoose.startSession();
@@ -510,11 +515,12 @@ const addResearcher = asyncHandler(async (req: Request, res: Response) => {
     password,
     roles: ROLES.RESEARCHER,
     status: RESEARCHER_STATUS.APPROVED,
+    university,
   };
 
   // Send the password to the user's email
   try {
-    const user = await findOrUpdateLandowner(researcherData, session);
+    const user = await findOrUpdateUser(researcherData, session);
 
     // Commit transaction
     await session.commitTransaction();
@@ -589,7 +595,31 @@ const fetchResearcher = asyncHandler(async (req: Request, res: Response) => {
     },
     {
       $lookup: {
-        from: 'bids',
+        from: MODELS.USERS,
+        localField: 'university',
+        foreignField: '_id',
+        as: 'university',
+        pipeline: [
+          {
+            $project: {
+              _id: 1,
+              name: 1,
+              email: 1,
+              phone: 1,
+            },
+          },
+        ],
+      },
+    },
+    {
+      $unwind: {
+        path: '$university',
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
+      $lookup: {
+        from: MODELS.BIDS,
         let: { researcherId: '$_id' },
         pipeline: [
           {
@@ -644,6 +674,7 @@ const fetchResearcher = asyncHandler(async (req: Request, res: Response) => {
         name: 1,
         email: 1,
         phone: 1,
+        university: 1,
         assigned: 1,
         pending: 1,
         inprogress: 1,

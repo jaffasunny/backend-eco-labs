@@ -1,5 +1,5 @@
-import mongoose, { ClientSession } from 'mongoose';
-import { ResearchStatusType, ROLES } from '../constants.js';
+import mongoose, { ClientSession, Schema } from 'mongoose';
+import { MODELS, ResearchStatusType, ROLES } from '../constants.js';
 import { User } from '../models/user.model.js';
 import {
   createDynamicFilter,
@@ -13,29 +13,33 @@ import {
 import { Report } from '../models/reports.model.js';
 import { Bids } from '../models/bids.model.js';
 
-const findOrUpdateLandowner = async (
-  landownerData: {
+const findOrUpdateUser = async (
+  userData: {
     name: string;
     email: string;
     phone: string | undefined;
     password: string;
     status?: ResearchStatusType;
     roles: ROLES;
+    university?: Schema.Types.ObjectId;
   },
   session: ClientSession
 ) => {
   let existedUser = await User.findOne({
-    $or: [{ email: landownerData.email }],
+    $or: [{ email: userData.email }],
   }).session(session);
 
   if (existedUser) {
     // Update existing property
-    existedUser.name = landownerData.name;
-    existedUser.email = landownerData.email;
-    existedUser.phone = landownerData.phone;
-    existedUser.roles = landownerData.roles;
-    if (landownerData.status) {
-      existedUser.status = landownerData.status;
+    existedUser.name = userData.name;
+    existedUser.email = userData.email;
+    existedUser.phone = userData.phone;
+    existedUser.roles = userData.roles;
+    if (userData.university) {
+      existedUser.university = userData.university;
+    }
+    if (userData.status) {
+      existedUser.status = userData.status;
     }
     await existedUser.save({ session });
     existedUser.isNew = false; // Flag for response
@@ -44,12 +48,13 @@ const findOrUpdateLandowner = async (
     const [createdUser] = await User.create(
       [
         {
-          name: landownerData.name,
-          email: landownerData.email,
-          phone: landownerData.phone,
-          password: landownerData.password,
-          roles: landownerData.roles,
-          status: landownerData.status,
+          name: userData.name,
+          email: userData.email,
+          phone: userData.phone,
+          password: userData.password,
+          roles: userData.roles,
+          status: userData.status,
+          university: userData.university,
         },
       ],
       { session }
@@ -243,7 +248,7 @@ const landownerReportAggregatePaginationService = async ({
     },
     {
       $lookup: {
-        from: 'users',
+        from: MODELS.USERS,
         localField: 'properties.landowner',
         foreignField: '_id',
         as: 'properties.landowner',
@@ -257,7 +262,7 @@ const landownerReportAggregatePaginationService = async ({
     },
     {
       $lookup: {
-        from: 'bids',
+        from: MODELS.BIDS,
         let: { reportId: '$_id' }, // Pass the current report ID
         pipeline: [
           {
@@ -267,7 +272,7 @@ const landownerReportAggregatePaginationService = async ({
           },
           {
             $lookup: {
-              from: 'users',
+              from: MODELS.USERS,
               localField: 'researcher',
               foreignField: '_id',
               as: 'researcher',
@@ -410,7 +415,7 @@ const landownerReportBidsPaginationService = async ({
         pipeline: [
           {
             $lookup: {
-              from: 'users',
+              from: MODELS.USERS,
               localField: 'landowner',
               foreignField: '_id',
               as: 'landowner',
@@ -451,7 +456,7 @@ const landownerReportBidsPaginationService = async ({
     },
     {
       $lookup: {
-        from: 'users',
+        from: MODELS.USERS,
         localField: 'researcher',
         foreignField: '_id',
         as: 'researcher',
@@ -494,11 +499,11 @@ const landownerReportBidsPaginationService = async ({
 
   const result = await Bids.aggregatePaginate(aggregateReportBidsData, options);
 
-  return transformPaginatedResponse(result, 'bids');
+  return transformPaginatedResponse(result, MODELS.BIDS);
 };
 
 export {
-  findOrUpdateLandowner,
+  findOrUpdateUser,
   landownerAggregatePaginationService,
   landownerReportAggregatePaginationService,
   landownerReportBidsPaginationService,

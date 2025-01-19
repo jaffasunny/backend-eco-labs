@@ -3,8 +3,9 @@ import bcrypt from 'bcrypt';
 import { ApiError } from '../utils/ApiError.js';
 import jwt from 'jsonwebtoken';
 import { IUser } from '../types/userTypes/index.js';
-import { RESEARCHER_STATUS, ROLES } from './../constants.js';
+import { MODELS, RESEARCHER_STATUS, ROLES } from './../constants.js';
 import aggregatePaginate from 'mongoose-aggregate-paginate-v2';
+import { validateRoleAndUniversity } from '../utils/utils.js';
 
 const userSchema = new Schema<IUser>(
   {
@@ -37,6 +38,7 @@ const userSchema = new Schema<IUser>(
       type: Boolean,
       default: false,
     },
+    university: { type: mongoose.Schema.Types.ObjectId, ref: MODELS.USERS },
     status: {
       type: String,
       enum: [
@@ -55,6 +57,8 @@ const userSchema = new Schema<IUser>(
 
 userSchema.pre<IUser>('save', async function (next) {
   try {
+    validateRoleAndUniversity(this.roles, this.university);
+
     const saltRounds = Number(process.env.SALT_ROUNDS) || 10;
 
     if (!this.isModified('password')) return next();
@@ -71,6 +75,10 @@ userSchema.pre<IUser>('save', async function (next) {
 userSchema.pre<IUser>('updateOne', async function (next) {
   try {
     const update = this.getUpdate();
+
+    if (update.roles || update.university) {
+      validateRoleAndUniversity(update.roles, update.university); // Call the helper
+    }
 
     if (update && update.password) {
       const saltRounds = Number(process.env.SALT_ROUNDS) || 10;
@@ -151,6 +159,6 @@ userSchema.set('toObject', {
 userSchema.plugin(aggregatePaginate);
 
 export const User = mongoose.model<IUser, PaginateModel<IUser>>(
-  'User',
+  MODELS.USERS,
   userSchema
 );

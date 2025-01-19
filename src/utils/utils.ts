@@ -3,9 +3,10 @@ import cloudinary from 'cloudinary';
 // @ts-ignore
 import DataURIParser from 'datauri/parser';
 import { Express } from 'express';
-import mongoose, { Types } from 'mongoose';
-import { ENVIRONMENT } from '../constants.js';
+import mongoose, { Schema, Types } from 'mongoose';
+import { ENVIRONMENT, ROLES } from '../constants.js';
 import morgan from 'morgan';
+import { ApiError } from './ApiError.js';
 
 export const uploadCloudinary = async (fileUri: DataURIParser) => {
   const mycloud = await cloudinary.v2.uploader.upload(
@@ -77,5 +78,26 @@ export function stringToObjectId(stringId: string) {
     return new mongoose.Types.ObjectId(stringId as string);
   } catch (error) {
     return null;
+  }
+}
+
+export function validateRoleAndUniversity(
+  roles: string,
+  university: Schema.Types.ObjectId
+) {
+  // If the role is RESEARCHER, ensure university is set
+  if (roles === ROLES.RESEARCHER && !university) {
+    throw new ApiError(
+      400,
+      'Researchers must be associated with a university.'
+    );
+  }
+
+  // If the role is not RESEARCHER, ensure university is not set
+  if (roles !== ROLES.RESEARCHER && university) {
+    throw new ApiError(
+      400,
+      'Only researchers can be associated with a university.'
+    );
   }
 }

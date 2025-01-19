@@ -21,6 +21,10 @@ export const registerUserValidation = [
     .withMessage('Password must be at least 6 characters long')
     .matches(/\d/)
     .withMessage('Password must contain at least one number'),
+  body('university')
+    .isMongoId()
+    .notEmpty()
+    .withMessage('University is not valid!'),
   body('roles')
     .trim()
     .notEmpty()
