@@ -23,7 +23,6 @@ import {
   landownerReportAggregatePaginationService,
   landownerReportBidsPaginationService,
 } from '../services/landowner.service.js';
-import { IAddLandownerParams } from '../interface/landowner.interface.js';
 import { Bids } from '../models/bids.model.js';
 import { Report } from '../models/reports.model.js';
 
@@ -36,7 +35,8 @@ const addLandowner = asyncHandler(async (req: Request, res: Response) => {
     propertyName,
     propertyLocation,
     propertySize,
-  }: IAddLandownerParams = req.body;
+    files,
+  } = req.body;
 
   // Start a transaction
   const session = await mongoose.startSession();
@@ -57,13 +57,15 @@ const addLandowner = asyncHandler(async (req: Request, res: Response) => {
   try {
     const user = await findOrUpdateUser(landownerData, session);
 
-    const property = await findOrUpdatePropertySession(
-      propertyName,
-      propertyLocation,
-      propertySize,
-      user._id,
-      session
-    );
+    const { property, uploadedPropertyFiles } =
+      await findOrUpdatePropertySession(
+        propertyName,
+        propertyLocation,
+        propertySize,
+        files,
+        user._id,
+        session
+      );
 
     // Commit transaction
     await session.commitTransaction();
@@ -75,15 +77,17 @@ const addLandowner = asyncHandler(async (req: Request, res: Response) => {
       `Welcome to ${PLATFORM_NAME}! Here is your system-generated password: ${password}`
     ).catch((err) => console.error('Email sending failed:', err));
 
-    return res
-      .status(201)
-      .json(
-        new ApiResponse(
-          201,
-          { user, property },
-          'Landowner added successfully. Password has been sent to the email.'
-        )
-      );
+    return res.status(201).json(
+      new ApiResponse(
+        201,
+        {
+          user,
+          property,
+          uploadedPropertyFiles,
+        },
+        'Landowner added successfully. Password has been sent to the email.'
+      )
+    );
   } catch (error: any) {
     // Rollback transaction
     await session.abortTransaction();
@@ -139,12 +143,11 @@ const updateLandowner = asyncHandler(async (req: Request, res: Response) => {
     );
 
     // Check if property exists
-    const property = await findOrUpdatePropertySession(
+    const { property } = await findOrUpdatePropertySession(
       propertyName,
       propertyLocation,
       propertySize,
-      // files,
-      // landAssessmentReport,
+      null,
       userId,
       session
     );

@@ -17,6 +17,8 @@ import {
 } from '../utils/validations/landownerValidations.js';
 import { roleCheck } from '../middlewares/roles.middleware.js';
 import landownerReportsRouter from './landownerReportRoute/landowner.reports.route.js';
+import upload from '../middlewares/multer.js';
+import { mapFilesToBody } from '../middlewares/index.middleware.js';
 
 const router = Router();
 
@@ -24,6 +26,8 @@ router
   .route('/')
   .get(authMiddleware, roleCheck(ROLES.LANDOWNER), paginatedLandownerData)
   .post(
+    upload.array('files', 5),
+    mapFilesToBody,
     addLandownerValidation,
     validateRequest,
     authMiddleware,

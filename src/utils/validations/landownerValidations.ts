@@ -1,5 +1,6 @@
 import { body, param, query } from 'express-validator';
 import { PROPOSAL_STATUS } from '../../constants.js';
+import { filesValidation } from './filesValidations.js';
 import { reportsValidation } from './reportsValidations.js';
 
 export const addLandownerValidation = [
@@ -24,6 +25,8 @@ export const addLandownerValidation = [
     .withMessage('Phone number must be numeric')
     .isLength({ min: 10, max: 15 })
     .withMessage('Phone number must be between 10 and 15 digits'),
+
+  ...filesValidation,
 ];
 
 export const updateLandownerValidation = [
@@ -67,31 +70,6 @@ export const updateLandownerValidation = [
     .withMessage('Description cannot exceed 500 characters'),
 
   ...reportsValidation.map((validation) => validation.optional()),
-
-  // Custom validation for files (if needed)
-  // check('files').optional().custom((value, { req }) => {
-  //   if (req.files && req.files.length) {
-  //     const allowedTypes = [
-  //       'application/pdf',
-  //       'application/msword',
-  //       'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-  //     ];
-  //     const maxSize = 2 * 1024 * 1024; // 2MB per file
-  //     for (const file of req.files) {
-  //       if (!allowedTypes.includes(file.mimetype)) {
-  //         throw new Error(
-  //           `Invalid file type for file ${file.originalname}. Only PDF, DOC, and DOCX are allowed.`
-  //         );
-  //       }
-  //       if (file.size > maxSize) {
-  //         throw new Error(
-  //           `File size for ${file.originalname} exceeds the 2MB limit.`
-  //         );
-  //       }
-  //     }
-  //   }
-  //   return true;
-  // }),
 ];
 
 export const assignReportValidation = [

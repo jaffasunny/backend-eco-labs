@@ -9,6 +9,7 @@ export enum MODELS {
   REPORTS = 'reports',
   RESETPASSWORD_TOKENS = 'resetPasswordTokens',
   PROPERTIES = 'properties',
+  PROPERTIES_FILES = 'properties-files',
   BIDS = 'bids',
   ASSIGNED_UNIVERSITY_REPORTS = 'assignUniversityReports',
   ASSIGNED_RESEARCH_REPORTS = 'assignResearcherReports',
