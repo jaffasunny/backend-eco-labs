@@ -21,6 +21,7 @@ import {
 import mongoose from 'mongoose';
 import { findOrUpdateUser } from '../services/landowner.service.js';
 import sendEmail from '../utils/sendMail.js';
+import { Property } from '../models/property.model.js';
 
 const paginatedResearchers = asyncHandler(
   async (req: Request, res: Response) => {
@@ -64,7 +65,7 @@ const paginatedResearchers = asyncHandler(
       },
       {
         $lookup: {
-          from: 'assignresearcherreports',
+          from: MODELS.ASSIGNED_RESEARCH_REPORTS,
           let: { userId: '$_id' },
           pipeline: [
             {
@@ -325,27 +326,27 @@ const paginatedResearcherReportData = asyncHandler(
 );
 
 const placeBidResearch = asyncHandler(async (req: Request, res: Response) => {
-  const { id: reportId } = req.params;
+  const { id: propertyId } = req.params;
   const { _id: userId } = req.user;
   const { status, description } = req.body;
 
-  if (!reportId || !isValidObjectId(reportId)) {
+  if (!propertyId || !isValidObjectId(propertyId)) {
     return res
       .status(201)
       .json(new ApiError(400, `Please enter a valid property id!`));
   }
 
-  const findReport = await Report.findById(reportId);
+  const findProperty = await Property.findById(propertyId);
 
-  if (!findReport) {
+  if (!findProperty) {
     return res
       .status(201)
-      .json(new ApiResponse(400, findReport, `Report doesnot exists!`));
+      .json(new ApiResponse(400, findProperty, `Property doesnot exists!`));
   }
 
   const [findBid] = await Bids.find({
     researcher: userId,
-    report: reportId,
+    property: propertyId,
   });
 
   if (findBid) {
@@ -355,7 +356,7 @@ const placeBidResearch = asyncHandler(async (req: Request, res: Response) => {
   }
 
   const createdBid = await Bids.create({
-    report: reportId,
+    property: propertyId,
     researcher: userId,
     status,
     description,
@@ -562,7 +563,7 @@ const fetchResearcher = asyncHandler(async (req: Request, res: Response) => {
     },
     {
       $lookup: {
-        from: 'assignresearcherreports',
+        from: MODELS.ASSIGNED_RESEARCH_REPORTS,
         let: { userId: '$_id' },
         pipeline: [
           {

@@ -13,6 +13,8 @@ export enum MODELS {
   BIDS = 'bids',
   ASSIGNED_UNIVERSITY_REPORTS = 'assignUniversityReports',
   ASSIGNED_RESEARCH_REPORTS = 'assignResearcherReports',
+  ASSIGNED_RESEARCH_PROPERTIES = 'assignResearcherProperties',
+  ASSIGNED_UNIVERSITY_PROPERTIES = 'assignUniversityProperties',
 }
 
 export const NotificationPayload = (title: string, body: string) => {

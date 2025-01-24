@@ -1,4 +1,6 @@
 import mongoose, { ClientSession } from 'mongoose';
+import { MODELS } from '../constants.js';
+import { AssignResearcherProperty } from '../models/assigned-properties.model.js';
 import { PropertyFiles } from '../models/property-files.model.js';
 import { Property } from '../models/property.model.js';
 import { ApiError } from '../utils/ApiError.js';
@@ -189,9 +191,76 @@ const deletePropertyFileService = async (id: string, fileId: string) => {
   return updatedDocument;
 };
 
+const assignResearcherPropertyService = async (
+  propertyId: string,
+  researcherId: string
+) => {
+  const existingProperty = await AssignResearcherProperty.findOne({
+    property: propertyId,
+    researchers: { $in: [researcherId] },
+  }).populate('researchers');
+
+  if (existingProperty) {
+    throw new ApiError(401, `Researcher is already assigned to this property!`);
+  }
+
+  const property = await AssignResearcherProperty.findOne({
+    property: propertyId,
+  });
+
+  if (property) {
+    const updatedProperty = await AssignResearcherProperty.findOneAndUpdate(
+      { property: propertyId },
+      { $addToSet: { researchers: researcherId } },
+      { new: true, runValidators: true }
+    ).populate('researchers');
+    return updatedProperty;
+  }
+
+  const assignedResearcherProperty = await AssignResearcherProperty.create({
+    property: propertyId,
+    researchers: [researcherId],
+  });
+
+  // Populate researchers in the created property
+  const populatedProperty = await AssignResearcherProperty.findById(
+    assignedResearcherProperty._id
+  ).populate('researchers');
+
+  return populatedProperty;
+};
+
+const deletePropertyService = async (
+  propertyId: mongoose.Types.ObjectId | string
+) => {
+  const property = await Property.findById(propertyId);
+
+  if (!property) {
+    new ApiError(401, `Property not found!`);
+  }
+
+  const deletedProperty = await Property.findByIdAndDelete(propertyId);
+
+  return deletedProperty;
+};
+
+const getPropertyService = async (
+  propertyId: mongoose.Types.ObjectId | string
+) => {
+  const property = await Property.findById(propertyId).populate({
+    path: 'landowner',
+    select: '_id name email phone status',
+  });
+
+  return property;
+};
+
 export {
   fetchPopulatedProperty,
   findOrUpdatePropertySession,
   findOrUpdateProperty,
   deletePropertyFileService,
+  assignResearcherPropertyService,
+  deletePropertyService,
+  getPropertyService,
 };
