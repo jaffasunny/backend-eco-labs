@@ -25,6 +25,7 @@ import {
 } from '../services/landowner.service.js';
 import { Bids } from '../models/bids.model.js';
 import { Report } from '../models/reports.model.js';
+import { Property } from '../models/property.model.js';
 
 // Add Landowner by email
 const addLandowner = asyncHandler(async (req: Request, res: Response) => {
@@ -338,29 +339,60 @@ const archiveLandowner = asyncHandler(async (req: Request, res: Response) => {
 const deleteLandowner = asyncHandler(async (req: Request, res: Response) => {
   const { id: landownerId } = req.params;
 
-  if (!landownerId || !isValidObjectId(landownerId)) {
-    return res
-      .status(201)
-      .json(new ApiError(400, `Please enter a valid landowner id!`));
-  }
+  // Start a transaction
+  const session = await mongoose.startSession();
+  session.startTransaction();
 
-  const deletedLandowner = await User.findByIdAndDelete({
-    _id: landownerId,
-  });
+  const properties = await Property.find({ landowner: landownerId });
 
-  if (!deletedLandowner) {
-    return res
-      .status(201)
-      .json(
-        new ApiError(400, `Something went wrong while deleting landowner!`)
-      );
-  }
+  try {
+    // Check if user exists
+    if (properties.length > 0) {
+      const propertyIds = properties.map((property) => property._id);
 
-  res
-    .status(200)
-    .json(
-      new ApiResponse(200, deletedLandowner, 'Landowner deleted successfully!')
+      // Delete all related reports
+      await Bids.deleteMany({ property: { $in: propertyIds } }, session);
+
+      // Delete properties
+      await Property.deleteMany({ _id: { $in: propertyIds } }, session);
+    }
+
+    const deletedLandowner = await User.findByIdAndDelete(
+      {
+        _id: landownerId,
+      },
+      session
     );
+
+    if (!deletedLandowner) {
+      return res
+        .status(201)
+        .json(
+          new ApiError(400, `Something went wrong while deleting landowner!`)
+        );
+    }
+
+    // Commit transaction
+    await session.commitTransaction();
+
+    // Send response
+    res
+      .status(200)
+      .json(
+        new ApiResponse(
+          200,
+          deletedLandowner,
+          'Landowner deleted successfully!'
+        )
+      );
+  } catch (error: any) {
+    // Rollback transaction
+    await session.abortTransaction();
+    throw new ApiError(500, error.message || 'Failed to update landowner!');
+  } finally {
+    // End session
+    session.endSession();
+  }
 });
 
 const changeResearchersBidStatus = asyncHandler(
