@@ -12,6 +12,7 @@ import {
   archiveResearcher,
   addResearcher,
   fetchResearcher,
+  removeBidResearch,
 } from '../controllers/researcher.controller.js';
 import {
   addResearcherValidation,
@@ -19,6 +20,7 @@ import {
   changeResearchersStatusValidations,
   deleteResearcherValidation,
   placeBidResearchValidations,
+  removeBidResearchValidations,
   updateResearcherValidation,
 } from '../utils/validations/researcherValidations.js';
 import { ROLES } from '../constants.js';
@@ -94,6 +96,13 @@ router
     authMiddleware,
     roleCheck(ROLES.RESEARCHER),
     placeBidResearch
+  )
+  .delete(
+    removeBidResearchValidations,
+    validateRequest,
+    authMiddleware,
+    roleCheck(ROLES.RESEARCHER),
+    removeBidResearch
   );
 
 export default router;

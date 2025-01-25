@@ -399,6 +399,22 @@ const placeBidResearch = asyncHandler(async (req: Request, res: Response) => {
     .json(new ApiResponse(200, createdBid, 'Bid created successfully!'));
 });
 
+const removeBidResearch = asyncHandler(async (req: Request, res: Response) => {
+  const { id: bidId } = req.params;
+
+  const findBid = await Bids.findByIdAndDelete(bidId);
+
+  if (!findBid) {
+    return res
+      .status(201)
+      .json(new ApiResponse(400, findBid, `Bid does not exists!`));
+  }
+
+  res
+    .status(200)
+    .json(new ApiResponse(200, findBid, 'Bid removed successfully!'));
+});
+
 const changeResearchersStatus = asyncHandler(
   async (req: Request, res: Response) => {
     const { id: researcherId } = req.params;
@@ -731,4 +747,5 @@ export {
   updateResearcher,
   addResearcher,
   fetchResearcher,
+  removeBidResearch,
 };
