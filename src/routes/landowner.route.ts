@@ -4,6 +4,7 @@ import {
   addLandowner,
   archiveLandowner,
   deleteLandowner,
+  getSingleLandowner,
   paginatedLandownerData,
   updateLandowner,
 } from '../controllers/landowner.controller.js';
@@ -13,10 +14,14 @@ import {
   addLandownerValidation,
   archiveLandownerValidation,
   deleteLandownerValidation,
+  getLandownerValidation,
   updateLandownerValidation,
 } from '../utils/validations/landownerValidations.js';
 import { roleCheck } from '../middlewares/roles.middleware.js';
 import landownerReportsRouter from './landownerReportRoute/landowner.reports.route.js';
+import landownerPropertyRouter from './landownerPropertyRoute/landowner.properties.route.js';
+import upload from '../middlewares/multer.js';
+import { mapFilesToBody } from '../middlewares/index.middleware.js';
 
 const router = Router();
 
@@ -24,6 +29,8 @@ router
   .route('/')
   .get(authMiddleware, roleCheck(ROLES.LANDOWNER), paginatedLandownerData)
   .post(
+    upload.array('files', 5),
+    mapFilesToBody,
     addLandownerValidation,
     validateRequest,
     authMiddleware,
@@ -33,8 +40,17 @@ router
 
 router.use('/reports', landownerReportsRouter);
 
+router.use('/properties', landownerPropertyRouter);
+
 router
   .route('/:id')
+  .get(
+    getLandownerValidation,
+    validateRequest,
+    authMiddleware,
+    roleCheck(ROLES.LANDOWNER),
+    getSingleLandowner
+  )
   .put(
     updateLandownerValidation,
     validateRequest,

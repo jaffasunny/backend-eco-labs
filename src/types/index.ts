@@ -12,3 +12,8 @@ export interface IResetPasswordToken extends Document {
   createdAt: Date;
   expiresAt: Date;
 }
+
+export type FilesType = {
+  url: string;
+  name: string;
+};

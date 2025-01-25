@@ -20,12 +20,12 @@ import {
 import {
   findOrUpdateUser,
   landownerAggregatePaginationService,
-  landownerReportAggregatePaginationService,
-  landownerReportBidsPaginationService,
+  landownerPropertyAggregatePaginationService,
+  landownerPropertyBidsPaginationService,
 } from '../services/landowner.service.js';
-import { IAddLandownerParams } from '../interface/landowner.interface.js';
 import { Bids } from '../models/bids.model.js';
 import { Report } from '../models/reports.model.js';
+import { Property } from '../models/property.model.js';
 
 // Add Landowner by email
 const addLandowner = asyncHandler(async (req: Request, res: Response) => {
@@ -36,7 +36,8 @@ const addLandowner = asyncHandler(async (req: Request, res: Response) => {
     propertyName,
     propertyLocation,
     propertySize,
-  }: IAddLandownerParams = req.body;
+    files,
+  } = req.body;
 
   // Start a transaction
   const session = await mongoose.startSession();
@@ -57,13 +58,15 @@ const addLandowner = asyncHandler(async (req: Request, res: Response) => {
   try {
     const user = await findOrUpdateUser(landownerData, session);
 
-    const property = await findOrUpdatePropertySession(
-      propertyName,
-      propertyLocation,
-      propertySize,
-      user._id,
-      session
-    );
+    const { property, uploadedPropertyFiles } =
+      await findOrUpdatePropertySession(
+        propertyName,
+        propertyLocation,
+        propertySize,
+        files,
+        user._id,
+        session
+      );
 
     // Commit transaction
     await session.commitTransaction();
@@ -75,15 +78,17 @@ const addLandowner = asyncHandler(async (req: Request, res: Response) => {
       `Welcome to ${PLATFORM_NAME}! Here is your system-generated password: ${password}`
     ).catch((err) => console.error('Email sending failed:', err));
 
-    return res
-      .status(201)
-      .json(
-        new ApiResponse(
-          201,
-          { user, property },
-          'Landowner added successfully. Password has been sent to the email.'
-        )
-      );
+    return res.status(201).json(
+      new ApiResponse(
+        201,
+        {
+          user,
+          property,
+          uploadedPropertyFiles,
+        },
+        'Landowner added successfully. Password has been sent to the email.'
+      )
+    );
   } catch (error: any) {
     // Rollback transaction
     await session.abortTransaction();
@@ -103,21 +108,8 @@ const updateLandowner = asyncHandler(async (req: Request, res: Response) => {
     propertyName,
     propertyLocation,
     propertySize,
-    landAssessmentReport,
     phone,
   }: IUpdateLandowner = req.body;
-
-  // const files = req.files as Express.Multer.File[];
-
-  // if (!files || !files.length) {
-  //   throw new ApiError(400, 'No files uploaded');
-  // }
-
-  if (!userId || !isValidObjectId(userId)) {
-    return res
-      .status(201)
-      .json(new ApiError(400, `Please enter a valid user id!`));
-  }
 
   // Start a transaction
   const session = await mongoose.startSession();
@@ -139,49 +131,37 @@ const updateLandowner = asyncHandler(async (req: Request, res: Response) => {
     );
 
     // Check if property exists
-    const property = await findOrUpdatePropertySession(
-      propertyName,
-      propertyLocation,
-      propertySize,
-      // files,
-      // landAssessmentReport,
-      userId,
-      session
+    // const { property } = await findOrUpdatePropertySession(
+    //   propertyName,
+    //   propertyLocation,
+    //   propertySize,
+    //   null,
+    //   userId,
+    //   session
+    // );
+
+    // if (property) {
+    //   // Fetch updated property details
+    //   const userWithProperty = await fetchPopulatedProperty(
+    //     property._id.toString(),
+    //     session
+    //   );
+
+    // Commit transaction
+    await session.commitTransaction();
+
+    // Send response
+    res.status(200).json(
+      new ApiResponse(
+        200,
+        'Landowner updated successfully!'
+        // { userWithProperty },
+        // property.isNew
+        //   ? 'Property created successfully!'
+        //   : 'Property updated successfully!'
+      )
     );
-
-    if (property) {
-      const reportData = {
-        landAssessmentReport: landAssessmentReport || [],
-        property: property._id,
-      };
-
-      const createdReport = await createOrUpdateReportsService(
-        reportData,
-        session
-      );
-
-      // Fetch updated property details
-      const userWithProperty = await fetchPopulatedProperty(
-        property._id.toString(),
-        session
-      );
-
-      // Commit transaction
-      await session.commitTransaction();
-
-      // Send response
-      res
-        .status(200)
-        .json(
-          new ApiResponse(
-            200,
-            { userWithProperty, createdReport },
-            property.isNew
-              ? 'Property created successfully!'
-              : 'Property updated successfully!'
-          )
-        );
-    }
+    // }
   } catch (error: any) {
     // Rollback transaction
     await session.abortTransaction();
@@ -265,12 +245,26 @@ const paginatedLandownerData = asyncHandler(
   }
 );
 
+const getSingleLandowner = asyncHandler(async (req: Request, res: Response) => {
+  const { id: landownerId } = req.params;
+
+  const landowner = await User.findById(landownerId);
+
+  if (!landowner) {
+    res.status(200).json(new ApiError(400, 'Landowner not found!'));
+  }
+
+  res
+    .status(200)
+    .json(new ApiResponse(200, landowner, 'Landowner fetched successfully'));
+});
+
 const paginatedReportData = asyncHandler(
   async (req: Request, res: Response) => {
     const { page = 1, limit = 10, search = '', assigned = null } = req.query;
     const { _id: userId } = req.user;
 
-    const renamedResult = await landownerReportAggregatePaginationService({
+    const renamedResult = await landownerPropertyAggregatePaginationService({
       assigned: parseBooleanQueryParam(assigned),
       limit: Number(limit),
       page: Number(page),
@@ -290,19 +284,13 @@ const paginatedReportData = asyncHandler(
   }
 );
 
-const paginatedReportBidsData = asyncHandler(
+const paginatedPropertyBidsData = asyncHandler(
   async (req: Request, res: Response) => {
-    const { page = 1, limit = 10, search = '', reportId } = req.query;
+    const { page = 1, limit = 10, search = '', propertyId } = req.query;
     const { _id: userId } = req.user;
 
-    if (!reportId || typeof reportId !== 'string') {
-      return res
-        .status(400)
-        .json(new ApiResponse(400, null, 'Report ID is required'));
-    }
-
-    const renamedResult = await landownerReportBidsPaginationService({
-      reportId,
+    const renamedResult = await landownerPropertyBidsPaginationService({
+      propertyId: propertyId as string,
       limit: Number(limit),
       page: Number(page),
       search: search.toString(),
@@ -365,29 +353,60 @@ const archiveLandowner = asyncHandler(async (req: Request, res: Response) => {
 const deleteLandowner = asyncHandler(async (req: Request, res: Response) => {
   const { id: landownerId } = req.params;
 
-  if (!landownerId || !isValidObjectId(landownerId)) {
-    return res
-      .status(201)
-      .json(new ApiError(400, `Please enter a valid landowner id!`));
-  }
+  // Start a transaction
+  const session = await mongoose.startSession();
+  session.startTransaction();
 
-  const deletedLandowner = await User.findByIdAndDelete({
-    _id: landownerId,
-  });
+  const properties = await Property.find({ landowner: landownerId });
 
-  if (!deletedLandowner) {
-    return res
-      .status(201)
-      .json(
-        new ApiError(400, `Something went wrong while deleting landowner!`)
-      );
-  }
+  try {
+    // Check if user exists
+    if (properties.length > 0) {
+      const propertyIds = properties.map((property) => property._id);
 
-  res
-    .status(200)
-    .json(
-      new ApiResponse(200, deletedLandowner, 'Landowner deleted successfully!')
+      // Delete all related reports
+      await Bids.deleteMany({ property: { $in: propertyIds } }, session);
+
+      // Delete properties
+      await Property.deleteMany({ _id: { $in: propertyIds } }, session);
+    }
+
+    const deletedLandowner = await User.findByIdAndDelete(
+      {
+        _id: landownerId,
+      },
+      session
     );
+
+    if (!deletedLandowner) {
+      return res
+        .status(201)
+        .json(
+          new ApiError(400, `Something went wrong while deleting landowner!`)
+        );
+    }
+
+    // Commit transaction
+    await session.commitTransaction();
+
+    // Send response
+    res
+      .status(200)
+      .json(
+        new ApiResponse(
+          200,
+          deletedLandowner,
+          'Landowner deleted successfully!'
+        )
+      );
+  } catch (error: any) {
+    // Rollback transaction
+    await session.abortTransaction();
+    throw new ApiError(500, error.message || 'Failed to update landowner!');
+  } finally {
+    // End session
+    session.endSession();
+  }
 });
 
 const changeResearchersBidStatus = asyncHandler(
@@ -425,7 +444,7 @@ const changeResearchersBidStatus = asyncHandler(
           .json(new ApiError(400, `Something went wrong while updating bid!`));
       }
 
-      await Report.findByIdAndUpdate(updatedBidStatus.report, {
+      await Report.findByIdAndUpdate(updatedBidStatus.property, {
         status: PROPOSAL_STATUS.INPROGRESS,
       }).session(session);
 
@@ -457,5 +476,6 @@ export {
   paginatedReportData,
   assignReport,
   changeResearchersBidStatus,
-  paginatedReportBidsData,
+  paginatedPropertyBidsData,
+  getSingleLandowner,
 };

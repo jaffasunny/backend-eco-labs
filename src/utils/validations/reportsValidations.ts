@@ -1,7 +1,6 @@
 import { body } from 'express-validator';
 
 export const reportsValidation = [
-  // Validate email
   body('landAssessmentReport')
     .isArray({ min: 1 })
     .withMessage('there must be at least one report')

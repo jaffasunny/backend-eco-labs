@@ -1,6 +1,7 @@
-import { body } from 'express-validator';
+import { body, param, query } from 'express-validator';
 import { User } from '../../models/user.model.js';
 import { findModel } from '../../services/index.service.js';
+import { filesValidation } from './filesValidations.js';
 
 export const addPropertyValidation = [
   body('propertyName')
@@ -31,4 +32,36 @@ export const addPropertyValidation = [
 
       return true;
     }),
+
+  // Custom validation for files (if needed)
+  ...filesValidation,
+];
+
+export const propertyFilesValidation = [
+  param('fileId').notEmpty().withMessage('Please enter a valid File Id'),
+  query('propertyFilesId')
+    .notEmpty()
+    .isMongoId()
+    .withMessage('Please enter a valid Property Files Id'),
+];
+
+export const assignResearcherPropertyValidation = [
+  body('propertyId')
+    .notEmpty()
+    .withMessage('Property Id is required!')
+    .isMongoId()
+    .withMessage('Property Id must be a valid MongoDB ObjectId.'),
+  body('researcherId')
+    .notEmpty()
+    .withMessage('Researcher Id is required!')
+    .isMongoId()
+    .withMessage('Researcher Id must be a valid MongoDB ObjectId.'),
+];
+
+export const deletePropertyValidation = [
+  param('id')
+    .notEmpty()
+    .withMessage('Property Id is required!')
+    .isMongoId()
+    .withMessage('Property Id must be a valid MongoDB ObjectId.'),
 ];

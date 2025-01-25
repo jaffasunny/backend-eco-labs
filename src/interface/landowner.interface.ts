@@ -10,14 +10,14 @@ export interface IlandownerAggregatePaginationServiceParams
   assigned: boolean | null;
 }
 
-export interface IlandownerReportAggregatePaginationServiceParams
+export interface IlandownerPropertyAggregatePaginationServiceParams
   extends IPagination {
   assigned: boolean | null;
-  userId?: string;
+  userId: string;
 }
 
-export interface IlandownerReportBidsAggregatePaginationServiceParams
+export interface IlandownerPropertyBidsAggregatePaginationServiceParams
   extends IPagination {
-  reportId: string;
+  propertyId: string;
   userId?: string;
 }

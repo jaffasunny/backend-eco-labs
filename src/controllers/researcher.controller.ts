@@ -21,6 +21,7 @@ import {
 import mongoose from 'mongoose';
 import { findOrUpdateUser } from '../services/landowner.service.js';
 import sendEmail from '../utils/sendMail.js';
+import { Property } from '../models/property.model.js';
 
 const paginatedResearchers = asyncHandler(
   async (req: Request, res: Response) => {
@@ -64,7 +65,7 @@ const paginatedResearchers = asyncHandler(
       },
       {
         $lookup: {
-          from: 'assignresearcherreports',
+          from: MODELS.ASSIGNED_RESEARCH_REPORTS,
           let: { userId: '$_id' },
           pipeline: [
             {
@@ -181,6 +182,7 @@ const paginatedResearchers = asyncHandler(
   }
 );
 
+// fix in the end
 const paginatedResearcherReportData = asyncHandler(
   async (req: Request, res: Response) => {
     const { page = 1, limit = 10, search = '' } = req.query;
@@ -204,108 +206,139 @@ const paginatedResearcherReportData = asyncHandler(
         }
       : {};
 
-    const aggregateLandownerData = Report.aggregate([
+    // const aggregateLandownerData = Report.aggregate([
+    //   {
+    //     $lookup: {
+    //       from: 'properties',
+    //       localField: 'property',
+    //       foreignField: '_id',
+    //       as: 'property',
+    //       pipeline: [
+    //         {
+    //           $lookup: {
+    //             from: MODELS.USERS,
+    //             localField: 'landowner',
+    //             foreignField: '_id',
+    //             as: 'landowner',
+    //           },
+    //         },
+    //         {
+    //           $addFields: {
+    //             landowner: { $arrayElemAt: ['$landowner', 0] },
+    //           },
+    //         },
+    //       ],
+    //     },
+    //   },
+    //   {
+    //     $project: {
+    //       _id: 1,
+    //       landAssessmentReport: 1,
+    //       property: {
+    //         _id: 1,
+    //         propertyName: 1,
+    //         propertyLocation: 1,
+    //         propertySize: 1,
+    //         landowner: {
+    //           name: 1,
+    //           email: 1,
+    //           phone: 1,
+    //         },
+    //         createdAt: 1,
+    //         updatedAt: 1,
+    //       },
+    //       landowner: 1,
+    //     },
+    //   },
+    //   {
+    //     $addFields: {
+    //       property: { $arrayElemAt: ['$property', 0] },
+    //       landAssessmentReport: { $arrayElemAt: ['$landAssessmentReport', 0] },
+    //     },
+    //   },
+    //   {
+    //     $lookup: {
+    //       from: MODELS.BIDS,
+    //       localField: '_id',
+    //       foreignField: 'report',
+    //       as: 'bids',
+    //       pipeline: [
+    //         {
+    //           $match: {
+    //             researcher: stringToObjectId(researcherId),
+    //           },
+    //         },
+    //         {
+    //           $lookup: {
+    //             from: MODELS.USERS,
+    //             localField: 'researcher',
+    //             foreignField: '_id',
+    //             as: 'researcher',
+    //           },
+    //         },
+    //         {
+    //           $addFields: {
+    //             researcher: { $arrayElemAt: ['$researcher', 0] },
+    //           },
+    //         },
+    //         {
+    //           $project: {
+    //             _id: 1,
+    //             researcher: {
+    //               _id: 1,
+    //               name: 1,
+    //               email: 1,
+    //               phone: 1,
+    //             },
+    //             status: 1,
+    //             description: 1,
+    //             createdAt: 1,
+    //             updatedAt: 1,
+    //           },
+    //         },
+    //       ],
+    //     },
+    //   },
+    //   {
+    //     $match: {
+    //       'bids.0': { $exists: true },
+    //       ...searchQuery,
+    //     },
+    //   },
+    // ]);
+
+    const aggregateLandownerData = Bids.aggregate([
       {
-        $lookup: {
-          from: 'properties',
-          localField: 'property',
-          foreignField: '_id',
-          as: 'property',
-          pipeline: [
-            {
-              $lookup: {
-                from: MODELS.USERS,
-                localField: 'landowner',
-                foreignField: '_id',
-                as: 'landowner',
-              },
-            },
-            {
-              $addFields: {
-                landowner: { $arrayElemAt: ['$landowner', 0] },
-              },
-            },
-          ],
+        $match: {
+          researcher: stringToObjectId(researcherId),
         },
       },
       {
-        $project: {
-          _id: 1,
-          landAssessmentReport: 1,
-          property: {
-            _id: 1,
-            propertyName: 1,
-            propertyLocation: 1,
-            propertySize: 1,
-            landowner: {
-              name: 1,
-              email: 1,
-              phone: 1,
+        $lookup: {
+          from: MODELS.USERS,
+          localField: 'researcher',
+          foreignField: '_id',
+          as: 'researcher',
+          pipeline: [
+            {
+              $project: {
+                _id: 1,
+                name: 1,
+                email: 1,
+                phone: 1,
+              },
             },
-            createdAt: 1,
-            updatedAt: 1,
-          },
-          landowner: 1,
+          ],
         },
       },
       {
         $addFields: {
-          property: { $arrayElemAt: ['$property', 0] },
-          landAssessmentReport: { $arrayElemAt: ['$landAssessmentReport', 0] },
-        },
-      },
-      {
-        $lookup: {
-          from: MODELS.BIDS,
-          localField: '_id',
-          foreignField: 'report',
-          as: 'bids',
-          pipeline: [
-            {
-              $match: {
-                researcher: stringToObjectId(researcherId),
-              },
-            },
-            {
-              $lookup: {
-                from: MODELS.USERS,
-                localField: 'researcher',
-                foreignField: '_id',
-                as: 'researcher',
-              },
-            },
-            {
-              $addFields: {
-                researcher: { $arrayElemAt: ['$researcher', 0] },
-              },
-            },
-            {
-              $project: {
-                _id: 1,
-                researcher: {
-                  _id: 1,
-                  name: 1,
-                  email: 1,
-                  phone: 1,
-                },
-                status: 1,
-                description: 1,
-                createdAt: 1,
-                updatedAt: 1,
-              },
-            },
-          ],
-        },
-      },
-      {
-        $match: {
-          'bids.0': { $exists: true },
-          ...searchQuery,
+          researcher: { $arrayElemAt: ['$researcher', 0] },
         },
       },
     ]);
 
-    const result = await Report.aggregatePaginate(
+    const result = await Bids.aggregatePaginate(
       aggregateLandownerData,
       options
     );
@@ -325,27 +358,27 @@ const paginatedResearcherReportData = asyncHandler(
 );
 
 const placeBidResearch = asyncHandler(async (req: Request, res: Response) => {
-  const { id: reportId } = req.params;
+  const { id: propertyId } = req.params;
   const { _id: userId } = req.user;
   const { status, description } = req.body;
 
-  if (!reportId || !isValidObjectId(reportId)) {
+  if (!propertyId || !isValidObjectId(propertyId)) {
     return res
       .status(201)
       .json(new ApiError(400, `Please enter a valid property id!`));
   }
 
-  const findReport = await Report.findById(reportId);
+  const findProperty = await Property.findById(propertyId);
 
-  if (!findReport) {
+  if (!findProperty) {
     return res
       .status(201)
-      .json(new ApiResponse(400, findReport, `Report doesnot exists!`));
+      .json(new ApiResponse(400, findProperty, `Property doesnot exists!`));
   }
 
   const [findBid] = await Bids.find({
     researcher: userId,
-    report: reportId,
+    property: propertyId,
   });
 
   if (findBid) {
@@ -355,7 +388,7 @@ const placeBidResearch = asyncHandler(async (req: Request, res: Response) => {
   }
 
   const createdBid = await Bids.create({
-    report: reportId,
+    property: propertyId,
     researcher: userId,
     status,
     description,
@@ -562,7 +595,7 @@ const fetchResearcher = asyncHandler(async (req: Request, res: Response) => {
     },
     {
       $lookup: {
-        from: 'assignresearcherreports',
+        from: MODELS.ASSIGNED_RESEARCH_REPORTS,
         let: { userId: '$_id' },
         pipeline: [
           {

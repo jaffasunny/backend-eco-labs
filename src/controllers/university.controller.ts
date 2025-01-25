@@ -14,7 +14,7 @@ import { IAssignReport } from '../interface/property.interface.js';
 import {
   findOrUpdateUser,
   landownerAggregatePaginationService,
-  landownerReportAggregatePaginationService,
+  landownerPropertyAggregatePaginationService,
 } from '../services/landowner.service.js';
 import {
   IAddUniversityParams,
@@ -192,7 +192,7 @@ const paginatedUniversityReportData = asyncHandler(
     const { page = 1, limit = 10, search = '', assigned = null } = req.query;
     const { _id: userId } = req.user;
 
-    const renamedResult = await landownerReportAggregatePaginationService({
+    const renamedResult = await landownerPropertyAggregatePaginationService({
       assigned: parseBooleanQueryParam(assigned),
       limit: Number(limit),
       page: Number(page),

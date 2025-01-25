@@ -23,7 +23,7 @@ export const registerUserValidation = [
     .withMessage('Password must contain at least one number'),
   body('university')
     .isMongoId()
-    .notEmpty()
+    .optional()
     .withMessage('University is not valid!'),
   body('roles')
     .trim()
