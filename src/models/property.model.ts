@@ -11,17 +11,29 @@ const propertySchema = new Schema<IPropertyDocument>(
   {
     propertyName: {
       type: String,
-      required: function (this: IPropertyDocument) {
-        // Check if this is a new document or an update
-        return this.isNew;
+      validate: {
+        validator: function (this: IPropertyDocument, value: string) {
+          // Ensure `propertyName` is required only when the document is new
+          if (this.isNew && !value) {
+            return false;
+          }
+          return true;
+        },
+        message: 'Property name is required when creating a new property.',
       },
       trim: true,
     },
     propertyLocation: {
       type: String,
-      required: function (this: IPropertyDocument) {
-        // Check if this is a new document or an update
-        return this.isNew;
+      validate: {
+        validator: function (this: IPropertyDocument, value: string) {
+          // Ensure `propertyLocation` is required only when the document is new
+          if (this.isNew && !value) {
+            return false;
+          }
+          return true;
+        },
+        message: 'Property location is required when creating a new property.',
       },
       trim: true,
     },
@@ -30,6 +42,12 @@ const propertySchema = new Schema<IPropertyDocument>(
       trim: true,
     },
     landowner: { type: mongoose.Schema.Types.ObjectId, ref: MODELS.USERS },
+    assignedResearchers: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: MODELS.USERS,
+      },
+    ],
   },
   {
     timestamps: true,

@@ -105,27 +105,31 @@ const landownerAggregatePaginationService = async ({
     { $match: filters },
     {
       $lookup: {
-        from: 'properties',
+        from: MODELS.PROPERTIES,
         let: { landownerId: '$_id' },
         pipeline: [
           { $match: { $expr: { $eq: ['$landowner', '$$landownerId'] } } },
           {
             $lookup: {
-              from: 'reports',
+              from: MODELS.PROPERTIES_FILES,
               let: { propertyId: '$_id' },
               pipeline: [
                 { $match: { $expr: { $eq: ['$property', '$$propertyId'] } } },
                 {
                   $project: {
-                    _id: 1,
-                    'landAssessmentReport.url': 1,
-                    'landAssessmentReport.name': 1,
+                    _id: 0,
+                    files: 1,
                     createdAt: 1,
                     updatedAt: 1,
                   },
                 },
               ],
-              as: 'reports',
+              as: 'docs',
+            },
+          },
+          {
+            $addFields: {
+              docs: { $arrayElemAt: ['$docs', 0] },
             },
           },
           {
@@ -134,8 +138,7 @@ const landownerAggregatePaginationService = async ({
               propertyName: 1,
               propertyLocation: 1,
               propertySize: 1,
-              landAssessmentReport: 1,
-              reports: 1,
+              docs: '$docs.files',
             },
           },
         ],
@@ -150,7 +153,7 @@ const landownerAggregatePaginationService = async ({
               input: '$properties',
               as: 'property',
               in: {
-                $gt: [{ $size: { $ifNull: ['$$property.reports', []] } }, 0],
+                $gt: [{ $size: { $ifNull: ['$$property.docs', []] } }, 0],
               },
             },
           },

@@ -107,21 +107,8 @@ const updateLandowner = asyncHandler(async (req: Request, res: Response) => {
     propertyName,
     propertyLocation,
     propertySize,
-    landAssessmentReport,
     phone,
   }: IUpdateLandowner = req.body;
-
-  // const files = req.files as Express.Multer.File[];
-
-  // if (!files || !files.length) {
-  //   throw new ApiError(400, 'No files uploaded');
-  // }
-
-  if (!userId || !isValidObjectId(userId)) {
-    return res
-      .status(201)
-      .json(new ApiError(400, `Please enter a valid user id!`));
-  }
 
   // Start a transaction
   const session = await mongoose.startSession();
@@ -143,48 +130,37 @@ const updateLandowner = asyncHandler(async (req: Request, res: Response) => {
     );
 
     // Check if property exists
-    const { property } = await findOrUpdatePropertySession(
-      propertyName,
-      propertyLocation,
-      propertySize,
-      null,
-      userId,
-      session
+    // const { property } = await findOrUpdatePropertySession(
+    //   propertyName,
+    //   propertyLocation,
+    //   propertySize,
+    //   null,
+    //   userId,
+    //   session
+    // );
+
+    // if (property) {
+    //   // Fetch updated property details
+    //   const userWithProperty = await fetchPopulatedProperty(
+    //     property._id.toString(),
+    //     session
+    //   );
+
+    // Commit transaction
+    await session.commitTransaction();
+
+    // Send response
+    res.status(200).json(
+      new ApiResponse(
+        200,
+        'Landowner updated successfully!'
+        // { userWithProperty },
+        // property.isNew
+        //   ? 'Property created successfully!'
+        //   : 'Property updated successfully!'
+      )
     );
-
-    if (property) {
-      const reportData = {
-        landAssessmentReport: landAssessmentReport || [],
-        property: property._id,
-      };
-
-      const createdReport = await createOrUpdateReportsService(
-        reportData,
-        session
-      );
-
-      // Fetch updated property details
-      const userWithProperty = await fetchPopulatedProperty(
-        property._id.toString(),
-        session
-      );
-
-      // Commit transaction
-      await session.commitTransaction();
-
-      // Send response
-      res
-        .status(200)
-        .json(
-          new ApiResponse(
-            200,
-            { userWithProperty, createdReport },
-            property.isNew
-              ? 'Property created successfully!'
-              : 'Property updated successfully!'
-          )
-        );
-    }
+    // }
   } catch (error: any) {
     // Rollback transaction
     await session.abortTransaction();
@@ -428,7 +404,7 @@ const changeResearchersBidStatus = asyncHandler(
           .json(new ApiError(400, `Something went wrong while updating bid!`));
       }
 
-      await Report.findByIdAndUpdate(updatedBidStatus.report, {
+      await Report.findByIdAndUpdate(updatedBidStatus.property, {
         status: PROPOSAL_STATUS.INPROGRESS,
       }).session(session);
 

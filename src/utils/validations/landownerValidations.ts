@@ -30,6 +30,7 @@ export const addLandownerValidation = [
 ];
 
 export const updateLandownerValidation = [
+  param('id').notEmpty().isMongoId().withMessage('Invalid Id!'),
   body('name')
     .optional()
     .trim()
@@ -68,8 +69,6 @@ export const updateLandownerValidation = [
     .trim()
     .isLength({ max: 500 })
     .withMessage('Description cannot exceed 500 characters'),
-
-  ...reportsValidation.map((validation) => validation.optional()),
 ];
 
 export const assignReportValidation = [

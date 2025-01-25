@@ -1,9 +1,12 @@
 import mongoose, { ClientSession } from 'mongoose';
 import { MODELS } from '../constants.js';
+import { IPagination } from '../interface/index.interface.js';
 import { AssignResearcherProperty } from '../models/assigned-properties.model.js';
+import { AssignUniversityProperty } from '../models/assigned-university-properties.model.js';
 import { PropertyFiles } from '../models/property-files.model.js';
 import { Property } from '../models/property.model.js';
 import { ApiError } from '../utils/ApiError.js';
+import { stringToObjectId } from '../utils/utils.js';
 
 const findOrUpdatePropertySession = async (
   propertyName: string,
@@ -255,6 +258,367 @@ const getPropertyService = async (
   return property;
 };
 
+const getPaginatedAssignedResearcherProperties = async (
+  search: string,
+  researcherId: string,
+  options: {
+    page: number;
+    limit: number;
+  }
+) => {
+  const searchQuery = search
+    ? {
+        $or: [
+          { 'property.name': { $regex: search, $options: 'i' } }, // Assuming `report` has a `name` field
+          { 'researchers.name': { $regex: search, $options: 'i' } }, // Assuming `User` has a `name` field
+        ],
+      }
+    : {};
+
+  const pipeline = [
+    {
+      $match: {
+        researchers: { $in: [stringToObjectId(researcherId)] },
+        ...searchQuery,
+      },
+    },
+    {
+      $lookup: {
+        from: MODELS.PROPERTIES,
+        localField: 'property',
+        foreignField: '_id',
+        as: 'property',
+        pipeline: [
+          {
+            $lookup: {
+              from: MODELS.USERS,
+              localField: 'landowner',
+              foreignField: '_id',
+              as: 'landowner',
+              pipeline: [
+                {
+                  $project: { _id: 1, name: 1, email: 1, phone: 1 },
+                },
+              ],
+            },
+          },
+          {
+            $unwind: {
+              path: '$landowner',
+              preserveNullAndEmptyArrays: true,
+            },
+          },
+        ],
+      },
+    },
+    {
+      $lookup: {
+        from: MODELS.USERS,
+        localField: 'researchers',
+        foreignField: '_id',
+        as: 'researchers',
+        pipeline: [
+          {
+            $project: { _id: 1, name: 1, email: 1, phone: 1 },
+          },
+        ],
+      },
+    },
+  ];
+
+  const aggregateData = AssignResearcherProperty.aggregate(pipeline);
+
+  const result = await AssignResearcherProperty.aggregatePaginate(
+    aggregateData,
+    options
+  );
+
+  return result;
+};
+
+const getPaginatedAssignedUniversities = async (
+  search: string,
+  universityId: string,
+  options: IPagination
+) => {
+  const searchQuery = search
+    ? {
+        $or: [
+          { 'report.name': { $regex: search, $options: 'i' } },
+          { 'researchers.name': { $regex: search, $options: 'i' } },
+        ],
+      }
+    : {};
+
+  const pipeline = [
+    {
+      $match: {
+        universities: { $in: [universityId] },
+        ...searchQuery,
+      },
+    },
+    {
+      $lookup: {
+        from: 'reports', // Name of the Report collection
+        localField: 'report',
+        foreignField: '_id',
+        as: 'report',
+        pipeline: [
+          {
+            $lookup: {
+              from: 'properties',
+              localField: 'property',
+              foreignField: '_id',
+              as: 'property',
+            },
+          },
+          {
+            $addFields: {
+              property: { $arrayElemAt: ['$property', 0] },
+              landAssessmentReport: {
+                $arrayElemAt: ['$landAssessmentReport', 0],
+              },
+            },
+          },
+          {
+            $lookup: {
+              from: MODELS.USERS, // Name of the User collection
+              localField: 'property.landowner',
+              foreignField: '_id',
+              as: 'property.landowner',
+              pipeline: [
+                {
+                  $project: {
+                    _id: 1,
+                    name: 1,
+                    email: 1,
+                    phone: 1,
+                  },
+                },
+              ],
+            },
+          },
+          {
+            $addFields: {
+              'property.landowner': {
+                $arrayElemAt: ['$property.landowner', 0],
+              },
+            },
+          },
+          {
+            $lookup: {
+              from: MODELS.BIDS,
+              let: { reportId: '$_id' },
+              pipeline: [
+                {
+                  $match: {
+                    $expr: { $eq: ['$report', '$$reportId'] },
+                  },
+                },
+              ],
+              as: 'bid',
+            },
+          },
+          {
+            $addFields: {
+              bid: { $arrayElemAt: ['$bid', 0] },
+            },
+          },
+          {
+            $project: {
+              _id: 1,
+              property: 1,
+              landAssessmentReport: {
+                url: 1,
+                name: 1,
+              },
+              createdAt: 1,
+              updatedAt: 1,
+              landowner: {
+                _id: 1,
+                name: 1,
+                email: 1,
+                phone: 1,
+              },
+              bid: 1,
+            },
+          },
+        ],
+      },
+    },
+    {
+      $lookup: {
+        from: MODELS.USERS, // Name of the User collection
+        localField: 'researchers',
+        foreignField: '_id',
+        as: 'researchers',
+        pipeline: [
+          {
+            $project: {
+              _id: 1,
+              name: 1,
+              email: 1,
+              phone: 1,
+            },
+          },
+        ],
+      },
+    },
+    {
+      $unwind: '$report', // Unwind if you expect only one report per document
+    },
+    {
+      $project: {
+        _id: 1,
+        report: 1,
+        universities: 1,
+        createdAt: 1,
+        updatedAt: 1,
+      },
+    },
+  ];
+
+  const aggregateData = AssignUniversityProperty.aggregate(pipeline);
+
+  const result = await AssignUniversityProperty.aggregatePaginate(
+    aggregateData,
+    options
+  );
+
+  return result;
+};
+
+const getAllPaginatedPropertiesService = async (
+  search: string,
+  options: IPagination
+) => {
+  const searchQuery = search
+    ? {
+        $or: [
+          { propertyName: { $regex: search, $options: 'i' } },
+          { propertyLocation: { $regex: search, $options: 'i' } },
+          { propertySize: { $regex: search, $options: 'i' } },
+        ],
+      }
+    : {};
+
+  const assignedFilter: Record<string, any> = {};
+
+  const aggregatedProperties = Property.aggregate([
+    {
+      $match: {
+        ...searchQuery,
+        ...assignedFilter,
+      },
+    },
+    {
+      $lookup: {
+        from: MODELS.PROPERTIES_FILES,
+        let: { propertyId: '$_id' },
+        as: 'docs',
+        pipeline: [
+          { $match: { $expr: { $eq: ['$property', '$$propertyId'] } } },
+          {
+            $project: {
+              _id: 1,
+              files: 1,
+              createdAt: 1,
+              updatedAt: 1,
+            },
+          },
+        ],
+      },
+    },
+    {
+      $lookup: {
+        from: MODELS.USERS,
+        localField: 'landowner',
+        foreignField: '_id',
+        as: 'landowner',
+        pipeline: [
+          {
+            $project: {
+              _id: 1,
+              name: 1,
+              email: 1,
+              phone: 1,
+            },
+          },
+        ],
+      },
+    },
+    {
+      $addFields: {
+        docs: { $arrayElemAt: ['$docs', 0] },
+        landowner: { $arrayElemAt: ['$landowner', 0] },
+      },
+    },
+    {
+      $project: {
+        _id: 1,
+        propertyName: 1,
+        propertyLocation: 1,
+        propertySize: 1,
+        landowner: 1,
+        docs: '$docs.files',
+      },
+    },
+    {
+      $lookup: {
+        from: MODELS.BIDS,
+        let: { propertyId: '$_id' },
+        pipeline: [
+          {
+            $match: {
+              $expr: { $eq: ['$property', '$$propertyId'] },
+            },
+          },
+          {
+            $lookup: {
+              from: MODELS.USERS,
+              localField: 'researcher',
+              foreignField: '_id',
+              as: 'researcher',
+              pipeline: [
+                {
+                  $project: {
+                    _id: 1,
+                    name: 1,
+                    email: 1,
+                  },
+                },
+              ],
+            },
+          },
+          {
+            $addFields: {
+              researcher: { $arrayElemAt: ['$researcher', 0] },
+            },
+          },
+          {
+            $project: {
+              _id: 1,
+              researcher: 1,
+              status: 1,
+              description: 1,
+              createdAt: 1,
+              updatedAt: 1,
+            },
+          },
+        ],
+        as: 'bids',
+      },
+    },
+  ]);
+
+  const result = await Property.aggregatePaginate(
+    aggregatedProperties,
+    options
+  );
+
+  return result;
+};
+
 export {
   fetchPopulatedProperty,
   findOrUpdatePropertySession,
@@ -263,4 +627,7 @@ export {
   assignResearcherPropertyService,
   deletePropertyService,
   getPropertyService,
+  getPaginatedAssignedUniversities,
+  getPaginatedAssignedResearcherProperties,
+  getAllPaginatedPropertiesService,
 };

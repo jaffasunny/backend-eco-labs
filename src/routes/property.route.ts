@@ -16,6 +16,7 @@ import {
   getProperty,
   paginatedAssignedResearcherProperties,
   paginatedAssignedUniversityProperties,
+  paginatedProperties,
   removeFiles,
 } from '../controllers/property.controller.js';
 import upload from '../middlewares/multer.js';
@@ -25,6 +26,11 @@ const router = Router();
 
 router
   .route('/')
+  .get(
+    authMiddleware,
+    roleCheck([ROLES.LANDOWNER, ROLES.RESEARCHER]),
+    paginatedProperties
+  )
   .post(
     upload.array('files', 5),
     mapFilesToBody,
