@@ -111,6 +111,8 @@ const paginatedAssignedResearcherProperties = asyncHandler(
       limit,
     } as IPagination;
 
+    console.log({ researcherId });
+
     const result = await getPaginatedAssignedResearcherProperties(
       search as string,
       researcherId,

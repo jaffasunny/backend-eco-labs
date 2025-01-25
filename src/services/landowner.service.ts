@@ -13,6 +13,7 @@ import {
 } from '../interface/landowner.interface.js';
 import { Report } from '../models/reports.model.js';
 import { Bids } from '../models/bids.model.js';
+import { Property } from '../models/property.model.js';
 
 const findOrUpdateUser = async (
   userData: {
@@ -216,14 +217,13 @@ const landownerPropertyAggregatePaginationService = async ({
     : {};
 
   const filters = {
-    roles: ROLES.LANDOWNER,
+    landowner: stringToObjectId(userId),
   };
 
   const matchQuery = assignedFilter
     ? {
         ...filters,
         ...searchQuery,
-        ...assignedFilter,
       }
     : {
         ...searchQuery,
@@ -233,86 +233,65 @@ const landownerPropertyAggregatePaginationService = async ({
     { $match: matchQuery },
     {
       $lookup: {
-        from: MODELS.PROPERTIES,
-        let: { landownerId: stringToObjectId(userId) },
+        from: MODELS.PROPERTIES_FILES,
+        let: { propertyId: '$_id' },
         pipeline: [
-          { $match: { $expr: { $eq: ['$landowner', '$$landownerId'] } } },
-          {
-            $lookup: {
-              from: MODELS.PROPERTIES_FILES,
-              let: { propertyId: '$_id' },
-              pipeline: [
-                { $match: { $expr: { $eq: ['$property', '$$propertyId'] } } },
-                {
-                  $project: {
-                    _id: 0,
-                    files: 1,
-                    createdAt: 1,
-                    updatedAt: 1,
-                  },
-                },
-              ],
-              as: 'docs',
-            },
-          },
-          {
-            $addFields: {
-              docs: { $arrayElemAt: ['$docs', 0] },
-            },
-          },
+          { $match: { $expr: { $eq: ['$property', '$$propertyId'] } } },
           {
             $project: {
               _id: 1,
-              propertyName: 1,
-              propertyLocation: 1,
-              propertySize: 1,
-              docs: '$docs.files',
+              files: 1,
+              createdAt: 1,
+              updatedAt: 1,
             },
           },
         ],
-        as: 'properties',
+        as: 'docs',
       },
     },
     {
       $addFields: {
-        assigned: {
-          $anyElementTrue: {
-            $map: {
-              input: '$properties',
-              as: 'property',
-              in: {
-                $gt: [{ $size: { $ifNull: ['$$property.docs', []] } }, 0],
-              },
-            },
-          },
-        },
+        docs: { $arrayElemAt: ['$docs', 0] },
       },
     },
-    ...(Object.hasOwn(assignedFilter, 'assigned')
-      ? [
-          {
-            $match: { assigned: assignedFilter.assigned },
-          },
-        ]
-      : []),
     {
       $project: {
-        name: 1,
-        email: 1,
-        phone: 1,
-        properties: 1,
-        isArchived: 1,
-        assigned: 1,
-        createdAt: 1,
+        _id: 1,
+        propertyName: 1,
+        propertyLocation: 1,
+        propertySize: 1,
+        docs: { _id: '$docs._id', files: '$docs.files' },
       },
     },
-    { $skip: (page - 1) * limit },
-    { $limit: limit },
+    {
+      $lookup: {
+        from: MODELS.BIDS,
+        let: { propertyId: '$_id' },
+        pipeline: [
+          { $match: { $expr: { $eq: ['$property', '$$propertyId'] } } },
+          {
+            $project: {
+              _id: 1,
+              property: 1,
+              reseacher: 1,
+              status: 1,
+              description: 1,
+              createdAt: 1,
+              updatedAt: 1,
+            },
+          },
+        ],
+        as: 'bids',
+      },
+    },
   ];
 
-  const aggregateLandownerData = User.aggregate(aggregatePipeline);
+  const aggregateLandownerData = Property.aggregate(aggregatePipeline);
 
-  const result = await User.aggregatePaginate(aggregateLandownerData, options);
+  const result = await Property.aggregatePaginate(
+    aggregateLandownerData,
+    options
+  );
 
   return transformPaginatedResponse(result, 'properties');
 };

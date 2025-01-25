@@ -362,12 +362,6 @@ const placeBidResearch = asyncHandler(async (req: Request, res: Response) => {
   const { _id: userId } = req.user;
   const { status, description } = req.body;
 
-  if (!propertyId || !isValidObjectId(propertyId)) {
-    return res
-      .status(201)
-      .json(new ApiError(400, `Please enter a valid property id!`));
-  }
-
   const findProperty = await Property.findById(propertyId);
 
   if (!findProperty) {

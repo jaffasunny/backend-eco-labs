@@ -259,17 +259,25 @@ const getSingleLandowner = asyncHandler(async (req: Request, res: Response) => {
     .json(new ApiResponse(200, landowner, 'Landowner fetched successfully'));
 });
 
-const paginatedReportData = asyncHandler(
+const paginatedPropertyData = asyncHandler(
   async (req: Request, res: Response) => {
-    const { page = 1, limit = 10, search = '', assigned = null } = req.query;
+    const {
+      page = 1,
+      limit = 10,
+      search = '',
+      assigned = null,
+      landownerId,
+    } = req.query;
     const { _id: userId } = req.user;
+
+    console.log({ landownerId, userId });
 
     const renamedResult = await landownerPropertyAggregatePaginationService({
       assigned: parseBooleanQueryParam(assigned),
       limit: Number(limit),
       page: Number(page),
       search: search.toString(),
-      userId,
+      userId: landownerId ? landownerId : userId,
     });
 
     res
@@ -473,7 +481,7 @@ export {
   paginatedLandownerData,
   archiveLandowner,
   deleteLandowner,
-  paginatedReportData,
+  paginatedPropertyData,
   assignReport,
   changeResearchersBidStatus,
   paginatedPropertyBidsData,

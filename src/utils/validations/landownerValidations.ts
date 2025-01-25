@@ -75,6 +75,14 @@ export const updateLandownerValidation = [
     .withMessage('Description cannot exceed 500 characters'),
 ];
 
+export const paginatedPropertyValidation = [
+  param('id')
+    .optional()
+    .trim()
+    .isMongoId()
+    .withMessage('Is not a valid Mongo Id'),
+];
+
 export const assignReportValidation = [
   body('property').trim().isMongoId().withMessage('Is not a valid Mongo Id'),
 

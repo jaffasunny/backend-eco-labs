@@ -42,18 +42,26 @@ router
   );
 
 router
+  .route('/assignedResearcherProperties')
+  .get(
+    authMiddleware,
+    roleCheck([ROLES.ADMIN, ROLES.RESEARCHER]),
+    paginatedAssignedResearcherProperties
+  );
+
+router
   .route('/:id')
+  .get(
+    authMiddleware,
+    roleCheck([ROLES.LANDOWNER, ROLES.RESEARCHER]),
+    getProperty
+  )
   .delete(
     deletePropertyValidation,
     validateRequest,
     authMiddleware,
     roleCheck([ROLES.LANDOWNER]),
     deleteProperty
-  )
-  .get(
-    authMiddleware,
-    roleCheck([ROLES.LANDOWNER, ROLES.RESEARCHER]),
-    getProperty
   );
 
 router
@@ -74,14 +82,6 @@ router
     authMiddleware,
     roleCheck([ROLES.ADMIN]),
     assignResearcherProperty
-  );
-
-router
-  .route('/assignedResearcherProperties')
-  .get(
-    authMiddleware,
-    roleCheck([ROLES.ADMIN, ROLES.RESEARCHER]),
-    paginatedAssignedResearcherProperties
   );
 
 router
