@@ -1,11 +1,8 @@
 import aggregatePaginate from 'mongoose-aggregate-paginate-v2';
+import { handleDeleteMiddleware } from '../utils/utils.js';
 import mongoose, { PaginateModel, Schema } from 'mongoose';
-import { IPropertyFiles } from '../interface/property.interface.js';
+import { IPropertyFilesDocument } from '../interface/property.interface.js';
 import { MODELS } from '../constants.js';
-
-interface IPropertyFilesDocument extends IPropertyFiles, Document {
-  isNew: boolean; // Add Mongoose's isNew property
-}
 
 const propertyFilesSchema = new Schema<IPropertyFilesDocument>(
   {
@@ -30,26 +27,19 @@ const propertyFilesSchema = new Schema<IPropertyFilesDocument>(
 
 propertyFilesSchema.plugin(aggregatePaginate);
 
-propertyFilesSchema.set('toJSON', {
-  transform: (doc, ret) => {
-    // Conditionally include `isApproved`
-    // if (!ret.propertySize) {
-    //   delete ret.propertySize;
-    // }
+// Attach the generic middleware to all delete-related operations
+const deleteOperations: Array<
+  'deleteMany' | 'deleteOne' | 'findOneAndDelete' | 'findByIdAndDelete'
+> = ['deleteMany', 'deleteOne', 'findOneAndDelete', 'findByIdAndDelete'];
 
-    return ret;
-  },
-});
-
-propertyFilesSchema.set('toObject', {
-  transform: (doc, ret) => {
-    // Conditionally include `isApproved`
-    // if (!ret.propertySize) {
-    //   delete ret.propertySize;
-    // }
-
-    return ret;
-  },
+deleteOperations.forEach((operation: any) => {
+  propertyFilesSchema.pre(
+    operation,
+    { document: false, query: true },
+    function (next) {
+      handleDeleteMiddleware.call(this, next, PropertyFiles);
+    }
+  );
 });
 
 export const PropertyFiles = mongoose.model<

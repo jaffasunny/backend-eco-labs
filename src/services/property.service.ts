@@ -3,6 +3,7 @@ import { MODELS } from '../constants.js';
 import { IPagination } from '../interface/index.interface.js';
 import { AssignResearcherProperty } from '../models/assigned-properties.model.js';
 import { AssignUniversityProperty } from '../models/assigned-university-properties.model.js';
+import { Bids } from '../models/bids.model.js';
 import { PropertyFiles } from '../models/property-files.model.js';
 import { Property } from '../models/property.model.js';
 import { ApiError } from '../utils/ApiError.js';
@@ -239,12 +240,41 @@ const deletePropertyService = async (
   const property = await Property.findById(propertyId);
 
   if (!property) {
-    new ApiError(401, `Property not found!`);
+    return new ApiError(401, `Property not found!`);
   }
 
-  const deletedProperty = await Property.findByIdAndDelete(propertyId);
+  const session = await mongoose.startSession();
+  session.startTransaction();
 
-  return deletedProperty;
+  try {
+    await PropertyFiles.deleteMany(
+      {
+        property: property._id,
+      },
+      session
+    );
+
+    await Bids.deleteMany(
+      {
+        property: property._id,
+      },
+      session
+    );
+
+    const deletedProperty = await Property.findByIdAndDelete(
+      propertyId,
+      session
+    );
+
+    return deletedProperty;
+  } catch (error: any) {
+    // Rollback transaction
+    await session.abortTransaction();
+    throw new ApiError(500, error.message || 'Failed to create landowner!');
+  } finally {
+    // End session
+    session.endSession();
+  }
 };
 
 const getPropertyService = async (propertyId: string) => {

@@ -19,3 +19,7 @@ export interface IPropertyFiles {
 export interface IUpdateLandowner extends IProperty, IUser {}
 
 export interface IAssignReport extends IReport {}
+
+export interface IPropertyFilesDocument extends IPropertyFiles, Document {
+  isNew: boolean; // Add Mongoose's isNew property
+}
