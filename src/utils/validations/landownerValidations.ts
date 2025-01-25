@@ -29,6 +29,10 @@ export const addLandownerValidation = [
   ...filesValidation,
 ];
 
+export const getLandownerValidation = [
+  param('id').notEmpty().isMongoId().withMessage('Invalid Id!'),
+];
+
 export const updateLandownerValidation = [
   param('id').notEmpty().isMongoId().withMessage('Invalid Id!'),
   body('name')

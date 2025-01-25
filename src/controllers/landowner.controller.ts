@@ -245,6 +245,20 @@ const paginatedLandownerData = asyncHandler(
   }
 );
 
+const getSingleLandowner = asyncHandler(async (req: Request, res: Response) => {
+  const { id: landownerId } = req.params;
+
+  const landowner = await User.findById(landownerId);
+
+  if (!landowner) {
+    res.status(200).json(new ApiError(400, 'Landowner not found!'));
+  }
+
+  res
+    .status(200)
+    .json(new ApiResponse(200, landowner, 'Landowner fetched successfully'));
+});
+
 const paginatedReportData = asyncHandler(
   async (req: Request, res: Response) => {
     const { page = 1, limit = 10, search = '', assigned = null } = req.query;
@@ -463,4 +477,5 @@ export {
   assignReport,
   changeResearchersBidStatus,
   paginatedPropertyBidsData,
+  getSingleLandowner,
 };

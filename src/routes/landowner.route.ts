@@ -4,6 +4,7 @@ import {
   addLandowner,
   archiveLandowner,
   deleteLandowner,
+  getSingleLandowner,
   paginatedLandownerData,
   updateLandowner,
 } from '../controllers/landowner.controller.js';
@@ -13,6 +14,7 @@ import {
   addLandownerValidation,
   archiveLandownerValidation,
   deleteLandownerValidation,
+  getLandownerValidation,
   updateLandownerValidation,
 } from '../utils/validations/landownerValidations.js';
 import { roleCheck } from '../middlewares/roles.middleware.js';
@@ -42,6 +44,13 @@ router.use('/properties', landownerPropertyRouter);
 
 router
   .route('/:id')
+  .get(
+    getLandownerValidation,
+    validateRequest,
+    authMiddleware,
+    roleCheck(ROLES.LANDOWNER),
+    getSingleLandowner
+  )
   .put(
     updateLandownerValidation,
     validateRequest,
