@@ -5,9 +5,9 @@ export const placeBidResearchValidations = [
   param('id')
     .trim()
     .notEmpty()
-    .withMessage('Landowner ID is required')
+    .withMessage('Property ID is required')
     .isMongoId()
-    .withMessage('Landowner ID must be a mongo id!'),
+    .withMessage('Property ID must be a mongo id!'),
   body('description')
     .trim()
     .notEmpty()

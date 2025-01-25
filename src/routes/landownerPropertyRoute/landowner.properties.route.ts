@@ -4,7 +4,7 @@ import {
   assignReport,
   changeResearchersBidStatus,
   paginatedPropertyBidsData,
-  paginatedReportData,
+  paginatedPropertyData,
 } from '../../controllers/landowner.controller.js';
 import { authMiddleware } from '../../middlewares/auth.middleware.js';
 import { roleCheck } from '../../middlewares/roles.middleware.js';
@@ -13,13 +13,20 @@ import {
   assignReportValidation,
   changeResearcherBidStatusValidation,
   paginatedPropertyBidsValidation,
+  paginatedPropertyValidation,
 } from '../../utils/validations/landownerValidations.js';
 
 const router = Router();
 
 router
   .route('/')
-  .get(authMiddleware, roleCheck([ROLES.LANDOWNER]), paginatedReportData);
+  .get(
+    paginatedPropertyValidation,
+    validateRequest,
+    authMiddleware,
+    roleCheck([ROLES.LANDOWNER]),
+    paginatedPropertyData
+  );
 
 router
   .route('/assignReport')

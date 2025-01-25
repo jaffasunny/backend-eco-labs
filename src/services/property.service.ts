@@ -247,10 +247,10 @@ const deletePropertyService = async (
   return deletedProperty;
 };
 
-const getPropertyService = async (
-  propertyId: mongoose.Types.ObjectId | string
-) => {
-  const property = await Property.findById(propertyId).populate({
+const getPropertyService = async (propertyId: string) => {
+  const property = await Property.findById(
+    stringToObjectId(propertyId)
+  ).populate({
     path: 'landowner',
     select: '_id name email phone status',
   });
