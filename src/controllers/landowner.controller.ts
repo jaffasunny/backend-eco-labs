@@ -20,8 +20,8 @@ import {
 import {
   findOrUpdateUser,
   landownerAggregatePaginationService,
-  landownerReportAggregatePaginationService,
-  landownerReportBidsPaginationService,
+  landownerPropertyAggregatePaginationService,
+  landownerPropertyBidsPaginationService,
 } from '../services/landowner.service.js';
 import { Bids } from '../models/bids.model.js';
 import { Report } from '../models/reports.model.js';
@@ -249,7 +249,7 @@ const paginatedReportData = asyncHandler(
     const { page = 1, limit = 10, search = '', assigned = null } = req.query;
     const { _id: userId } = req.user;
 
-    const renamedResult = await landownerReportAggregatePaginationService({
+    const renamedResult = await landownerPropertyAggregatePaginationService({
       assigned: parseBooleanQueryParam(assigned),
       limit: Number(limit),
       page: Number(page),
@@ -269,19 +269,13 @@ const paginatedReportData = asyncHandler(
   }
 );
 
-const paginatedReportBidsData = asyncHandler(
+const paginatedPropertyBidsData = asyncHandler(
   async (req: Request, res: Response) => {
-    const { page = 1, limit = 10, search = '', reportId } = req.query;
+    const { page = 1, limit = 10, search = '', propertyId } = req.query;
     const { _id: userId } = req.user;
 
-    if (!reportId || typeof reportId !== 'string') {
-      return res
-        .status(400)
-        .json(new ApiResponse(400, null, 'Report ID is required'));
-    }
-
-    const renamedResult = await landownerReportBidsPaginationService({
-      reportId,
+    const renamedResult = await landownerPropertyBidsPaginationService({
+      propertyId: propertyId as string,
       limit: Number(limit),
       page: Number(page),
       search: search.toString(),
@@ -436,5 +430,5 @@ export {
   paginatedReportData,
   assignReport,
   changeResearchersBidStatus,
-  paginatedReportBidsData,
+  paginatedPropertyBidsData,
 };

@@ -3,7 +3,7 @@ import { ROLES } from '../../constants.js';
 import {
   assignReport,
   changeResearchersBidStatus,
-  paginatedReportBidsData,
+  paginatedPropertyBidsData,
   paginatedReportData,
 } from '../../controllers/landowner.controller.js';
 import { authMiddleware } from '../../middlewares/auth.middleware.js';
@@ -12,7 +12,7 @@ import { validateRequest } from '../../middlewares/validateRequest.js';
 import {
   assignReportValidation,
   changeResearcherBidStatusValidation,
-  paginatedReportsBidsValidation,
+  paginatedPropertyBidsValidation,
 } from '../../utils/validations/landownerValidations.js';
 
 const router = Router();
@@ -44,11 +44,11 @@ router
 router
   .route('/bids')
   .get(
-    paginatedReportsBidsValidation,
+    paginatedPropertyBidsValidation,
     validateRequest,
     authMiddleware,
     roleCheck(ROLES.LANDOWNER),
-    paginatedReportBidsData
+    paginatedPropertyBidsData
   );
 
 export default router;

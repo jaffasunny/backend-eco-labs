@@ -126,11 +126,11 @@ export const changeResearcherBidStatusValidation = [
     ),
 ];
 
-export const paginatedReportsBidsValidation = [
-  query('reportId')
+export const paginatedPropertyBidsValidation = [
+  query('propertyId')
     .trim()
     .notEmpty()
-    .withMessage('Report Id is required')
+    .withMessage('Property Id is required')
     .isMongoId()
-    .withMessage('Report Id must be a mongo id'),
+    .withMessage('Property Id must be a mongo id'),
 ];
