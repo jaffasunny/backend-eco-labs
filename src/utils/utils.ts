@@ -3,10 +3,12 @@ import cloudinary from 'cloudinary';
 // @ts-ignore
 import DataURIParser from 'datauri/parser';
 import { Express } from 'express';
-import mongoose, { Schema, Types } from 'mongoose';
+import mongoose, { Model, Query, Schema, Types } from 'mongoose';
 import { ENVIRONMENT, ROLES } from '../constants.js';
 import morgan from 'morgan';
 import { ApiError } from './ApiError.js';
+import { IPropertyFilesDocument } from '../interface/property.interface.js';
+import { PropertyFiles } from '../models/property-files.model.js';
 
 export const uploadCloudinary = async (fileUri: DataURIParser) => {
   const mycloud = await cloudinary.v2.uploader.upload(
@@ -101,3 +103,39 @@ export function validateRoleAndUniversity(
     );
   }
 }
+
+export const cloudinaryDestroy = async (publicId: string) => {
+  await cloudinary.v2.uploader.destroy(publicId);
+};
+
+// Utility function to extract public_id from a Cloudinary URL
+export function extractPublicIdFromUrl(url: string): string | null {
+  const regex = /\/v\d+\/(.+)\.\w+$/; // Extracts the public_id
+  const match = url.match(regex);
+  return match ? match[1] : null;
+}
+
+export const handleDeleteMiddleware = async function <
+  T extends { files: { url: string }[] },
+>(this: Query<any, T>, next: (err?: any) => void, model: any): Promise<void> {
+  try {
+    const queryFilter = this.getFilter();
+
+    // Use the dynamically passed model to find documents
+    const documents = await model.find(queryFilter);
+
+    for (const document of documents) {
+      for (const file of document.files) {
+        const publicId = extractPublicIdFromUrl(file.url); // Extract public ID
+        if (publicId) {
+          await cloudinaryDestroy(publicId); // Delete file from Cloudinary
+        }
+      }
+    }
+
+    next();
+  } catch (error: any) {
+    console.error('Error deleting files from Cloudinary:', error);
+    next(error);
+  }
+};
