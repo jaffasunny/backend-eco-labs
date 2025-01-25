@@ -359,6 +359,24 @@ const landownerPropertyBidsPaginationService = async ({
           {
             $lookup: {
               from: MODELS.USERS,
+              localField: 'assignedResearchers',
+              foreignField: '_id',
+              as: 'assignedResearchers',
+              pipeline: [
+                {
+                  $project: {
+                    _id: 1,
+                    name: 1,
+                    email: 1,
+                    phone: 1,
+                  },
+                },
+              ],
+            },
+          },
+          {
+            $lookup: {
+              from: MODELS.USERS,
               localField: 'landowner',
               foreignField: '_id',
               as: 'landowner',

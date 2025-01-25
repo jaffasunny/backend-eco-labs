@@ -5,7 +5,7 @@ import { ApiError } from '../utils/ApiError.js';
 import { ApiResponse } from '../utils/ApiResponse.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import sendEmail from '../utils/sendMail.js';
-import { PLATFORM_NAME, PROPOSAL_STATUS, ROLES } from '../constants.js';
+import { PLATFORM_NAME, ROLES } from '../constants.js';
 import mongoose, { isValidObjectId } from 'mongoose';
 import { updateUserDetails } from '../services/user.service.js';
 import {
@@ -24,7 +24,6 @@ import {
   landownerPropertyBidsPaginationService,
 } from '../services/landowner.service.js';
 import { Bids } from '../models/bids.model.js';
-import { Report } from '../models/reports.model.js';
 import { Property } from '../models/property.model.js';
 
 // Add Landowner by email
@@ -452,9 +451,15 @@ const changeResearchersBidStatus = asyncHandler(
           .json(new ApiError(400, `Something went wrong while updating bid!`));
       }
 
-      await Report.findByIdAndUpdate(updatedBidStatus.property, {
-        status: PROPOSAL_STATUS.INPROGRESS,
-      }).session(session);
+      await Property.findByIdAndUpdate(
+        findBid.property,
+        {
+          $addToSet: {
+            assignedResearchers: researcherId,
+          },
+        },
+        { new: true }
+      ).session(session);
 
       // Commit transaction
       await session.commitTransaction();

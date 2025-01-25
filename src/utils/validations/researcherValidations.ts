@@ -32,6 +32,15 @@ export const placeBidResearchValidations = [
     ),
 ];
 
+export const removeBidResearchValidations = [
+  param('id')
+    .trim()
+    .notEmpty()
+    .withMessage('Bid ID is required')
+    .isMongoId()
+    .withMessage('Bid ID must be a mongo id!'),
+];
+
 export const changeResearchersStatusValidations = [
   param('id').trim().notEmpty().withMessage('Researcher ID is required'),
   body('status')
