@@ -14,6 +14,7 @@ import {
   fetchResearcher,
   removeBidResearch,
 } from '../controllers/researcher.controller.js';
+import researcherPropertyRouter from './researcherPropertyRoute/researcherProperty.route.js';
 import {
   addResearcherValidation,
   archiveResearcherValidation,
@@ -49,6 +50,8 @@ router
     roleCheck(ROLES.RESEARCHER),
     paginatedResearcherReportData
   );
+
+router.use('/properties', researcherPropertyRouter);
 
 router
   .route('/:id')

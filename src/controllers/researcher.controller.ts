@@ -15,6 +15,7 @@ import { IUpdateResearcher } from '../interface/researcher.interface.js';
 import {
   MODELS,
   PLATFORM_NAME,
+  PROPOSAL_STATUS,
   RESEARCHER_STATUS,
   ROLES,
 } from '../constants.js';
@@ -22,6 +23,7 @@ import mongoose from 'mongoose';
 import { findOrUpdateUser } from '../services/landowner.service.js';
 import sendEmail from '../utils/sendMail.js';
 import { Property } from '../models/property.model.js';
+import { PropertyFiles } from '../models/property-files.model.js';
 
 const paginatedResearchers = asyncHandler(
   async (req: Request, res: Response) => {
@@ -415,6 +417,60 @@ const removeBidResearch = asyncHandler(async (req: Request, res: Response) => {
     .json(new ApiResponse(200, findBid, 'Bid removed successfully!'));
 });
 
+const addReports = asyncHandler(async (req: Request, res: Response) => {
+  const { id: researcherId } = req.user;
+  const { property, files } = req.body;
+
+  const [researcherPermission] = await Bids.find({
+    researcher: researcherId,
+    property,
+  });
+
+  if (researcherPermission.status !== PROPOSAL_STATUS.APPROVED) {
+    return res
+      .status(201)
+      .json(
+        new ApiResponse(
+          400,
+          researcherPermission,
+          'You are not authorized to add reports for this property!'
+        )
+      );
+  }
+
+  const addedPropertyFile = await PropertyFiles.findOneAndUpdate(
+    {
+      property: property,
+      researcher: researcherId,
+    },
+    {
+      $push: { files },
+    },
+    {
+      new: true,
+      upsert: true,
+    }
+  );
+
+  if (!addedPropertyFile) {
+    return res
+      .status(201)
+      .json(
+        new ApiResponse(400, `Something went wrong while adding property file!`)
+      );
+  }
+
+  res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        addedPropertyFile,
+        'Property File added successfully!'
+      )
+    );
+});
+
 const changeResearchersStatus = asyncHandler(
   async (req: Request, res: Response) => {
     const { id: researcherId } = req.params;
@@ -748,4 +804,5 @@ export {
   addResearcher,
   fetchResearcher,
   removeBidResearch,
+  addReports,
 };

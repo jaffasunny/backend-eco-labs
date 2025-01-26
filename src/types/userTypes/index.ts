@@ -1,5 +1,6 @@
 import mongoose, { Schema } from 'mongoose';
 import { ResearchStatusType } from '../../constants.js';
+import { IPropertyFilesDocument } from '../../interface/property.interface.js';
 
 interface IUserDocument extends Document {
   // Your existing IUser properties here...
@@ -28,6 +29,7 @@ export interface IUser extends IUserDocument {
   updatedAt?: Date;
   _doc: any;
   skills?: string;
+  reportsSubmitted?: mongoose.PaginateModel<IPropertyFilesDocument>;
 
   // Instance methods
   isPasswordCorrect(password: string): Promise<boolean>;

@@ -1,5 +1,6 @@
 import { body, param } from 'express-validator';
 import { PROPOSAL_STATUS, RESEARCHER_STATUS } from '../../constants.js';
+import { filesValidation } from './filesValidations.js';
 
 export const placeBidResearchValidations = [
   param('id')
@@ -39,6 +40,15 @@ export const removeBidResearchValidations = [
     .withMessage('Bid ID is required')
     .isMongoId()
     .withMessage('Bid ID must be a mongo id!'),
+];
+
+export const addReportsValidation = [
+  body('property')
+    .trim()
+    .notEmpty()
+    .isMongoId()
+    .withMessage('Invalid Property Id!'),
+  ...filesValidation,
 ];
 
 export const changeResearchersStatusValidations = [
