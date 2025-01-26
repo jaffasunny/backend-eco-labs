@@ -18,7 +18,12 @@ const propertyFilesSchema = new Schema<IPropertyFilesDocument>(
         },
       },
     ],
-    property: { type: mongoose.Schema.Types.ObjectId, ref: MODELS.PROPERTIES },
+    property: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: MODELS.PROPERTIES,
+      required: [true, 'Property is required!'],
+    },
+    researcher: { type: mongoose.Schema.Types.ObjectId, ref: MODELS.USERS },
   },
   {
     timestamps: true,

@@ -14,6 +14,7 @@ export interface IProperty {
 export interface IPropertyFiles {
   files: FilesType[];
   property: mongoose.Schema.Types.ObjectId;
+  researcher: mongoose.Schema.Types.ObjectId;
 }
 
 export interface IUpdateLandowner extends IProperty, IUser {}
