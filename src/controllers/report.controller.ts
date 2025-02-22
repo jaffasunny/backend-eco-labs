@@ -1,6 +1,6 @@
 import {
   isValidObjectId,
-  stringToObjectId,
+  toMongoId,
   transformPaginatedResponse,
 } from '../utils/utils.js';
 import { Response, Request } from 'express';
