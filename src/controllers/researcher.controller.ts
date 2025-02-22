@@ -24,6 +24,7 @@ import { findOrUpdateUser } from '../services/landowner.service.js';
 import sendEmail from '../utils/sendMail.js';
 import { Property } from '../models/property.model.js';
 import { PropertyFiles } from '../models/property-files.model.js';
+import { TUploadedFileType } from '../types/index.js';
 
 const paginatedResearchers = asyncHandler(
   async (req: Request, res: Response) => {
@@ -426,6 +427,14 @@ const addReports = asyncHandler(async (req: Request, res: Response) => {
     property,
   });
 
+  const filePayload = files.map((file: TUploadedFileType) => ({
+    name: file.filename,
+    url: file.path,
+    type: file.mimetype,
+  }));
+
+  console.log({ filePayload });
+
   if (researcherPermission.status !== PROPOSAL_STATUS.APPROVED) {
     return res
       .status(201)
@@ -444,7 +453,7 @@ const addReports = asyncHandler(async (req: Request, res: Response) => {
       researcher: researcherId,
     },
     {
-      $push: { files },
+      $push: { files: filePayload },
     },
     {
       new: true,
