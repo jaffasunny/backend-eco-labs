@@ -17,3 +17,13 @@ export type FilesType = {
   url: string;
   name: string;
 };
+
+export type TUploadedFileType = {
+  fieldname: string;
+  originalname: string;
+  encoding: string;
+  mimetype: string;
+  path: string;
+  size: number;
+  filename: string;
+};

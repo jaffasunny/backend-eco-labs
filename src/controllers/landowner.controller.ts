@@ -269,8 +269,6 @@ const paginatedPropertyData = asyncHandler(
     } = req.query;
     const { _id: userId } = req.user;
 
-    console.log({ landownerId, userId });
-
     const renamedResult = await landownerPropertyAggregatePaginationService({
       assigned: parseBooleanQueryParam(assigned),
       limit: Number(limit),
