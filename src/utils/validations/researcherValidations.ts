@@ -1,5 +1,6 @@
 import { body, param } from 'express-validator';
 import { PROPOSAL_STATUS, RESEARCHER_STATUS } from '../../constants.js';
+import { User } from '../../models/user.model.js';
 import { filesValidation } from './filesValidations.js';
 
 export const placeBidResearchValidations = [
@@ -138,4 +139,19 @@ export const addResearcherValidation = [
     .withMessage('Phone number must be numeric')
     .isLength({ min: 10, max: 15 })
     .withMessage('Phone number must be between 10 and 15 digits'),
+  body('university')
+    .trim()
+    .notEmpty()
+    .withMessage('University is required')
+    .isMongoId()
+    .withMessage('University is not valid!')
+    .custom(async (value) => {
+      let university = await User.findById(value);
+
+      if (!university) {
+        throw new Error('University is not valid!');
+      }
+
+      return true;
+    }),
 ];
