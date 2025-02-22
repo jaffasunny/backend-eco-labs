@@ -1,5 +1,5 @@
 import mongoose, { ClientSession, Schema } from 'mongoose';
-import { MODELS, ResearchStatusType, ROLES } from '../constants.js';
+import { CONSTANTS, MODELS, ResearchStatusType, ROLES } from '../constants.js';
 import { User } from '../models/user.model.js';
 import {
   createDynamicFilter,
@@ -99,7 +99,7 @@ const landownerAggregatePaginationService = async ({
     : { ...searchQuery };
 
   const filters = {
-    roles: ROLES.LANDOWNER,
+    roles: ROLES.UNIVERSITY,
     ...beforeMatchQuery,
   };
 
@@ -107,76 +107,31 @@ const landownerAggregatePaginationService = async ({
     { $match: filters },
     {
       $lookup: {
-        from: MODELS.PROPERTIES,
-        let: { landownerId: '$_id' },
+        from: MODELS.USERS,
+        localField: '_id',
+        foreignField: 'university',
+        as: CONSTANTS.RESEARCHERS,
         pipeline: [
-          { $match: { $expr: { $eq: ['$landowner', '$$landownerId'] } } },
-          {
-            $lookup: {
-              from: MODELS.PROPERTIES_FILES,
-              let: { propertyId: '$_id' },
-              pipeline: [
-                { $match: { $expr: { $eq: ['$property', '$$propertyId'] } } },
-                {
-                  $project: {
-                    _id: 0,
-                    files: 1,
-                    createdAt: 1,
-                    updatedAt: 1,
-                  },
-                },
-              ],
-              as: 'docs',
-            },
-          },
-          {
-            $addFields: {
-              docs: { $arrayElemAt: ['$docs', 0] },
-            },
-          },
           {
             $project: {
               _id: 1,
-              propertyName: 1,
-              propertyLocation: 1,
-              propertySize: 1,
-              docs: '$docs.files',
+              name: 1,
+              email: 1,
+              status: 1,
+              createdAt: 1,
             },
           },
         ],
-        as: 'properties',
       },
     },
-    {
-      $addFields: {
-        assigned: {
-          $anyElementTrue: {
-            $map: {
-              input: '$properties',
-              as: 'property',
-              in: {
-                $gt: [{ $size: { $ifNull: ['$$property.docs', []] } }, 0],
-              },
-            },
-          },
-        },
-      },
-    },
-    ...(Object.hasOwn(assignedFilter, 'assigned')
-      ? [
-          {
-            $match: { assigned: assignedFilter.assigned },
-          },
-        ]
-      : []),
     {
       $project: {
+        _id: 1,
         name: 1,
         email: 1,
         phone: 1,
-        properties: 1,
+        researchers: 1,
         isArchived: 1,
-        assigned: 1,
         createdAt: 1,
       },
     },
@@ -188,7 +143,7 @@ const landownerAggregatePaginationService = async ({
 
   const result = await User.aggregatePaginate(aggregateLandownerData, options);
 
-  return transformPaginatedResponse(result, 'landowner');
+  return transformPaginatedResponse(result, CONSTANTS.UNIVERSITIES);
 };
 
 const landownerPropertyAggregatePaginationService = async ({

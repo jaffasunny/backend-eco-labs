@@ -4,6 +4,11 @@ export const nameless: string = 'xyz';
 
 export const PLATFORM_NAME: string = 'Eco-Labs';
 
+export enum CONSTANTS {
+  RESEARCHERS = 'researchers',
+  UNIVERSITIES = 'universities',
+}
+
 export enum MODELS {
   USERS = 'users',
   REPORTS = 'reports',
