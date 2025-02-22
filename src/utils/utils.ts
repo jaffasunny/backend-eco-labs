@@ -75,7 +75,7 @@ export const loggerEnvironment = (app: Express) => {
   }
 };
 
-export function stringToObjectId(stringId: string) {
+export function toMongoId(stringId: string) {
   try {
     return new mongoose.Types.ObjectId(stringId as string);
   } catch (error) {

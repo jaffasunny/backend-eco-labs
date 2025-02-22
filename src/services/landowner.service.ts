@@ -3,7 +3,7 @@ import { CONSTANTS, MODELS, ResearchStatusType, ROLES } from '../constants.js';
 import { User } from '../models/user.model.js';
 import {
   createDynamicFilter,
-  stringToObjectId,
+  toMongoId,
   transformPaginatedResponse,
 } from '../utils/utils.js';
 import {
@@ -172,7 +172,7 @@ const landownerPropertyAggregatePaginationService = async ({
     : {};
 
   const filters = {
-    landowner: stringToObjectId(userId),
+    landowner: toMongoId(userId),
   };
 
   const matchQuery = assignedFilter
@@ -276,7 +276,7 @@ const landownerPropertyBidsPaginationService = async ({
   const matchQuery = propertyId
     ? {
         ...searchQuery,
-        property: stringToObjectId(propertyId),
+        property: toMongoId(propertyId),
       }
     : {
         ...searchQuery,

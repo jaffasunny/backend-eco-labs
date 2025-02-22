@@ -19,6 +19,9 @@ const propertyFilesSchema = new Schema<IPropertyFilesDocument>(
         type: {
           type: String,
         },
+        originalName: {
+          type: String,
+        },
       },
     ],
     property: {

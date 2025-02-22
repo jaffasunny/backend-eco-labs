@@ -7,7 +7,7 @@ import { Bids } from '../models/bids.model.js';
 import { PropertyFiles } from '../models/property-files.model.js';
 import { Property } from '../models/property.model.js';
 import { ApiError } from '../utils/ApiError.js';
-import { stringToObjectId } from '../utils/utils.js';
+import { toMongoId } from '../utils/utils.js';
 
 const findOrUpdatePropertySession = async (
   propertyName: string,
@@ -135,6 +135,8 @@ const findOrUpdateProperty = async (
             files: files.map((file) => ({
               url: file.path,
               name: file.filename,
+              type: file.mimetype,
+              originalName: file.originalname,
             })),
             property: property._id,
           },
@@ -278,9 +280,7 @@ const deletePropertyService = async (
 };
 
 const getPropertyService = async (propertyId: string) => {
-  const property = await Property.findById(
-    stringToObjectId(propertyId)
-  ).populate({
+  const property = await Property.findById(toMongoId(propertyId)).populate({
     path: 'landowner',
     select: '_id name email phone status',
   });
@@ -308,7 +308,7 @@ const getPaginatedAssignedResearcherProperties = async (
   const pipeline = [
     {
       $match: {
-        researchers: { $in: [stringToObjectId(researcherId)] },
+        researchers: { $in: [toMongoId(researcherId)] },
         ...searchQuery,
       },
     },
@@ -337,19 +337,6 @@ const getPaginatedAssignedResearcherProperties = async (
               path: '$landowner',
               preserveNullAndEmptyArrays: true,
             },
-          },
-        ],
-      },
-    },
-    {
-      $lookup: {
-        from: MODELS.USERS,
-        localField: 'researchers',
-        foreignField: '_id',
-        as: 'researchers',
-        pipeline: [
-          {
-            $project: { _id: 1, name: 1, email: 1, phone: 1 },
           },
         ],
       },

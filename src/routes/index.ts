@@ -24,7 +24,7 @@ router.use('/researchers', researcherRouter);
 // reports routes
 router.use('/reports', reportsRouter);
 
-// reports routes
+// properties routes
 router.use('/properties', propertyRouter);
 
 export default router;

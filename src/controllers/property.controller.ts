@@ -12,10 +12,7 @@ import {
   getPaginatedAssignedUniversities,
   getPropertyService,
 } from '../services/property.service.js';
-import {
-  stringToObjectId,
-  transformPaginatedResponse,
-} from '../utils/utils.js';
+import { toMongoId, transformPaginatedResponse } from '../utils/utils.js';
 import { MODELS } from '../constants.js';
 import { AssignResearcherProperty } from '../models/assigned-properties.model.js';
 import { AssignUniversityProperty } from '../models/assigned-university-properties.model.js';

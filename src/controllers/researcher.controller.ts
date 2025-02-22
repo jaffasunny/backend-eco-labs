@@ -3,7 +3,7 @@ import { asyncHandler } from '../utils/asyncHandler.js';
 import {
   generatePassword,
   isValidObjectId,
-  stringToObjectId,
+  toMongoId,
   transformPaginatedResponse,
 } from '../utils/utils.js';
 import { ApiResponse } from '../utils/ApiResponse.js';
@@ -268,7 +268,7 @@ const paginatedResearcherReportData = asyncHandler(
     //       pipeline: [
     //         {
     //           $match: {
-    //             researcher: stringToObjectId(researcherId),
+    //             researcher: toMongoId(researcherId),
     //           },
     //         },
     //         {
@@ -313,7 +313,7 @@ const paginatedResearcherReportData = asyncHandler(
     const aggregateLandownerData = Bids.aggregate([
       {
         $match: {
-          researcher: stringToObjectId(researcherId),
+          researcher: toMongoId(researcherId),
         },
       },
       {
@@ -431,6 +431,7 @@ const addReports = asyncHandler(async (req: Request, res: Response) => {
     name: file.filename,
     url: file.path,
     type: file.mimetype,
+    originalName: file.originalname,
   }));
 
   console.log({ filePayload });
