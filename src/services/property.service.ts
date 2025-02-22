@@ -353,6 +353,143 @@ const getPaginatedAssignedResearcherProperties = async (
   return result;
 };
 
+const getPaginatedPropertiesAssignedToResearcher = async (
+  search: string,
+  propertyId: string,
+  options: {
+    page: number;
+    limit: number;
+  }
+) => {
+  const searchQuery = search
+    ? {
+        $or: [{ propertyName: { $regex: search, $options: 'i' } }],
+      }
+    : {};
+
+  const pipeline = [
+    {
+      $match: {
+        _id: toMongoId(propertyId),
+        ...searchQuery,
+      },
+    },
+    {
+      $lookup: {
+        from: MODELS.USERS,
+        localField: 'assignedResearchers',
+        foreignField: '_id',
+        as: 'assignedResearchers',
+        pipeline: [
+          {
+            $project: {
+              _id: 1,
+              name: 1,
+              email: 1,
+              phone: 1,
+            },
+          },
+        ],
+      },
+    },
+    {
+      $unwind: '$assignedResearchers',
+    },
+    {
+      $replaceRoot: {
+        newRoot: {
+          $mergeObjects: [
+            '$assignedResearchers',
+            { propertyDetails: { propertyName: '$propertyName', _id: '$_id' } },
+          ],
+        },
+      },
+    },
+    {
+      $project: {
+        _id: 1,
+        name: 1,
+        email: 1,
+        phone: 1,
+      },
+    },
+  ];
+
+  const aggregateData = Property.aggregate(pipeline);
+
+  const result = await Property.aggregatePaginate(aggregateData, options);
+
+  return result;
+};
+
+const getPaginatedResearcherReportsOnProperty = async (
+  search: string,
+  propertyId: string,
+  reseacherId: string,
+  options: {
+    page: number;
+    limit: number;
+  }
+) => {
+  const searchQuery = search
+    ? {
+        $or: [{ propertyName: { $regex: search, $options: 'i' } }],
+      }
+    : {};
+
+  const pipeline = [
+    {
+      $match: {
+        _id: toMongoId(propertyId),
+        ...searchQuery,
+      },
+    },
+    {
+      $lookup: {
+        from: MODELS.USERS,
+        localField: 'assignedResearchers',
+        foreignField: '_id',
+        as: 'assignedResearchers',
+        pipeline: [
+          {
+            $lookup: {
+              from: MODELS.PROPERTIES_FILES,
+              localField: '_id',
+              foreignField: 'researcher',
+              as: 'reports',
+              pipeline: [
+                {
+                  $project: {
+                    _id: 1,
+                    files: 1,
+                    createdAt: 1,
+                    updatedAt: 1,
+                  },
+                },
+              ],
+            },
+          },
+          {
+            $project: {
+              _id: 1,
+              name: 1,
+              email: 1,
+              phone: 1,
+              reports: 1,
+            },
+          },
+        ],
+      },
+    },
+  ];
+
+  const aggregateData = Property.aggregate(pipeline);
+
+  const result = await Property.aggregatePaginate(aggregateData, options);
+
+  return result;
+};
+
 const getPaginatedAssignedUniversities = async (
   search: string,
   universityId: string,
@@ -647,4 +784,6 @@ export {
   getPaginatedAssignedUniversities,
   getPaginatedAssignedResearcherProperties,
   getAllPaginatedPropertiesService,
+  getPaginatedPropertiesAssignedToResearcher,
+  getPaginatedResearcherReportsOnProperty,
 };

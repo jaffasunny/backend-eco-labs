@@ -10,16 +10,12 @@ import {
   getAllPaginatedPropertiesService,
   getPaginatedAssignedResearcherProperties,
   getPaginatedAssignedUniversities,
+  getPaginatedPropertiesAssignedToResearcher,
+  getPaginatedResearcherReportsOnProperty,
   getPropertyService,
 } from '../services/property.service.js';
-import { toMongoId, transformPaginatedResponse } from '../utils/utils.js';
-import { MODELS } from '../constants.js';
-import { AssignResearcherProperty } from '../models/assigned-properties.model.js';
-import { AssignUniversityProperty } from '../models/assigned-university-properties.model.js';
-import { Report } from '../models/reports.model.js';
+import { transformPaginatedResponse } from '../utils/utils.js';
 import { IPagination } from '../interface/index.interface.js';
-import { Property } from '../models/property.model.js';
-import { PropertyFiles } from '../models/property-files.model.js';
 
 const addProperty = asyncHandler(async (req: Request, res: Response) => {
   const { propertyName, propertyLocation, propertySize, landownerId, files } =
@@ -98,6 +94,77 @@ const assignResearcherProperty = asyncHandler(
   }
 );
 
+const assignedResearchersToProperty = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { page = 1, limit = 10, search = '', propertyId } = req.query;
+
+    const options = {
+      page,
+      limit,
+    } as IPagination;
+
+    const result = await getPaginatedPropertiesAssignedToResearcher(
+      search as string,
+      propertyId as string,
+      options
+    );
+
+    const renamedResult = transformPaginatedResponse(
+      result,
+      'researchersToProperty'
+    );
+
+    res
+      .status(200)
+      .json(
+        new ApiResponse(
+          200,
+          renamedResult,
+          'Properties assigned to researcher fetched successfully'
+        )
+      );
+  }
+);
+
+const researcherSubmittedReports = asyncHandler(
+  async (req: Request, res: Response) => {
+    const {
+      page = 1,
+      limit = 10,
+      search = '',
+      propertyId,
+      reseacherId,
+    } = req.query;
+
+    const options = {
+      page,
+      limit,
+    } as IPagination;
+
+    const result = await getPaginatedResearcherReportsOnProperty(
+      search as string,
+      propertyId as string,
+      reseacherId as string,
+      options
+    );
+
+    const renamedResult = transformPaginatedResponse(
+      result,
+      'researcherReports'
+    );
+
+    res
+      .status(200)
+      .json(
+        new ApiResponse(
+          200,
+          renamedResult,
+          'Researcher Submitted Reports fetched successfully'
+        )
+      );
+  }
+);
+
 const paginatedAssignedResearcherProperties = asyncHandler(
   async (req: Request, res: Response) => {
     const { page = 1, limit = 10, search = '' } = req.query;
@@ -107,8 +174,6 @@ const paginatedAssignedResearcherProperties = asyncHandler(
       page,
       limit,
     } as IPagination;
-
-    console.log({ researcherId });
 
     const result = await getPaginatedAssignedResearcherProperties(
       search as string,
@@ -236,4 +301,6 @@ export {
   deleteProperty,
   getProperty,
   paginatedProperties,
+  assignedResearchersToProperty,
+  researcherSubmittedReports,
 };

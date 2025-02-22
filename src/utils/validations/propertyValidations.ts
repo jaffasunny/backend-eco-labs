@@ -1,6 +1,8 @@
 import { body, param, query } from 'express-validator';
+import { Property } from '../../models/property.model.js';
 import { User } from '../../models/user.model.js';
 import { findModel } from '../../services/index.service.js';
+import { ApiError } from '../ApiError.js';
 import { filesValidation } from './filesValidations.js';
 
 export const addPropertyValidation = [
@@ -64,4 +66,52 @@ export const deletePropertyValidation = [
     .withMessage('Property Id is required!')
     .isMongoId()
     .withMessage('Property Id must be a valid MongoDB ObjectId.'),
+];
+
+export const assignedResearchersToPropertyValidation = [
+  query('propertyId')
+    .notEmpty()
+    .withMessage('Property Id is required!')
+    .isMongoId()
+    .withMessage('Property Id must be a valid MongoDB ObjectId.')
+    .custom(async (value) => {
+      const property = await Property.findById(value);
+
+      if (!property) {
+        return new ApiError(401, `Property not found!`);
+      }
+
+      return true;
+    }),
+];
+
+export const researcherSubmittedReportsValidation = [
+  query('propertyId')
+    .notEmpty()
+    .withMessage('Property Id is required!')
+    .isMongoId()
+    .withMessage('Property Id must be a valid MongoDB ObjectId.')
+    .custom(async (value) => {
+      const property = await Property.findById(value);
+
+      if (!property) {
+        return new ApiError(401, `Property not found!`);
+      }
+
+      return true;
+    }),
+  param('researcherId')
+    .notEmpty()
+    .withMessage('Property Id is required!')
+    .isMongoId()
+    .withMessage('Property Id must be a valid MongoDB ObjectId.')
+    .custom(async (value) => {
+      const researcher = await User.findById(value);
+
+      if (!researcher) {
+        return new ApiError(401, `Researcher not found!`);
+      }
+
+      return true;
+    }),
 ];

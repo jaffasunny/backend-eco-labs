@@ -5,12 +5,15 @@ import { validateRequest } from '../middlewares/validateRequest.js';
 import { roleCheck } from '../middlewares/roles.middleware.js';
 import {
   addPropertyValidation,
+  assignedResearchersToPropertyValidation,
   assignResearcherPropertyValidation,
   deletePropertyValidation,
   propertyFilesValidation,
+  researcherSubmittedReportsValidation,
 } from '../utils/validations/propertyValidations.js';
 import {
   addProperty,
+  assignedResearchersToProperty,
   assignResearcherProperty,
   deleteProperty,
   getProperty,
@@ -18,6 +21,7 @@ import {
   paginatedAssignedUniversityProperties,
   paginatedProperties,
   removeFiles,
+  researcherSubmittedReports,
 } from '../controllers/property.controller.js';
 import upload from '../middlewares/multer.js';
 import { mapFilesToBody } from '../middlewares/index.middleware.js';
@@ -39,6 +43,34 @@ router
     authMiddleware,
     roleCheck(ROLES.LANDOWNER),
     addProperty
+  );
+
+router
+  .route('/researchers/:researcherId/reports')
+  .get(
+    researcherSubmittedReportsValidation,
+    validateRequest,
+    authMiddleware,
+    roleCheck([ROLES.ADMIN, ROLES.LANDOWNER]),
+    researcherSubmittedReports
+  );
+
+router
+  .route('/researchers')
+  .get(
+    assignedResearchersToPropertyValidation,
+    validateRequest,
+    authMiddleware,
+    roleCheck([ROLES.ADMIN, ROLES.LANDOWNER]),
+    assignedResearchersToProperty
+  );
+
+router
+  .route('/assignedResearcherUniversities')
+  .get(
+    authMiddleware,
+    roleCheck([ROLES.ADMIN, ROLES.RESEARCHER]),
+    paginatedAssignedUniversityProperties
   );
 
 router
@@ -82,14 +114,6 @@ router
     authMiddleware,
     roleCheck([ROLES.ADMIN]),
     assignResearcherProperty
-  );
-
-router
-  .route('/assignedResearcherUniversities')
-  .get(
-    authMiddleware,
-    roleCheck([ROLES.ADMIN, ROLES.RESEARCHER]),
-    paginatedAssignedUniversityProperties
   );
 
 export default router;
