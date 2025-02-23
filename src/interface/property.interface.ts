@@ -12,6 +12,8 @@ export interface IProperty {
 }
 
 export interface IPropertyFiles {
+  name: string;
+  description: string;
   files: FilesType[];
   property: mongoose.Schema.Types.ObjectId;
   researcher: mongoose.Schema.Types.ObjectId;
