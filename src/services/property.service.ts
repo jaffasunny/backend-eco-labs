@@ -425,7 +425,7 @@ const getPaginatedPropertiesAssignedToResearcher = async (
 const getPaginatedResearcherReportsOnProperty = async (
   search: string,
   propertyId: string,
-  reseacherId: string,
+  researcherId: string,
   options: {
     page: number;
     limit: number;
@@ -451,6 +451,11 @@ const getPaginatedResearcherReportsOnProperty = async (
         foreignField: '_id',
         as: 'assignedResearchers',
         pipeline: [
+          {
+            $match: {
+              _id: toMongoId(researcherId),
+            },
+          },
           {
             $lookup: {
               from: MODELS.PROPERTIES_FILES,
@@ -480,6 +485,9 @@ const getPaginatedResearcherReportsOnProperty = async (
           },
         ],
       },
+    },
+    {
+      $unwind: '$assignedResearchers',
     },
   ];
 

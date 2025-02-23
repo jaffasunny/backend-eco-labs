@@ -128,13 +128,8 @@ const assignedResearchersToProperty = asyncHandler(
 
 const researcherSubmittedReports = asyncHandler(
   async (req: Request, res: Response) => {
-    const {
-      page = 1,
-      limit = 10,
-      search = '',
-      propertyId,
-      reseacherId,
-    } = req.query;
+    const { page = 1, limit = 10, search = '', propertyId } = req.query;
+    const { researcherId } = req.params;
 
     const options = {
       page,
@@ -144,7 +139,7 @@ const researcherSubmittedReports = asyncHandler(
     const result = await getPaginatedResearcherReportsOnProperty(
       search as string,
       propertyId as string,
-      reseacherId as string,
+      researcherId as string,
       options
     );
 
