@@ -2,6 +2,7 @@ import mongoose, { ClientSession, isValidObjectId } from 'mongoose';
 import { MODELS } from '../constants.js';
 import { AssignResearcherReport } from '../models/assigned-reports.model.js';
 import { AssignUniversityReport } from '../models/assigned-university-reports.model.js';
+import { PropertyFiles } from '../models/property-files.model.js';
 import { Property } from '../models/property.model.js';
 import { Report } from '../models/reports.model.js';
 import { ApiError } from '../utils/ApiError.js';
@@ -109,12 +110,7 @@ const deleteReportsService = async (
 };
 
 const getReportService = async (reportId: mongoose.Types.ObjectId | string) => {
-  if (!isValidObjectId(reportId)) {
-    new ApiError(400, `Please enter valid Report Id!`);
-  }
-
-  const report = await Report.findById(reportId)
-    .select('landAssessmentReport.url landAssessmentReport.name')
+  const report = await PropertyFiles.findById(reportId)
     .populate({
       path: 'property',
       populate: {
@@ -122,6 +118,10 @@ const getReportService = async (reportId: mongoose.Types.ObjectId | string) => {
         model: MODELS.USERS,
         select: '_id name email phone status',
       },
+    })
+    .populate({
+      path: 'researcher',
+      select: '_id name email phone status',
     });
 
   return report;
