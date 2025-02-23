@@ -59,7 +59,7 @@ export const addReportsValidation = [
 ];
 
 export const updateReportsValidation = [
-  body('name').trim().notEmpty().isString().withMessage('Invalid name!'),
+  body('name').trim().isString().withMessage('Invalid name!'),
   body('description').trim().isString().withMessage('Invalid description!'),
   ...filesValidation,
 ];

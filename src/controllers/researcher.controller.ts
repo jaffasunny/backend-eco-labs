@@ -484,15 +484,26 @@ const updateReport = asyncHandler(async (req: Request, res: Response) => {
     originalName: file.originalname,
   }));
 
+  // Dynamically build the update object
+  const updatePayload: any = {
+    $push: { files: filePayload }, // Always push new files
+  };
+
+  // Add `name` to the payload only if it is provided
+  if (name !== undefined && name.trim() !== '') {
+    updatePayload.name = name.trim();
+  }
+
+  // Add `description` to the payload only if it is provided
+  if (description !== undefined && description.trim() !== '') {
+    updatePayload.description = description.trim();
+  }
+
   const addedPropertyFile = await PropertyFiles.findOneAndUpdate(
     {
       _id: toMongoId(reportId),
     },
-    {
-      name,
-      description,
-      $push: { files: filePayload },
-    },
+    updatePayload,
     {
       new: true,
       upsert: true,
