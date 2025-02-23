@@ -6,6 +6,14 @@ import { MODELS } from '../constants.js';
 
 const propertyFilesSchema = new Schema<IPropertyFilesDocument>(
   {
+    name: {
+      type: String,
+      required: true,
+    },
+    description: {
+      type: String,
+      required: true,
+    },
     files: [
       {
         url: {
