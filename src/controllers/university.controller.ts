@@ -15,6 +15,7 @@ import {
   findOrUpdateUser,
   landownerAggregatePaginationService,
   landownerPropertyAggregatePaginationService,
+  universityAggregatePaginationService,
 } from '../services/landowner.service.js';
 import {
   IAddUniversityParams,
@@ -167,7 +168,7 @@ const paginatedUniversityData = asyncHandler(
       assigned = null,
     } = req.query;
 
-    const renamedResult = await landownerAggregatePaginationService({
+    const renamedResult = await universityAggregatePaginationService({
       assigned: parseBooleanQueryParam(assigned),
       isArchived: parseBooleanQueryParam(isArchived),
       limit: Number(limit),
