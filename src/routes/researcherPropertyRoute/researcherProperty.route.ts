@@ -1,12 +1,18 @@
 import { Router } from 'express';
 import { ROLES } from '../../constants.js';
-import { addReports } from '../../controllers/researcher.controller.js';
+import {
+  addReports,
+  updateReport,
+} from '../../controllers/researcher.controller.js';
 import { authMiddleware } from '../../middlewares/auth.middleware.js';
 import { mapFilesToBody } from '../../middlewares/index.middleware.js';
 import upload from '../../middlewares/multer.js';
 import { roleCheck } from '../../middlewares/roles.middleware.js';
 import { validateRequest } from '../../middlewares/validateRequest.js';
-import { addReportsValidation } from '../../utils/validations/researcherValidations.js';
+import {
+  addReportsValidation,
+  updateReportsValidation,
+} from '../../utils/validations/researcherValidations.js';
 
 const router = Router();
 
@@ -20,6 +26,18 @@ router
     authMiddleware,
     roleCheck(ROLES.RESEARCHER),
     addReports
+  );
+
+router
+  .route('/reports/:id')
+  .patch(
+    upload.array('files', 5),
+    mapFilesToBody,
+    updateReportsValidation,
+    validateRequest,
+    authMiddleware,
+    roleCheck(ROLES.RESEARCHER),
+    updateReport
   );
 
 export default router;

@@ -49,6 +49,18 @@ export const addReportsValidation = [
     .notEmpty()
     .isMongoId()
     .withMessage('Invalid Property Id!'),
+  body('name').trim().notEmpty().isString().withMessage('Invalid name!'),
+  body('description')
+    .trim()
+    .notEmpty()
+    .isString()
+    .withMessage('Invalid description!'),
+  ...filesValidation,
+];
+
+export const updateReportsValidation = [
+  body('name').trim().notEmpty().isString().withMessage('Invalid name!'),
+  body('description').trim().isString().withMessage('Invalid description!'),
   ...filesValidation,
 ];
 
