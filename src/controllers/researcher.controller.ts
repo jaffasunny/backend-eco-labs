@@ -420,7 +420,7 @@ const removeBidResearch = asyncHandler(async (req: Request, res: Response) => {
 
 const addReports = asyncHandler(async (req: Request, res: Response) => {
   const { id: researcherId } = req.user;
-  const { property, files } = req.body;
+  const { property, files, name, description } = req.body;
 
   const [researcherPermission] = await Bids.find({
     researcher: researcherId,
@@ -434,8 +434,6 @@ const addReports = asyncHandler(async (req: Request, res: Response) => {
     originalName: file.originalname,
   }));
 
-  console.log({ filePayload });
-
   if (researcherPermission.status !== PROPOSAL_STATUS.APPROVED) {
     return res
       .status(201)
@@ -448,12 +446,51 @@ const addReports = asyncHandler(async (req: Request, res: Response) => {
       );
   }
 
+  const addedPropertyFile = await PropertyFiles.create({
+    name,
+    description,
+    files: filePayload,
+    property,
+    researcher: researcherId,
+  });
+
+  if (!addedPropertyFile) {
+    return res
+      .status(201)
+      .json(
+        new ApiResponse(400, `Something went wrong while adding property file!`)
+      );
+  }
+
+  res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        addedPropertyFile,
+        'Property File added successfully!'
+      )
+    );
+});
+
+const updateReport = asyncHandler(async (req: Request, res: Response) => {
+  const { id: reportId } = req.params;
+  const { files, name, description } = req.body;
+
+  const filePayload = files.map((file: TUploadedFileType) => ({
+    name: file.filename,
+    url: file.path,
+    type: file.mimetype,
+    originalName: file.originalname,
+  }));
+
   const addedPropertyFile = await PropertyFiles.findOneAndUpdate(
     {
-      property: property,
-      researcher: researcherId,
+      _id: toMongoId(reportId),
     },
     {
+      name,
+      description,
       $push: { files: filePayload },
     },
     {
@@ -815,4 +852,5 @@ export {
   fetchResearcher,
   removeBidResearch,
   addReports,
+  updateReport,
 };
