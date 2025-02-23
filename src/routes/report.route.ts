@@ -15,6 +15,7 @@ import {
   assignResearcherReportValidation,
   assignUniversityReportValidation,
   deleteReportValidation,
+  getReportValidation,
 } from '../utils/validations/reportsValidations.js';
 import { validateRequest } from '../middlewares/validateRequest.js';
 
@@ -54,6 +55,8 @@ router
     deleteReport
   )
   .get(
+    getReportValidation,
+    validateRequest,
     authMiddleware,
     roleCheck([ROLES.LANDOWNER, ROLES.RESEARCHER]),
     getReport

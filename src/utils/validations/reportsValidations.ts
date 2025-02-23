@@ -1,4 +1,4 @@
-import { body } from 'express-validator';
+import { body, param } from 'express-validator';
 
 export const reportsValidation = [
   body('landAssessmentReport')
@@ -56,6 +56,14 @@ export const assignUniversityReportValidation = [
 
 export const deleteReportValidation = [
   body('id')
+    .notEmpty()
+    .withMessage('Report Id is required!')
+    .isMongoId()
+    .withMessage('Report Id must be a valid MongoDB ObjectId.'),
+];
+
+export const getReportValidation = [
+  param('id')
     .notEmpty()
     .withMessage('Report Id is required!')
     .isMongoId()
