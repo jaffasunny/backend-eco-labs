@@ -288,6 +288,22 @@ const getPropertyService = async (propertyId: string) => {
   return property;
 };
 
+const getBidService = async (id: string) => {
+  const foundBid = await Bids.findById(id)
+    .populate({
+      path: 'property',
+      model: MODELS.PROPERTIES,
+      populate: {
+        path: 'landowner',
+        model: MODELS.USERS,
+        select: '_id name email phone',
+      },
+    })
+    .populate('researcher', '_id name email phone');
+
+  return foundBid;
+};
+
 const getPaginatedAssignedResearcherProperties = async (
   search: string,
   researcherId: string,
@@ -794,4 +810,5 @@ export {
   getAllPaginatedPropertiesService,
   getPaginatedPropertiesAssignedToResearcher,
   getPaginatedResearcherReportsOnProperty,
+  getBidService,
 };

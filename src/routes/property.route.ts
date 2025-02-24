@@ -23,6 +23,7 @@ import {
   removeFiles,
   researcherSubmittedReports,
 } from '../controllers/property.controller.js';
+import propertyBidsRouter from './propertyBids.route.js';
 import upload from '../middlewares/multer.js';
 import { mapFilesToBody } from '../middlewares/index.middleware.js';
 
@@ -80,6 +81,8 @@ router
     roleCheck([ROLES.ADMIN, ROLES.RESEARCHER]),
     paginatedAssignedResearcherProperties
   );
+
+router.use('/bids', propertyBidsRouter);
 
 router
   .route('/:id')

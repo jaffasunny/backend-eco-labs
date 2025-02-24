@@ -5,7 +5,7 @@ import landownerRouter from '../routes/landowner.route.js';
 import universityRouter from '../routes/university.route.js';
 import researcherRouter from '../routes/researcher.route.js';
 import reportsRouter from '../routes/report.route.js';
-import propertyRouter from '../routes/property.route.js';
+import propertyRouter from './property.route.js';
 
 const router = Router();
 

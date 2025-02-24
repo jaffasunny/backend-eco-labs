@@ -2,7 +2,6 @@ import { Request, Response } from 'express';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import {
   generatePassword,
-  isValidObjectId,
   toMongoId,
   transformPaginatedResponse,
 } from '../utils/utils.js';
@@ -10,7 +9,6 @@ import { ApiResponse } from '../utils/ApiResponse.js';
 import { ApiError } from '../utils/ApiError.js';
 import { Bids } from '../models/bids.model.js';
 import { User } from '../models/user.model.js';
-import { Report } from '../models/reports.model.js';
 import { IUpdateResearcher } from '../interface/researcher.interface.js';
 import {
   MODELS,
@@ -209,111 +207,11 @@ const paginatedResearcherReportData = asyncHandler(
         }
       : {};
 
-    // const aggregateLandownerData = Report.aggregate([
-    //   {
-    //     $lookup: {
-    //       from: 'properties',
-    //       localField: 'property',
-    //       foreignField: '_id',
-    //       as: 'property',
-    //       pipeline: [
-    //         {
-    //           $lookup: {
-    //             from: MODELS.USERS,
-    //             localField: 'landowner',
-    //             foreignField: '_id',
-    //             as: 'landowner',
-    //           },
-    //         },
-    //         {
-    //           $addFields: {
-    //             landowner: { $arrayElemAt: ['$landowner', 0] },
-    //           },
-    //         },
-    //       ],
-    //     },
-    //   },
-    //   {
-    //     $project: {
-    //       _id: 1,
-    //       landAssessmentReport: 1,
-    //       property: {
-    //         _id: 1,
-    //         propertyName: 1,
-    //         propertyLocation: 1,
-    //         propertySize: 1,
-    //         landowner: {
-    //           name: 1,
-    //           email: 1,
-    //           phone: 1,
-    //         },
-    //         createdAt: 1,
-    //         updatedAt: 1,
-    //       },
-    //       landowner: 1,
-    //     },
-    //   },
-    //   {
-    //     $addFields: {
-    //       property: { $arrayElemAt: ['$property', 0] },
-    //       landAssessmentReport: { $arrayElemAt: ['$landAssessmentReport', 0] },
-    //     },
-    //   },
-    //   {
-    //     $lookup: {
-    //       from: MODELS.BIDS,
-    //       localField: '_id',
-    //       foreignField: 'report',
-    //       as: 'bids',
-    //       pipeline: [
-    //         {
-    //           $match: {
-    //             researcher: toMongoId(researcherId),
-    //           },
-    //         },
-    //         {
-    //           $lookup: {
-    //             from: MODELS.USERS,
-    //             localField: 'researcher',
-    //             foreignField: '_id',
-    //             as: 'researcher',
-    //           },
-    //         },
-    //         {
-    //           $addFields: {
-    //             researcher: { $arrayElemAt: ['$researcher', 0] },
-    //           },
-    //         },
-    //         {
-    //           $project: {
-    //             _id: 1,
-    //             researcher: {
-    //               _id: 1,
-    //               name: 1,
-    //               email: 1,
-    //               phone: 1,
-    //             },
-    //             status: 1,
-    //             description: 1,
-    //             createdAt: 1,
-    //             updatedAt: 1,
-    //           },
-    //         },
-    //       ],
-    //     },
-    //   },
-    //   {
-    //     $match: {
-    //       'bids.0': { $exists: true },
-    //       ...searchQuery,
-    //     },
-    //   },
-    // ]);
-
-    const aggregateLandownerData = Bids.aggregate([
+    const aggregateResearcherData = Bids.aggregate([
       {
         $match: {
           researcher: toMongoId(researcherId),
+          // ...searchQuery,
         },
       },
       {
@@ -342,7 +240,7 @@ const paginatedResearcherReportData = asyncHandler(
     ]);
 
     const result = await Bids.aggregatePaginate(
-      aggregateLandownerData,
+      aggregateResearcherData,
       options
     );
 

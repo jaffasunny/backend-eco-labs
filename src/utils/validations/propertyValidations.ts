@@ -115,3 +115,11 @@ export const researcherSubmittedReportsValidation = [
       return true;
     }),
 ];
+
+export const getSingleBidValidation = [
+  param('id')
+    .notEmpty()
+    .withMessage('Bid Id is required!')
+    .isMongoId()
+    .withMessage('Bid Id must be a valid MongoDB ObjectId.'),
+];
