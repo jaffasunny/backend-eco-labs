@@ -8,6 +8,7 @@ import {
   deletePropertyService,
   findOrUpdateProperty,
   getAllPaginatedPropertiesService,
+  getBidService,
   getPaginatedAssignedResearcherProperties,
   getPaginatedAssignedUniversities,
   getPaginatedPropertiesAssignedToResearcher,
@@ -287,6 +288,20 @@ const paginatedProperties = asyncHandler(
   }
 );
 
+const getSingleBid = asyncHandler(async (req: Request, res: Response) => {
+  const { id } = req.params;
+
+  const foundBid = await getBidService(id);
+
+  if (!foundBid) {
+    return res.status(201).json(new ApiError(400, `Bid not found!`));
+  }
+
+  res
+    .status(200)
+    .json(new ApiResponse(200, foundBid, 'Bid fetched successfully!'));
+});
+
 export {
   addProperty,
   removeFiles,
@@ -298,4 +313,5 @@ export {
   paginatedProperties,
   assignedResearchersToProperty,
   researcherSubmittedReports,
+  getSingleBid,
 };
