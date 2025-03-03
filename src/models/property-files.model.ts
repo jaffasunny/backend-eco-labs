@@ -8,11 +8,15 @@ const propertyFilesSchema = new Schema<IPropertyFilesDocument>(
   {
     name: {
       type: String,
-      required: true,
+      required: function () {
+        return this.researcher !== undefined && this.researcher !== null;
+      },
     },
     description: {
       type: String,
-      required: true,
+      required: function () {
+        return this.researcher !== undefined && this.researcher !== null;
+      },
     },
     files: [
       {

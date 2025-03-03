@@ -207,7 +207,7 @@ const assignResearcherPropertyService = async (
   }).populate('researchers');
 
   if (existingProperty) {
-    throw new ApiError(401, `Researcher is already assigned to this property!`);
+    throw new ApiError(409, `Researcher is already assigned to this property!`);
   }
 
   const property = await AssignResearcherProperty.findOne({
