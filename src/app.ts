@@ -14,7 +14,7 @@ const corsOptions: TCorsOptions = {
 const app = express();
 
 // Use Helmet!
-app.use(helmet());
+// app.use(helmet());
 
 // setting up morgan
 loggerEnvironment(app);
