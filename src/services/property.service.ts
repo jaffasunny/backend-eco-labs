@@ -321,6 +321,8 @@ const getPaginatedAssignedResearcherProperties = async (
       }
     : {};
 
+  console.log({ researcherId });
+
   const pipeline = [
     {
       $match: {

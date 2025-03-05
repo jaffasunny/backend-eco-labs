@@ -17,6 +17,7 @@ import {
 } from '../services/property.service.js';
 import { transformPaginatedResponse } from '../utils/utils.js';
 import { IPagination } from '../interface/index.interface.js';
+import { ROLES } from '../constants.js';
 
 const addProperty = asyncHandler(async (req: Request, res: Response) => {
   const { propertyName, propertyLocation, propertySize, landownerId, files } =
@@ -163,8 +164,8 @@ const researcherSubmittedReports = asyncHandler(
 
 const paginatedAssignedResearcherProperties = asyncHandler(
   async (req: Request, res: Response) => {
-    const { page = 1, limit = 10, search = '' } = req.query;
-    const { _id: researcherId } = req.user;
+    const { page = 1, limit = 10, search = '', researcher } = req.query;
+    const { _id: researcherId, roles } = req.user;
 
     const options = {
       page,
@@ -173,7 +174,7 @@ const paginatedAssignedResearcherProperties = asyncHandler(
 
     const result = await getPaginatedAssignedResearcherProperties(
       search as string,
-      researcherId,
+      roles === ROLES.RESEARCHER ? researcherId : researcher,
       options
     );
 
