@@ -10,6 +10,13 @@ export interface IlandownerAggregatePaginationServiceParams
   assigned: boolean | null;
 }
 
+export interface IUniversityAggregatePaginationServiceParams
+  extends IPagination {
+  isArchived: boolean | null;
+  assigned: boolean | null;
+  uniId: string | null;
+}
+
 export interface IlandownerPropertyAggregatePaginationServiceParams
   extends IPagination {
   assigned: boolean | null;
