@@ -7,7 +7,8 @@ import { seedSuperAdmin } from './utils/seeder.js';
 import { loggerEnvironment } from './utils/utils.js';
 
 const corsOptions: TCorsOptions = {
-  origin: process.env.CORS_ORIGIN as string,
+  // origin: process.env.CORS_ORIGIN as string,
+  origin: 'https://www.halotest3.com/',
   credentials: true,
 };
 
