@@ -10,6 +10,7 @@ import {
   IlandownerAggregatePaginationServiceParams,
   IlandownerPropertyBidsAggregatePaginationServiceParams,
   IlandownerPropertyAggregatePaginationServiceParams,
+  IUniversityAggregatePaginationServiceParams,
 } from '../interface/landowner.interface.js';
 import { Bids } from '../models/bids.model.js';
 import { Property } from '../models/property.model.js';
@@ -374,6 +375,82 @@ const landownerPropertyAggregatePaginationService = async ({
   return transformPaginatedResponse(result, 'properties');
 };
 
+const getPaginatedUniversityResearchersService = async ({
+  page = 1,
+  limit = 10,
+  search = '',
+  isArchived = null,
+  assigned = null,
+  uniId,
+}: IUniversityAggregatePaginationServiceParams): Promise<any> => {
+  const assignedFilter = createDynamicFilter({ assigned, isArchived });
+
+  const options = {
+    page,
+    limit,
+  };
+
+  const searchQuery = search
+    ? {
+        $or: [
+          { name: { $regex: search, $options: 'i' } },
+          { email: { $regex: search, $options: 'i' } },
+          { 'properties.propertyName': { $regex: search, $options: 'i' } },
+          {
+            'properties.propertyLocation': { $regex: search, $options: 'i' },
+          },
+        ],
+      }
+    : {};
+
+  const beforeMatchQuery = { ...searchQuery };
+
+  const filters = {
+    university: toMongoId(uniId as string),
+    ...beforeMatchQuery,
+  };
+
+  const aggregatePipeline = [
+    { $match: filters },
+    {
+      $lookup: {
+        from: MODELS.USERS,
+        localField: '_id',
+        foreignField: 'university',
+        as: CONSTANTS.RESEARCHERS,
+        pipeline: [
+          {
+            $project: {
+              _id: 1,
+              name: 1,
+              email: 1,
+              status: 1,
+              createdAt: 1,
+            },
+          },
+        ],
+      },
+    },
+    {
+      $project: {
+        _id: 1,
+        name: 1,
+        email: 1,
+        phone: 1,
+        createdAt: 1,
+      },
+    },
+    { $skip: (page - 1) * limit },
+    { $limit: limit },
+  ];
+
+  const aggregateLandownerData = User.aggregate(aggregatePipeline);
+
+  const result = await User.aggregatePaginate(aggregateLandownerData, options);
+
+  return transformPaginatedResponse(result, CONSTANTS.RESEARCHERS);
+};
+
 const landownerPropertyBidsPaginationService = async ({
   page,
   limit,
@@ -540,4 +617,5 @@ export {
   landownerPropertyAggregatePaginationService,
   landownerPropertyBidsPaginationService,
   universityAggregatePaginationService,
+  getPaginatedUniversityResearchersService,
 };
