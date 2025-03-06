@@ -70,7 +70,7 @@ router
   .route('/assignedResearcherUniversities')
   .get(
     authMiddleware,
-    roleCheck([ROLES.ADMIN, ROLES.RESEARCHER]),
+    roleCheck([ROLES.ADMIN, ROLES.RESEARCHER, ROLES.UNIVERSITY]),
     paginatedAssignedUniversityProperties
   );
 
@@ -78,7 +78,7 @@ router
   .route('/assignedResearcherProperties')
   .get(
     authMiddleware,
-    roleCheck([ROLES.ADMIN, ROLES.RESEARCHER]),
+    roleCheck([ROLES.ADMIN, ROLES.RESEARCHER, ROLES.UNIVERSITY]),
     paginatedAssignedResearcherProperties
   );
 
