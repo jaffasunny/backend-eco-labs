@@ -121,6 +121,8 @@ const landownerAggregatePaginationService = async ({
                   $project: {
                     _id: 0,
                     files: 1,
+                    name: 1,
+                    description: 1,
                     createdAt: 1,
                     updatedAt: 1,
                   },
@@ -320,6 +322,8 @@ const landownerPropertyAggregatePaginationService = async ({
             $project: {
               _id: 1,
               files: 1,
+              name: 1,
+              description: 1,
               createdAt: 1,
               updatedAt: 1,
             },
@@ -504,6 +508,8 @@ const landownerPropertyBidsPaginationService = async ({
                   $project: {
                     _id: 1,
                     files: 1,
+                    name: 1,
+                    description: 1,
                     createdAt: 1,
                     updatedAt: 1,
                   },
