@@ -69,6 +69,10 @@ export const updateUniversityValidation = [
   ...reportsValidation.map((validation) => validation.optional()),
 ];
 
+export const getSingleUniversityValidation = [
+  param('id').notEmpty().isMongoId().withMessage('Invalid University Id'),
+];
+
 export const assignReportValidation = [
   body('property').trim().isMongoId().withMessage('Is not a valid Mongo Id'),
 
