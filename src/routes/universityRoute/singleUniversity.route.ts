@@ -45,7 +45,7 @@ router
   .route('/researchers')
   .get(
     authMiddleware,
-    roleCheck(ROLES.ADMIN),
+    roleCheck([ROLES.ADMIN, ROLES.UNIVERSITY]),
     getPaginatedUniversityResearchers
   );
 
