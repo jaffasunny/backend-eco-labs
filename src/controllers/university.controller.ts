@@ -14,6 +14,7 @@ import { IAssignReport } from '../interface/property.interface.js';
 import {
   findOrUpdateUser,
   getPaginatedUniversityResearchersService,
+  getSingleUniversityService,
   landownerPropertyAggregatePaginationService,
   universityAggregatePaginationService,
 } from '../services/landowner.service.js';
@@ -188,6 +189,18 @@ const paginatedUniversityData = asyncHandler(
   }
 );
 
+const getSingleUniversity = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { id } = req.params;
+
+    const fetchedUni = await getSingleUniversityService(id as string);
+
+    res
+      .status(200)
+      .json(new ApiResponse(200, fetchedUni, 'data fetched successfully'));
+  }
+);
+
 const paginatedUniversityReportData = asyncHandler(
   async (req: Request, res: Response) => {
     const { page = 1, limit = 10, search = '', assigned = null } = req.query;
@@ -324,4 +337,5 @@ export {
   paginatedUniversityReportData,
   assignReport,
   getPaginatedUniversityResearchers,
+  getSingleUniversity,
 };

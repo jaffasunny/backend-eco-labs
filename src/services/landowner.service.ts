@@ -14,6 +14,7 @@ import {
 } from '../interface/landowner.interface.js';
 import { Bids } from '../models/bids.model.js';
 import { Property } from '../models/property.model.js';
+import { ApiError } from '../utils/ApiError.js';
 
 const findOrUpdateUser = async (
   userData: {
@@ -455,6 +456,16 @@ const getPaginatedUniversityResearchersService = async ({
   return transformPaginatedResponse(result, CONSTANTS.RESEARCHERS);
 };
 
+const getSingleUniversityService = async (id: string): Promise<any> => {
+  const fetchUniversity = await User.findById(id, '_id name email roles phone');
+
+  if (!fetchUniversity) {
+    throw new ApiError(404, 'University doesnot exist!');
+  }
+
+  return fetchUniversity;
+};
+
 const landownerPropertyBidsPaginationService = async ({
   page,
   limit,
@@ -624,4 +635,5 @@ export {
   landownerPropertyBidsPaginationService,
   universityAggregatePaginationService,
   getPaginatedUniversityResearchersService,
+  getSingleUniversityService,
 };
