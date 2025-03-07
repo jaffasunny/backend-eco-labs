@@ -52,7 +52,7 @@ router
     researcherSubmittedReportsValidation,
     validateRequest,
     authMiddleware,
-    roleCheck([ROLES.ADMIN, ROLES.LANDOWNER]),
+    roleCheck([ROLES.ADMIN, ROLES.LANDOWNER, ROLES.RESEARCHER]),
     researcherSubmittedReports
   );
 
