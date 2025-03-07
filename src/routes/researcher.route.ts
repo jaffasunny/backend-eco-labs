@@ -55,7 +55,11 @@ router.use('/properties', researcherPropertyRouter);
 
 router
   .route('/:id')
-  .get(authMiddleware, roleCheck(ROLES.RESEARCHER), fetchResearcher)
+  .get(
+    authMiddleware,
+    roleCheck([ROLES.ADMIN, ROLES.RESEARCHER, ROLES.UNIVERSITY]),
+    fetchResearcher
+  )
   .patch(
     changeResearchersStatusValidations,
     validateRequest,

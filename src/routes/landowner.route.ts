@@ -48,7 +48,7 @@ router
     getLandownerValidation,
     validateRequest,
     authMiddleware,
-    roleCheck(ROLES.LANDOWNER),
+    roleCheck([ROLES.LANDOWNER, ROLES.RESEARCHER, ROLES.UNIVERSITY]),
     getSingleLandowner
   )
   .put(
