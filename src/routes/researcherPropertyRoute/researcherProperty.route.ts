@@ -19,7 +19,7 @@ const router = Router();
 router
   .route('/reports')
   .post(
-    upload.array('files', 5),
+    upload.array('files', 20),
     mapFilesToBody,
     addReportsValidation,
     validateRequest,
@@ -31,7 +31,7 @@ router
 router
   .route('/reports/:id')
   .patch(
-    upload.array('files', 5),
+    upload.array('files', 20),
     mapFilesToBody,
     updateReportsValidation,
     validateRequest,

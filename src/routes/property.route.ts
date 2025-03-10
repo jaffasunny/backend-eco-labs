@@ -37,7 +37,7 @@ router
     paginatedProperties
   )
   .post(
-    upload.array('files', 5),
+    upload.array('files', 20),
     mapFilesToBody,
     addPropertyValidation,
     validateRequest,

@@ -29,7 +29,7 @@ router
   .route('/')
   .get(authMiddleware, roleCheck(ROLES.LANDOWNER), paginatedLandownerData)
   .post(
-    upload.array('files', 5),
+    upload.array('files', 20),
     mapFilesToBody,
     addLandownerValidation,
     validateRequest,
