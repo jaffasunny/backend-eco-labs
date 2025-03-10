@@ -88,7 +88,7 @@ router
   .route('/:id')
   .get(
     authMiddleware,
-    roleCheck([ROLES.LANDOWNER, ROLES.RESEARCHER]),
+    roleCheck([ROLES.LANDOWNER, ROLES.RESEARCHER, ROLES.UNIVERSITY]),
     getProperty
   )
   .delete(
