@@ -16,7 +16,7 @@ const resetPasswordTokenSchema = new Schema<IResetPasswordToken>(
   },
   {
     timestamps: true,
-    expireAfterSeconds: Date.now() + 15 * 60 * 1000,
+    expireAfterSeconds: Date.now() + 3 * 60 * 1000,
   }
 );
 
