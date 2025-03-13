@@ -317,12 +317,6 @@ const paginatedPropertyBidsData = asyncHandler(
 const archiveLandowner = asyncHandler(async (req: Request, res: Response) => {
   const { id: landownerId } = req.params;
 
-  if (!landownerId || !isValidObjectId(landownerId)) {
-    return res
-      .status(201)
-      .json(new ApiError(400, `Please enter a valid landowner id!`));
-  }
-
   const archivedLandowner = await User.findByIdAndUpdate(
     {
       _id: landownerId,
