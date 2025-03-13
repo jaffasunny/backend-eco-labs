@@ -57,3 +57,21 @@ export const loginUserValidation = [
       'Invalid role. Must be Admin, landowner, researcher, or university'
     ),
 ];
+
+export const updateProfileValidation = [
+  body('roles')
+    .optional()
+    .trim()
+    .isIn([ROLES.ADMIN, ROLES.LANDOWNER, ROLES.RESEARCHER, ROLES.UNIVERSITY])
+    .withMessage(
+      'Invalid role. Must be Admin, landowner, researcher, or university'
+    ),
+  body('name').optional().trim(),
+  body('phone')
+    .optional()
+    .trim()
+    .isNumeric()
+    .withMessage('Phone number must be numeric')
+    .isLength({ min: 10, max: 15 })
+    .withMessage('Phone number must be between 10 and 15 digits'),
+];

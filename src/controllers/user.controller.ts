@@ -189,6 +189,32 @@ const userProfile = asyncHandler(async (req: Request, res: Response) => {
     .json(new ApiResponse(200, user, 'User profile fetched successfully!'));
 });
 
+const updateUserProfile = asyncHandler(async (req: Request, res: Response) => {
+  const { _id } = req.user;
+  console.log({ _id });
+  const { userId } = req.body;
+
+  if (!userId && req.body.roles) {
+    throw new ApiError(400, 'Only admin can update role!');
+  }
+
+  const updatedUser = await User.findOneAndUpdate(
+    { _id: userId ? userId : _id },
+    req.body,
+    { new: true, runValidators: true }
+  );
+
+  if (!updatedUser) {
+    throw new ApiError(404, `Something went wrong while updated User!`);
+  }
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(200, updatedUser, 'User profile updated successfully!')
+    );
+});
+
 // Refresh Access Token if access token expires
 const refreshAccessToken = asyncHandler(async (req: Request, res: Response) => {
   const incomingRefreshToken =
@@ -343,4 +369,5 @@ export {
   sendResetPasswordToken,
   resetPassword,
   verifyResetPasswordOTP,
+  updateUserProfile,
 };
