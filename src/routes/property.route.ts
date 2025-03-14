@@ -18,7 +18,6 @@ import {
   deleteProperty,
   getProperty,
   paginatedAssignedResearcherProperties,
-  paginatedAssignedUniversityProperties,
   paginatedProperties,
   removeFiles,
   researcherSubmittedReports,
@@ -64,14 +63,6 @@ router
     authMiddleware,
     roleCheck([ROLES.ADMIN, ROLES.LANDOWNER]),
     assignedResearchersToProperty
-  );
-
-router
-  .route('/assignedResearcherUniversities')
-  .get(
-    authMiddleware,
-    roleCheck([ROLES.ADMIN, ROLES.RESEARCHER, ROLES.UNIVERSITY]),
-    paginatedAssignedUniversityProperties
   );
 
 router

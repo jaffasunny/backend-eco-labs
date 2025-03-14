@@ -10,7 +10,6 @@ import {
   getAllPaginatedPropertiesService,
   getBidService,
   getPaginatedAssignedResearcherProperties,
-  getPaginatedAssignedUniversities,
   getPaginatedPropertiesAssignedToResearcher,
   getPaginatedResearcherReportsOnProperty,
   getPropertyService,
@@ -195,40 +194,6 @@ const paginatedAssignedResearcherProperties = asyncHandler(
   }
 );
 
-// fix this later
-const paginatedAssignedUniversityProperties = asyncHandler(
-  async (req: Request, res: Response) => {
-    const { page = 1, limit = 10, search = '' } = req.query;
-    const { _id: universityId } = req.user;
-
-    const options = {
-      limit,
-      page,
-    } as IPagination;
-
-    const result = await getPaginatedAssignedUniversities(
-      search as string,
-      universityId,
-      options
-    );
-
-    const renamedResult = transformPaginatedResponse(
-      result,
-      'assignedUniversityProperties'
-    );
-
-    res
-      .status(200)
-      .json(
-        new ApiResponse(
-          200,
-          renamedResult,
-          'Paginated data fetched successfully'
-        )
-      );
-  }
-);
-
 const deleteProperty = asyncHandler(async (req: Request, res: Response) => {
   const { id: propertyId } = req.params;
 
@@ -308,7 +273,6 @@ export {
   removeFiles,
   assignResearcherProperty,
   paginatedAssignedResearcherProperties,
-  paginatedAssignedUniversityProperties,
   deleteProperty,
   getProperty,
   paginatedProperties,

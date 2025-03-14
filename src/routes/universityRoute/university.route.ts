@@ -12,7 +12,6 @@ import {
   addUniversityValidation,
   archiveUniversityValidation,
 } from '../../utils/validations/universityValidations.js';
-import universityReportsRouter from '../universityReportRoute/university.reports.route.js';
 import singleUniversityRoute from './singleUniversity.route.js';
 
 const router = Router();
@@ -31,8 +30,6 @@ router
     roleCheck(ROLES.ADMIN),
     addUniversity
   );
-
-router.use('/reports', universityReportsRouter);
 
 router.use('/:id', singleUniversityRoute);
 

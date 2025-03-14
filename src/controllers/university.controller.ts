@@ -6,16 +6,12 @@ import { ApiResponse } from '../utils/ApiResponse.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import sendEmail from '../utils/sendMail.js';
 import { PLATFORM_NAME, ROLES } from '../constants.js';
-import mongoose, { isValidObjectId } from 'mongoose';
+import mongoose from 'mongoose';
 import { updateUserDetails } from '../services/user.service.js';
-import { fetchPopulatedProperty } from '../services/property.service.js';
-import { createOrUpdateReportsService } from '../services/report.service.js';
-import { IAssignReport } from '../interface/property.interface.js';
 import {
   findOrUpdateUser,
   getPaginatedUniversityResearchersService,
   getSingleUniversityService,
-  landownerPropertyAggregatePaginationService,
   universityAggregatePaginationService,
 } from '../services/landowner.service.js';
 import {
@@ -115,50 +111,6 @@ const updateUniversity = asyncHandler(async (req: Request, res: Response) => {
   }
 });
 
-// based on researchers report
-const assignReport = asyncHandler(async (req: Request, res: Response) => {
-  const { property, landAssessmentReport }: IAssignReport = req.body;
-
-  // Start a transaction
-  const session = await mongoose.startSession();
-  session.startTransaction();
-
-  try {
-    if (property) {
-      const reportData = {
-        landAssessmentReport: landAssessmentReport || [],
-        property: property as string,
-      };
-
-      const createdReport = await createOrUpdateReportsService(
-        reportData,
-        session
-      );
-
-      // Fetch updated property details
-      const userWithProperty = await fetchPopulatedProperty(
-        property as string,
-        session
-      );
-
-      // Commit transaction
-      await session.commitTransaction();
-
-      // Send response
-      res
-        .status(200)
-        .json(new ApiResponse(200, { userWithProperty, createdReport }));
-    }
-  } catch (error: any) {
-    // Rollback transaction
-    await session.abortTransaction();
-    throw new ApiError(500, error.message || 'Failed to update property!');
-  } finally {
-    // End session
-    session.endSession();
-  }
-});
-
 const paginatedUniversityData = asyncHandler(
   async (req: Request, res: Response) => {
     const {
@@ -201,31 +153,6 @@ const getSingleUniversity = asyncHandler(
   }
 );
 
-const paginatedUniversityReportData = asyncHandler(
-  async (req: Request, res: Response) => {
-    const { page = 1, limit = 10, search = '', assigned = null } = req.query;
-    const { _id: userId } = req.user;
-
-    const renamedResult = await landownerPropertyAggregatePaginationService({
-      assigned: parseBooleanQueryParam(assigned),
-      limit: Number(limit),
-      page: Number(page),
-      search: search.toString(),
-      userId,
-    });
-
-    res
-      .status(200)
-      .json(
-        new ApiResponse(
-          200,
-          renamedResult,
-          'Paginated data fetched successfully'
-        )
-      );
-  }
-);
-
 const getPaginatedUniversityResearchers = asyncHandler(
   async (req: Request, res: Response) => {
     const {
@@ -262,12 +189,6 @@ const getPaginatedUniversityResearchers = asyncHandler(
 const archiveUniversity = asyncHandler(async (req: Request, res: Response) => {
   const { id: landownerId } = req.params;
 
-  if (!landownerId || !isValidObjectId(landownerId)) {
-    return res
-      .status(201)
-      .json(new ApiError(400, `Please enter a valid landowner id!`));
-  }
-
   const archivedLandowner = await User.findByIdAndUpdate(
     {
       _id: landownerId,
@@ -303,12 +224,6 @@ const archiveUniversity = asyncHandler(async (req: Request, res: Response) => {
 const deleteUniversity = asyncHandler(async (req: Request, res: Response) => {
   const { id: landownerId } = req.params;
 
-  if (!landownerId || !isValidObjectId(landownerId)) {
-    return res
-      .status(201)
-      .json(new ApiError(400, `Please enter a valid landowner id!`));
-  }
-
   const deletedLandowner = await User.findByIdAndDelete({
     _id: landownerId,
   });
@@ -334,8 +249,6 @@ export {
   paginatedUniversityData,
   archiveUniversity,
   deleteUniversity,
-  paginatedUniversityReportData,
-  assignReport,
   getPaginatedUniversityResearchers,
   getSingleUniversity,
 };

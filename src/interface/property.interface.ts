@@ -11,7 +11,7 @@ export interface IProperty {
   assignedResearchers: mongoose.Schema.Types.ObjectId[];
 }
 
-export interface IPropertyFiles {
+export interface IReports {
   name: string;
   description: string;
   files: FilesType[];
@@ -23,6 +23,6 @@ export interface IUpdateLandowner extends IProperty, IUser {}
 
 export interface IAssignReport extends IReport {}
 
-export interface IPropertyFilesDocument extends IPropertyFiles, Document {
+export interface IReportsInterface extends IReports, Document {
   isNew: boolean; // Add Mongoose's isNew property
 }
