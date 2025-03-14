@@ -1,7 +1,7 @@
 import mongoose, { ClientSession } from 'mongoose';
 import { MODELS } from '../constants.js';
 import { IPagination } from '../interface/index.interface.js';
-import { AssignResearcherProperty } from '../models/assigned-properties.model.js';
+import { AssignResearcherProperty } from '../models/assignResearcherProperties.model.js';
 import { Bids } from '../models/bids.model.js';
 import { Reports } from '../models/reports.model.js';
 import { Property } from '../models/property.model.js';
