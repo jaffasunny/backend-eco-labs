@@ -2,9 +2,8 @@ import mongoose, { ClientSession } from 'mongoose';
 import { MODELS } from '../constants.js';
 import { IPagination } from '../interface/index.interface.js';
 import { AssignResearcherProperty } from '../models/assigned-properties.model.js';
-import { AssignUniversityProperty } from '../models/assigned-university-properties.model.js';
 import { Bids } from '../models/bids.model.js';
-import { PropertyFiles } from '../models/property-files.model.js';
+import { Reports } from '../models/reports.model.js';
 import { Property } from '../models/property.model.js';
 import { ApiError } from '../utils/ApiError.js';
 import { toMongoId } from '../utils/utils.js';
@@ -52,13 +51,13 @@ const findOrUpdatePropertySession = async (
   }
 
   // Check if property files already exist
-  const existingFiles = await PropertyFiles.findOne({
+  const existingFiles = await Reports.findOne({
     property: property._id,
   }).session(session);
 
   // Create property files only if they don't already exist
   if (!existingFiles && files) {
-    const [createdPropertyFiles] = await PropertyFiles.create(
+    const [createdPropertyFiles] = await Reports.create(
       [
         {
           files: files.map((file) => ({
@@ -123,13 +122,13 @@ const findOrUpdateProperty = async (
     }
 
     // Check if property files already exist
-    const existingFiles = await PropertyFiles.findOne({
+    const existingFiles = await Reports.findOne({
       property: property._id,
     }).session(session);
 
     // Create property files only if they don't already exist
     if (!existingFiles && files) {
-      const [createdPropertyFiles] = await PropertyFiles.create(
+      const [createdPropertyFiles] = await Reports.create(
         [
           {
             files: files.map((file) => ({
@@ -178,19 +177,19 @@ const fetchPopulatedProperty = async (
 };
 
 const deletePropertyFileService = async (id: string, fileId: string) => {
-  const updatedDocument = await PropertyFiles.findByIdAndUpdate(
+  const updatedDocument = await Reports.findByIdAndUpdate(
     id,
     { $pull: { files: { _id: fileId } } }, // Remove the file with the specified ID
     { new: true } // Return the updated document
   );
 
   if (!updatedDocument) {
-    throw new Error('PropertyFiles document not found');
+    throw new Error('Reports document not found');
   }
 
   if (!updatedDocument.files.length) {
-    // Delete the entire PropertyFiles document
-    await PropertyFiles.findByIdAndDelete(id);
+    // Delete the entire Reports document
+    await Reports.findByIdAndDelete(id);
     return null; // Indicate that the document was deleted
   }
 
@@ -249,7 +248,7 @@ const deletePropertyService = async (
   session.startTransaction();
 
   try {
-    await PropertyFiles.deleteMany(
+    await Reports.deleteMany(
       {
         property: property._id,
       },
@@ -474,7 +473,7 @@ const getPaginatedResearcherReportsOnProperty = async (
           },
           {
             $lookup: {
-              from: MODELS.PROPERTIES_FILES,
+              from: MODELS.REPORTS,
               localField: '_id',
               foreignField: 'researcher',
               as: 'reports',
@@ -516,158 +515,6 @@ const getPaginatedResearcherReportsOnProperty = async (
   return result;
 };
 
-const getPaginatedAssignedUniversities = async (
-  search: string,
-  universityId: string,
-  options: IPagination
-) => {
-  const searchQuery = search
-    ? {
-        $or: [
-          { 'report.name': { $regex: search, $options: 'i' } },
-          { 'researchers.name': { $regex: search, $options: 'i' } },
-        ],
-      }
-    : {};
-
-  const pipeline = [
-    {
-      $match: {
-        universities: { $in: [universityId] },
-        ...searchQuery,
-      },
-    },
-    {
-      $lookup: {
-        from: 'reports', // Name of the Report collection
-        localField: 'report',
-        foreignField: '_id',
-        as: 'report',
-        pipeline: [
-          {
-            $lookup: {
-              from: 'properties',
-              localField: 'property',
-              foreignField: '_id',
-              as: 'property',
-            },
-          },
-          {
-            $addFields: {
-              property: { $arrayElemAt: ['$property', 0] },
-              landAssessmentReport: {
-                $arrayElemAt: ['$landAssessmentReport', 0],
-              },
-            },
-          },
-          {
-            $lookup: {
-              from: MODELS.USERS, // Name of the User collection
-              localField: 'property.landowner',
-              foreignField: '_id',
-              as: 'property.landowner',
-              pipeline: [
-                {
-                  $project: {
-                    _id: 1,
-                    name: 1,
-                    email: 1,
-                    phone: 1,
-                  },
-                },
-              ],
-            },
-          },
-          {
-            $addFields: {
-              'property.landowner': {
-                $arrayElemAt: ['$property.landowner', 0],
-              },
-            },
-          },
-          {
-            $lookup: {
-              from: MODELS.BIDS,
-              let: { reportId: '$_id' },
-              pipeline: [
-                {
-                  $match: {
-                    $expr: { $eq: ['$report', '$$reportId'] },
-                  },
-                },
-              ],
-              as: 'bid',
-            },
-          },
-          {
-            $addFields: {
-              bid: { $arrayElemAt: ['$bid', 0] },
-            },
-          },
-          {
-            $project: {
-              _id: 1,
-              property: 1,
-              landAssessmentReport: {
-                url: 1,
-                name: 1,
-              },
-              createdAt: 1,
-              updatedAt: 1,
-              landowner: {
-                _id: 1,
-                name: 1,
-                email: 1,
-                phone: 1,
-              },
-              bid: 1,
-            },
-          },
-        ],
-      },
-    },
-    {
-      $lookup: {
-        from: MODELS.USERS, // Name of the User collection
-        localField: 'researchers',
-        foreignField: '_id',
-        as: 'researchers',
-        pipeline: [
-          {
-            $project: {
-              _id: 1,
-              name: 1,
-              email: 1,
-              phone: 1,
-            },
-          },
-        ],
-      },
-    },
-    {
-      $unwind: '$report', // Unwind if you expect only one report per document
-    },
-    {
-      $project: {
-        _id: 1,
-        report: 1,
-        universities: 1,
-        createdAt: 1,
-        updatedAt: 1,
-      },
-    },
-  ];
-
-  const aggregateData = AssignUniversityProperty.aggregate(pipeline);
-
-  const result = await AssignUniversityProperty.aggregatePaginate(
-    aggregateData,
-    options
-  );
-
-  return result;
-};
-
 const getAllPaginatedPropertiesService = async (
   search: string,
   options: IPagination
@@ -693,7 +540,7 @@ const getAllPaginatedPropertiesService = async (
     },
     {
       $lookup: {
-        from: MODELS.PROPERTIES_FILES,
+        from: MODELS.REPORTS,
         let: { propertyId: '$_id' },
         as: 'docs',
         pipeline: [
@@ -809,7 +656,6 @@ export {
   assignResearcherPropertyService,
   deletePropertyService,
   getPropertyService,
-  getPaginatedAssignedUniversities,
   getPaginatedAssignedResearcherProperties,
   getAllPaginatedPropertiesService,
   getPaginatedPropertiesAssignedToResearcher,

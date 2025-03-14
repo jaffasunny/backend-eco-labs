@@ -7,8 +7,8 @@ import mongoose, { Model, Query, Schema, Types } from 'mongoose';
 import { ENVIRONMENT, ROLES } from '../constants.js';
 import morgan from 'morgan';
 import { ApiError } from './ApiError.js';
-import { IPropertyFilesDocument } from '../interface/property.interface.js';
-import { PropertyFiles } from '../models/property-files.model.js';
+import { IReportsInterface } from '../interface/property.interface.js';
+import { Reports } from '../models/reports.model.js';
 
 export const uploadCloudinary = async (fileUri: DataURIParser) => {
   const mycloud = await cloudinary.v2.uploader.upload(

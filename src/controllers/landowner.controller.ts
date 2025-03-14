@@ -6,17 +6,10 @@ import { ApiResponse } from '../utils/ApiResponse.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import sendEmail from '../utils/sendMail.js';
 import { PLATFORM_NAME, ROLES } from '../constants.js';
-import mongoose, { isValidObjectId } from 'mongoose';
+import mongoose from 'mongoose';
 import { updateUserDetails } from '../services/user.service.js';
-import {
-  fetchPopulatedProperty,
-  findOrUpdatePropertySession,
-} from '../services/property.service.js';
-import { createOrUpdateReportsService } from '../services/report.service.js';
-import {
-  IAssignReport,
-  IUpdateLandowner,
-} from '../interface/property.interface.js';
+import { findOrUpdatePropertySession } from '../services/property.service.js';
+import { IUpdateLandowner } from '../interface/property.interface.js';
 import {
   findOrUpdateUser,
   landownerAggregatePaginationService,
@@ -161,49 +154,6 @@ const updateLandowner = asyncHandler(async (req: Request, res: Response) => {
       )
     );
     // }
-  } catch (error: any) {
-    // Rollback transaction
-    await session.abortTransaction();
-    throw new ApiError(500, error.message || 'Failed to update property!');
-  } finally {
-    // End session
-    session.endSession();
-  }
-});
-
-const assignReport = asyncHandler(async (req: Request, res: Response) => {
-  const { property, landAssessmentReport }: IAssignReport = req.body;
-
-  // Start a transaction
-  const session = await mongoose.startSession();
-  session.startTransaction();
-
-  try {
-    if (property) {
-      const reportData = {
-        landAssessmentReport: landAssessmentReport || [],
-        property: property as string,
-      };
-
-      const createdReport = await createOrUpdateReportsService(
-        reportData,
-        session
-      );
-
-      // Fetch updated property details
-      const userWithProperty = await fetchPopulatedProperty(
-        property as string,
-        session
-      );
-
-      // Commit transaction
-      await session.commitTransaction();
-
-      // Send response
-      res
-        .status(200)
-        .json(new ApiResponse(200, { userWithProperty, createdReport }));
-    }
   } catch (error: any) {
     // Rollback transaction
     await session.abortTransaction();
@@ -479,7 +429,6 @@ export {
   archiveLandowner,
   deleteLandowner,
   paginatedPropertyData,
-  assignReport,
   changeResearchersBidStatus,
   paginatedPropertyBidsData,
   getSingleLandowner,

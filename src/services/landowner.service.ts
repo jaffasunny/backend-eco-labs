@@ -114,7 +114,7 @@ const landownerAggregatePaginationService = async ({
           { $match: { $expr: { $eq: ['$landowner', '$$landownerId'] } } },
           {
             $lookup: {
-              from: MODELS.PROPERTIES_FILES,
+              from: MODELS.REPORTS,
               let: { propertyId: '$_id' },
               pipeline: [
                 { $match: { $expr: { $eq: ['$property', '$$propertyId'] } } },
@@ -315,7 +315,7 @@ const landownerPropertyAggregatePaginationService = async ({
     { $match: matchQuery },
     {
       $lookup: {
-        from: MODELS.PROPERTIES_FILES,
+        from: MODELS.REPORTS,
         let: { propertyId: '$_id' },
         pipeline: [
           { $match: { $expr: { $eq: ['$property', '$$propertyId'] } } },
@@ -510,7 +510,7 @@ const landownerPropertyBidsPaginationService = async ({
         pipeline: [
           {
             $lookup: {
-              from: MODELS.PROPERTIES_FILES,
+              from: MODELS.REPORTS,
               let: { propertyId: '$_id' },
               as: 'docs',
               pipeline: [

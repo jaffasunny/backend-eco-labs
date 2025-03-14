@@ -21,7 +21,7 @@ import mongoose from 'mongoose';
 import { findOrUpdateUser } from '../services/landowner.service.js';
 import sendEmail from '../utils/sendMail.js';
 import { Property } from '../models/property.model.js';
-import { PropertyFiles } from '../models/property-files.model.js';
+import { Reports } from '../models/reports.model.js';
 import { TUploadedFileType } from '../types/index.js';
 
 const paginatedResearchers = asyncHandler(
@@ -344,7 +344,7 @@ const addReports = asyncHandler(async (req: Request, res: Response) => {
       );
   }
 
-  const addedPropertyFile = await PropertyFiles.create({
+  const addedPropertyFile = await Reports.create({
     name,
     description,
     files: filePayload,
@@ -397,7 +397,7 @@ const updateReport = asyncHandler(async (req: Request, res: Response) => {
     updatePayload.description = description.trim();
   }
 
-  const addedPropertyFile = await PropertyFiles.findOneAndUpdate(
+  const addedPropertyFile = await Reports.findOneAndUpdate(
     {
       _id: toMongoId(reportId),
     },

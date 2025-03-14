@@ -18,7 +18,6 @@ import {
   updateLandownerValidation,
 } from '../utils/validations/landownerValidations.js';
 import { roleCheck } from '../middlewares/roles.middleware.js';
-import landownerReportsRouter from './landownerReportRoute/landowner.reports.route.js';
 import landownerPropertyRouter from './landownerPropertyRoute/landowner.properties.route.js';
 import upload from '../middlewares/multer.js';
 import { mapFilesToBody } from '../middlewares/index.middleware.js';
@@ -37,8 +36,6 @@ router
     roleCheck(ROLES.LANDOWNER),
     addLandowner
   );
-
-router.use('/reports', landownerReportsRouter);
 
 router.use('/properties', landownerPropertyRouter);
 
