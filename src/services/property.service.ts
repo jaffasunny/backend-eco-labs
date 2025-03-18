@@ -1,5 +1,5 @@
 import mongoose, { ClientSession } from 'mongoose';
-import { MODELS } from '../constants.js';
+import { MODELS, ROLES } from '../constants.js';
 import { IPagination } from '../interface/index.interface.js';
 import { AssignResearcherProperty } from '../models/assignResearcherProperties.model.js';
 import { Bids } from '../models/bids.model.js';
@@ -63,6 +63,8 @@ const findOrUpdatePropertySession = async (
           files: files.map((file) => ({
             url: file.path,
             name: file.filename,
+            type: file.mimetype,
+            originalName: file.originalname,
           })),
           property: property._id,
         },
@@ -444,7 +446,8 @@ const getPaginatedResearcherReportsOnProperty = async (
   options: {
     page: number;
     limit: number;
-  }
+  },
+  roles: string
 ) => {
   const searchQuery = search
     ? {
@@ -478,6 +481,14 @@ const getPaginatedResearcherReportsOnProperty = async (
               foreignField: 'researcher',
               as: 'reports',
               pipeline: [
+                {
+                  $match: {
+                    researcher: { $exists: false },
+                  },
+                },
+                ...(roles !== ROLES.ADMIN
+                  ? [{ $match: { archived: false } }]
+                  : []),
                 {
                   $project: {
                     _id: 1,
@@ -517,7 +528,8 @@ const getPaginatedResearcherReportsOnProperty = async (
 
 const getAllPaginatedPropertiesService = async (
   search: string,
-  options: IPagination
+  options: IPagination,
+  roles: string
 ) => {
   const searchQuery = search
     ? {
@@ -544,7 +556,15 @@ const getAllPaginatedPropertiesService = async (
         let: { propertyId: '$_id' },
         as: 'docs',
         pipeline: [
-          { $match: { $expr: { $eq: ['$property', '$$propertyId'] } } },
+          {
+            $match: {
+              $expr: {
+                $eq: ['$property', '$$propertyId'],
+              },
+              researcher: { $exists: false },
+            },
+          },
+          ...(roles !== ROLES.ADMIN ? [{ $match: { archived: false } }] : []),
           {
             $project: {
               _id: 1,

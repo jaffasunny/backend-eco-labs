@@ -2,7 +2,7 @@ import aggregatePaginate from 'mongoose-aggregate-paginate-v2';
 import { handleDeleteMiddleware } from '../utils/utils.js';
 import mongoose, { PaginateModel, Schema } from 'mongoose';
 import { IReports } from '../interface/property.interface.js';
-import { MODELS } from '../constants.js';
+import { deleteOperations, MODELS } from '../constants.js';
 
 const reportSchema = new Schema<IReports>(
   {
@@ -42,6 +42,10 @@ const reportSchema = new Schema<IReports>(
       required: [true, 'Property is required!'],
     },
     researcher: { type: mongoose.Schema.Types.ObjectId, ref: MODELS.USERS },
+    archived: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,
@@ -49,11 +53,6 @@ const reportSchema = new Schema<IReports>(
 );
 
 reportSchema.plugin(aggregatePaginate);
-
-// Attach the generic middleware to all delete-related operations
-const deleteOperations: Array<
-  'deleteMany' | 'deleteOne' | 'findOneAndDelete' | 'findByIdAndDelete'
-> = ['deleteMany', 'deleteOne', 'findOneAndDelete', 'findByIdAndDelete'];
 
 deleteOperations.forEach((operation: any) => {
   reportSchema.pre(

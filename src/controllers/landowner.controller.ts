@@ -174,12 +174,15 @@ const paginatedLandownerData = asyncHandler(
       assigned = null,
     } = req.query;
 
+    const { roles } = req.user;
+
     const renamedResult = await landownerAggregatePaginationService({
       assigned: parseBooleanQueryParam(assigned),
       isArchived: parseBooleanQueryParam(isArchived),
       limit: Number(limit),
       page: Number(page),
       search: search.toString(),
+      roles,
     });
 
     res
@@ -217,7 +220,7 @@ const paginatedPropertyData = asyncHandler(
       assigned = null,
       landownerId,
     } = req.query;
-    const { _id: userId } = req.user;
+    const { _id: userId, roles } = req.user;
 
     const renamedResult = await landownerPropertyAggregatePaginationService({
       assigned: parseBooleanQueryParam(assigned),
@@ -225,6 +228,7 @@ const paginatedPropertyData = asyncHandler(
       page: Number(page),
       search: search.toString(),
       userId: landownerId ? landownerId : userId,
+      roles,
     });
 
     res
@@ -242,14 +246,14 @@ const paginatedPropertyData = asyncHandler(
 const paginatedPropertyBidsData = asyncHandler(
   async (req: Request, res: Response) => {
     const { page = 1, limit = 10, search = '', propertyId } = req.query;
-    const { _id: userId } = req.user;
+    const { roles } = req.user;
 
     const renamedResult = await landownerPropertyBidsPaginationService({
       propertyId: propertyId as string,
       limit: Number(limit),
       page: Number(page),
       search: search.toString(),
-      userId,
+      roles,
     });
 
     res

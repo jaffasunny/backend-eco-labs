@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import { MODELS } from '../constants.js';
 import { Reports } from '../models/reports.model.js';
+import { toMongoId } from '../utils/utils.js';
 
 const getReportService = async (reportId: mongoose.Types.ObjectId | string) => {
   const report = await Reports.findById(reportId)
@@ -20,4 +21,22 @@ const getReportService = async (reportId: mongoose.Types.ObjectId | string) => {
   return report;
 };
 
-export { getReportService };
+const toggleArchiveReportService = async (reportId: string) => {
+  const report = await Reports.findById(toMongoId(reportId));
+
+  if (!report) {
+    throw new Error('Report not found');
+  }
+
+  report.archived = !report.archived;
+
+  const updatedReport = await report.save();
+
+  if (updatedReport.archived) {
+    return 'Report archived successfully';
+  } else {
+    return 'Report unarchived successfully';
+  }
+};
+
+export { getReportService, toggleArchiveReportService };

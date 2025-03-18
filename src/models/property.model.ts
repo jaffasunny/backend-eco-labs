@@ -2,6 +2,8 @@ import aggregatePaginate from 'mongoose-aggregate-paginate-v2';
 import mongoose, { PaginateModel, Schema } from 'mongoose';
 import { IProperty } from '../interface/property.interface.js';
 import { MODELS } from '../constants.js';
+import { Reports } from './reports.model.js';
+import { Bids } from './bids.model.js';
 
 interface IPropertyDocument extends IProperty, Document {
   isNew: boolean; // Add Mongoose's isNew property
@@ -53,6 +55,22 @@ const propertySchema = new Schema<IPropertyDocument>(
     timestamps: true,
   }
 );
+
+propertySchema.pre('deleteOne', { document: true }, async function (next) {
+  const propertyId = this._id;
+
+  try {
+    // Delete all reports associated with this property
+    await Reports.deleteMany({ property: propertyId });
+
+    // Delete all bids associated with this property
+    await Bids.deleteMany({ property: propertyId });
+
+    next();
+  } catch (error: any) {
+    next(error);
+  }
+});
 
 propertySchema.plugin(aggregatePaginate);
 

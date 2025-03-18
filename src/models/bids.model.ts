@@ -1,7 +1,8 @@
 import aggregatePaginate from 'mongoose-aggregate-paginate-v2';
 import mongoose, { PaginateModel, Schema } from 'mongoose';
 import { IBids } from '../interface/bids.interface.js';
-import { MODELS, PROPOSAL_STATUS } from '../constants.js';
+import { deleteOperations, MODELS, PROPOSAL_STATUS } from '../constants.js';
+import { handleDeleteMiddleware } from '../utils/utils.js';
 
 const bidsSchema = new Schema<IBids>(
   {
@@ -41,6 +42,12 @@ const bidsSchema = new Schema<IBids>(
 );
 
 bidsSchema.plugin(aggregatePaginate);
+
+deleteOperations.forEach((operation: any) => {
+  bidsSchema.pre(operation, { document: false, query: true }, function (next) {
+    handleDeleteMiddleware.call(this, next, Bids);
+  });
+});
 
 export const Bids = mongoose.model<IBids, PaginateModel<IBids>>(
   MODELS.BIDS,

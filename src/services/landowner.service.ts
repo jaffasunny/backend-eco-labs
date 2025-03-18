@@ -74,6 +74,7 @@ const landownerAggregatePaginationService = async ({
   search,
   isArchived,
   assigned,
+  roles,
 }: IlandownerAggregatePaginationServiceParams): Promise<any> => {
   const assignedFilter = createDynamicFilter({ assigned, isArchived });
 
@@ -117,7 +118,15 @@ const landownerAggregatePaginationService = async ({
               from: MODELS.REPORTS,
               let: { propertyId: '$_id' },
               pipeline: [
-                { $match: { $expr: { $eq: ['$property', '$$propertyId'] } } },
+                {
+                  $match: {
+                    $expr: { $eq: ['$property', '$$propertyId'] },
+                    researcher: { $exists: false },
+                  },
+                },
+                ...(roles !== ROLES.ADMIN
+                  ? [{ $match: { archived: false } }]
+                  : []),
                 {
                   $project: {
                     _id: 0,
@@ -279,6 +288,7 @@ const landownerPropertyAggregatePaginationService = async ({
   search,
   assigned,
   userId,
+  roles,
 }: IlandownerPropertyAggregatePaginationServiceParams): Promise<any> => {
   const assignedFilter = createDynamicFilter({ assigned });
 
@@ -318,7 +328,13 @@ const landownerPropertyAggregatePaginationService = async ({
         from: MODELS.REPORTS,
         let: { propertyId: '$_id' },
         pipeline: [
-          { $match: { $expr: { $eq: ['$property', '$$propertyId'] } } },
+          {
+            $match: {
+              $expr: { $eq: ['$property', '$$propertyId'] },
+              researcher: { $exists: false },
+            },
+          },
+          ...(roles !== ROLES.ADMIN ? [{ $match: { archived: false } }] : []),
           {
             $project: {
               _id: 1,
@@ -472,6 +488,7 @@ const landownerPropertyBidsPaginationService = async ({
   limit,
   search,
   propertyId,
+  roles,
 }: IlandownerPropertyBidsAggregatePaginationServiceParams): Promise<any> => {
   const options = {
     page,
@@ -515,12 +532,21 @@ const landownerPropertyBidsPaginationService = async ({
               let: { propertyId: '$_id' },
               as: 'docs',
               pipeline: [
-                { $match: { $expr: { $eq: ['$property', '$$propertyId'] } } },
+                {
+                  $match: {
+                    $expr: { $eq: ['$property', '$$propertyId'] },
+                    researcher: { $exists: false },
+                  },
+                },
+                ...(roles !== ROLES.ADMIN
+                  ? [{ $match: { archived: false } }]
+                  : []),
                 {
                   $project: {
                     _id: 1,
                     files: 1,
                     name: 1,
+                    originalName: 1,
                     description: 1,
                     createdAt: 1,
                     updatedAt: 1,
@@ -617,6 +643,7 @@ const landownerPropertyBidsPaginationService = async ({
         createdAt: 1,
         updatedAt: 1,
         property: 1,
+        files: 1,
         researcher: 1,
       },
     },
