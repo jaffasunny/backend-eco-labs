@@ -1,12 +1,13 @@
 import multer, { StorageEngine } from 'multer';
 import cloudinary from 'cloudinary';
 import { CloudinaryStorage } from 'multer-storage-cloudinary';
+import { ALLOWED_UPLOAD_FORMATS } from '../constants.js';
 
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary.v2,
   params: {
     folder: 'raw-formats',
-    allowed_formats: ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png', 'gif'],
+    allowed_formats: ALLOWED_UPLOAD_FORMATS,
     resource_type: 'auto',
   } as {
     folder: string;
@@ -15,6 +16,25 @@ const storage = new CloudinaryStorage({
   },
 }) as StorageEngine;
 
-const upload = multer({ storage });
+const fileFilter = (req: any, file: Express.Multer.File, cb: any) => {
+  const fileExtension = file.mimetype.split('/')[1].toLowerCase();
+
+  if (ALLOWED_UPLOAD_FORMATS.includes(fileExtension)) {
+    cb(null, true);
+  } else {
+    cb(
+      new Error(
+        `Unsupported file type: ${fileExtension}. Allowed formats: ${ALLOWED_UPLOAD_FORMATS.join(', ')}`
+      ),
+      false
+    );
+  }
+};
+
+const upload = multer({
+  storage,
+  fileFilter,
+  limits: { fileSize: 5 * 1024 * 1024 },
+});
 
 export default upload;

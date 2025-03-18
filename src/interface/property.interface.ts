@@ -9,6 +9,7 @@ export interface IProperty {
   propertySize: string | undefined;
   landowner: mongoose.Schema.Types.ObjectId;
   assignedResearchers: mongoose.Schema.Types.ObjectId[];
+  archived: boolean;
 }
 
 export interface IReports {
@@ -17,6 +18,7 @@ export interface IReports {
   files: FilesType[];
   property: mongoose.Schema.Types.ObjectId;
   researcher: mongoose.Schema.Types.ObjectId;
+  archived: boolean;
 }
 
 export interface IUpdateLandowner extends IProperty, IUser {}

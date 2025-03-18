@@ -131,6 +131,7 @@ const researcherSubmittedReports = asyncHandler(
   async (req: Request, res: Response) => {
     const { page = 1, limit = 10, search = '', propertyId } = req.query;
     const { researcherId } = req.params;
+    const { roles } = req.user;
 
     const options = {
       page,
@@ -141,7 +142,8 @@ const researcherSubmittedReports = asyncHandler(
       search as string,
       propertyId as string,
       researcherId as string,
-      options
+      options,
+      roles
     );
 
     const renamedResult = transformPaginatedResponse(
@@ -229,6 +231,7 @@ const getProperty = asyncHandler(async (req: Request, res: Response) => {
 const paginatedProperties = asyncHandler(
   async (req: Request, res: Response) => {
     const { page = 1, limit = 10, search = '' } = req.query;
+    const { roles } = req.user;
 
     const options = {
       page,
@@ -237,7 +240,8 @@ const paginatedProperties = asyncHandler(
 
     const result = await getAllPaginatedPropertiesService(
       search as string,
-      options
+      options,
+      roles
     );
 
     const renamedResult = transformPaginatedResponse(result, 'properties');

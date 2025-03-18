@@ -21,6 +21,21 @@ export enum MODELS {
   ASSIGNED_RESEARCH_PROPERTIES = 'assignResearcherProperties',
 }
 
+export const ALLOWED_UPLOAD_FORMATS = [
+  'pdf',
+  'doc',
+  'docx',
+  'jpg',
+  'jpeg',
+  'png',
+  'gif',
+];
+
+// Attach the generic middleware to all delete-related operations
+export const deleteOperations: Array<
+  'deleteMany' | 'deleteOne' | 'findOneAndDelete' | 'findByIdAndDelete'
+> = ['deleteMany', 'deleteOne', 'findOneAndDelete', 'findByIdAndDelete'];
+
 export const NotificationPayload = (title: string, body: string) => {
   return {
     notification: {
