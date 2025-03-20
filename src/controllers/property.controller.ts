@@ -13,6 +13,7 @@ import {
   getPaginatedPropertiesAssignedToResearcher,
   getPaginatedResearcherReportsOnProperty,
   getPropertyService,
+  toggleArchivePropertyService,
 } from '../services/property.service.js';
 import { transformPaginatedResponse } from '../utils/utils.js';
 import { IPagination } from '../interface/index.interface.js';
@@ -176,7 +177,8 @@ const paginatedAssignedResearcherProperties = asyncHandler(
     const result = await getPaginatedAssignedResearcherProperties(
       search as string,
       roles === ROLES.RESEARCHER ? researcherId : researcher,
-      options
+      options,
+      roles
     );
 
     const renamedResult = transformPaginatedResponse(
@@ -213,6 +215,17 @@ const deleteProperty = asyncHandler(async (req: Request, res: Response) => {
       new ApiResponse(200, deletedProperty, 'Property deleted successfully')
     );
 });
+
+const toggleArchiveProperty = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { id: propertyId } = req.params;
+
+    const toggleArchivedProperty =
+      await toggleArchivePropertyService(propertyId);
+
+    return res.status(200).json(new ApiResponse(200, toggleArchivedProperty));
+  }
+);
 
 const getProperty = asyncHandler(async (req: Request, res: Response) => {
   const { id: propertyId } = req.params;
@@ -283,4 +296,5 @@ export {
   assignedResearchersToProperty,
   researcherSubmittedReports,
   getSingleBid,
+  toggleArchiveProperty,
 };

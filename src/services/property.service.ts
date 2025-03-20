@@ -289,6 +289,24 @@ const getPropertyService = async (propertyId: string) => {
   return property;
 };
 
+const toggleArchivePropertyService = async (reportId: string) => {
+  const property = await Property.findById(toMongoId(reportId));
+
+  if (!property) {
+    throw new Error('Property not found');
+  }
+
+  property.archived = !property.archived;
+
+  const updatedProperty = await property.save();
+
+  if (updatedProperty.archived) {
+    return 'Property archived successfully';
+  } else {
+    return 'Property unarchived successfully';
+  }
+};
+
 const getBidService = async (id: string) => {
   const foundBid = await Bids.findById(id)
     .populate({
@@ -311,7 +329,8 @@ const getPaginatedAssignedResearcherProperties = async (
   options: {
     page: number;
     limit: number;
-  }
+  },
+  roles: string
 ) => {
   const searchQuery = search
     ? {
@@ -336,6 +355,7 @@ const getPaginatedAssignedResearcherProperties = async (
         foreignField: '_id',
         as: 'property',
         pipeline: [
+          ...(roles !== ROLES.ADMIN ? [{ $match: { archived: false } }] : []),
           {
             $lookup: {
               from: MODELS.USERS,
@@ -544,6 +564,7 @@ const getAllPaginatedPropertiesService = async (
   const assignedFilter: Record<string, any> = {};
 
   const aggregatedProperties = Property.aggregate([
+    ...(roles !== ROLES.ADMIN ? [{ $match: { archived: false } }] : []),
     {
       $match: {
         ...searchQuery,
@@ -682,4 +703,5 @@ export {
   getPaginatedPropertiesAssignedToResearcher,
   getPaginatedResearcherReportsOnProperty,
   getBidService,
+  toggleArchivePropertyService,
 };

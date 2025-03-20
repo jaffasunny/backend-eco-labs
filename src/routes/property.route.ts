@@ -21,6 +21,7 @@ import {
   paginatedProperties,
   removeFiles,
   researcherSubmittedReports,
+  toggleArchiveProperty,
 } from '../controllers/property.controller.js';
 import propertyBidsRouter from './propertyBids.route.js';
 import upload from '../middlewares/multer.js';
@@ -74,6 +75,10 @@ router
   );
 
 router.use('/bids', propertyBidsRouter);
+
+router
+  .route('/:id/toggle-archive')
+  .post(authMiddleware, roleCheck([ROLES.ADMIN]), toggleArchiveProperty);
 
 router
   .route('/:id')

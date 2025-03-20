@@ -7,6 +7,7 @@ import { Bids } from './bids.model.js';
 
 interface IPropertyDocument extends IProperty, Document {
   isNew: boolean; // Add Mongoose's isNew property
+  archived: boolean;
 }
 
 const propertySchema = new Schema<IPropertyDocument>(
@@ -50,6 +51,10 @@ const propertySchema = new Schema<IPropertyDocument>(
         ref: MODELS.USERS,
       },
     ],
+    archived: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,

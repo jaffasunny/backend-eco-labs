@@ -112,6 +112,7 @@ const landownerAggregatePaginationService = async ({
         from: MODELS.PROPERTIES,
         let: { landownerId: '$_id' },
         pipeline: [
+          ...(roles !== ROLES.ADMIN ? [{ $match: { archived: false } }] : []),
           { $match: { $expr: { $eq: ['$landowner', '$$landownerId'] } } },
           {
             $lookup: {
@@ -526,6 +527,7 @@ const landownerPropertyBidsPaginationService = async ({
         foreignField: '_id',
         as: 'property',
         pipeline: [
+          ...(roles !== ROLES.ADMIN ? [{ $match: { archived: false } }] : []),
           {
             $lookup: {
               from: MODELS.REPORTS,
