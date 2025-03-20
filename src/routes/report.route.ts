@@ -13,11 +13,7 @@ const router = Router();
 
 router
   .route('/:id/toggle-archive')
-  .post(
-    authMiddleware,
-    roleCheck([ROLES.LANDOWNER, ROLES.RESEARCHER]),
-    toggleArchiveReport
-  );
+  .post(authMiddleware, roleCheck([ROLES.ADMIN]), toggleArchiveReport);
 
 router
   .route('/:id')
