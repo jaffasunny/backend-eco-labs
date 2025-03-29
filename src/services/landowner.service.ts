@@ -359,6 +359,7 @@ const landownerPropertyAggregatePaginationService = async ({
       $project: {
         _id: 1,
         propertyName: 1,
+        archived: 1,
         propertyLocation: 1,
         propertySize: 1,
         docs: { _id: '$docs._id', files: '$docs.files' },
