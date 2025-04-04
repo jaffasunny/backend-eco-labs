@@ -6,6 +6,7 @@ import { ResetPasswordToken } from '../models/resetPasswordToken.model.js';
 import sendEmail from '../utils/sendMail.js';
 import { Request, Response } from 'express';
 import { RESEARCHER_STATUS, ROLES } from '../constants.js';
+import { isPasswordCorrect } from '../utils/utils.js';
 
 // Generate New Refresh Token and Access Token
 const generateAccessAndRefreshTokens = async (userId: string) => {
@@ -191,7 +192,6 @@ const userProfile = asyncHandler(async (req: Request, res: Response) => {
 
 const updateUserProfile = asyncHandler(async (req: Request, res: Response) => {
   const { _id } = req.user;
-  console.log({ _id });
   const { userId } = req.body;
 
   if (!userId && req.body.roles) {
@@ -213,6 +213,33 @@ const updateUserProfile = asyncHandler(async (req: Request, res: Response) => {
     .json(
       new ApiResponse(200, updatedUser, 'User profile updated successfully!')
     );
+});
+
+const checkPassword = asyncHandler(async (req: Request, res: Response) => {
+  const { _id } = req.user;
+  const { userId, password } = req.query;
+
+  console.log({ user: req.user });
+
+  const findUser = await User.findById({ _id: userId ? userId : _id });
+
+  if (!findUser) {
+    throw new ApiError(404, `User not found!`);
+  }
+
+  if (!password) {
+    throw new ApiError(400, 'Please enter password!');
+  }
+
+  const isCorrect = isPasswordCorrect(findUser.password, password as string);
+
+  if (!isCorrect) {
+    throw new ApiError(400, 'Invalid current password!');
+  }
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, 'Current Password matched!'));
 });
 
 // Refresh Access Token if access token expires
@@ -370,4 +397,5 @@ export {
   resetPassword,
   verifyResetPasswordOTP,
   updateUserProfile,
+  checkPassword,
 };

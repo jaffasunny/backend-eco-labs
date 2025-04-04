@@ -3,12 +3,11 @@ import cloudinary from 'cloudinary';
 // @ts-ignore
 import DataURIParser from 'datauri/parser';
 import { Express } from 'express';
-import mongoose, { Model, Query, Schema, Types } from 'mongoose';
+import mongoose, { Query, Schema } from 'mongoose';
 import { ENVIRONMENT, ROLES } from '../constants.js';
 import morgan from 'morgan';
 import { ApiError } from './ApiError.js';
-import { IReportsInterface } from '../interface/property.interface.js';
-import { Reports } from '../models/reports.model.js';
+import bcrypt from 'bcrypt';
 
 export const uploadCloudinary = async (fileUri: DataURIParser) => {
   const mycloud = await cloudinary.v2.uploader.upload(
@@ -138,4 +137,13 @@ export const handleDeleteMiddleware = async function <
     console.error('Error deleting files from Cloudinary:', error);
     next(error);
   }
+};
+
+export const isPasswordCorrect = async function (
+  oldPassword: string,
+  enteredPassword: string
+) {
+  let correct = await bcrypt.compare(oldPassword, enteredPassword);
+
+  return correct;
 };

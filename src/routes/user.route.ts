@@ -7,6 +7,7 @@ import {
   verifyResetPasswordOTP,
   resetPassword,
   updateUserProfile,
+  checkPassword,
 } from '../controllers/user.controller.js';
 import { authMiddleware } from '../middlewares/auth.middleware.js';
 import { validateRequest } from '../middlewares/validateRequest.js';
@@ -32,6 +33,7 @@ router
     updateUserProfile
   );
 
+router.get('/check-password', authMiddleware, checkPassword);
 // reset password
 router.post('/getResetPassword', sendResetPasswordToken); // get reset password token
 router.post('/verifyResetPasswordOtp', verifyResetPasswordOTP); // verify reset password token
