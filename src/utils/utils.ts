@@ -147,3 +147,9 @@ export const isPasswordCorrect = async function (
 
   return correct;
 };
+
+export const normalizeEmailForGmail = (email: string): string => {
+  const [localPart, domain] = email.split('@');
+  const normalizedLocalPart = localPart.replace(/\./g, ''); // Remove all periods
+  return `${normalizedLocalPart}@${domain}`;
+};
