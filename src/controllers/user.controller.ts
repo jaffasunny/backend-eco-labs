@@ -87,12 +87,10 @@ const loginUser = asyncHandler(async (req: Request, res: Response) => {
     throw new ApiError(400, 'Please fill all details!');
   }
 
-  const user = await User.findOne({
-    $or: [{ email }],
-  });
+  const user = await User.findOne({ email: email.trim().toLowerCase() });
 
   if (!user) {
-    throw new ApiError(404, 'User not found');
+    throw new ApiError(400, 'User with given email address doesnot exist!');
   }
 
   // compare password with hashed password

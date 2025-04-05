@@ -1,6 +1,7 @@
 // validations/userValidation.js
 import { body } from 'express-validator';
 import { ROLES } from '../../constants.js';
+import { normalizeEmailForGmail } from '../utils.js';
 
 export const registerUserValidation = [
   body('name')
@@ -41,7 +42,11 @@ export const loginUserValidation = [
     .notEmpty()
     .isEmail()
     .withMessage('Valid email is required')
-    .normalizeEmail(),
+    .custom((value) => {
+      // Normalize the email according to Gmail rules
+      const normalizedEmail = normalizeEmailForGmail(value);
+      return normalizedEmail; // Return the normalized email
+    }),
   body('password')
     .isLength({ min: 6 })
     .notEmpty()
