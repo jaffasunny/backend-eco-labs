@@ -221,7 +221,7 @@ const checkPassword = asyncHandler(async (req: Request, res: Response) => {
 
   console.log({ user: req.user });
 
-  const findUser = await User.findById({ _id: userId ? userId : _id });
+  const findUser = await User.findById({ _id: userId ? userId : _id }).lean();
 
   if (!findUser) {
     throw new ApiError(404, `User not found!`);
@@ -231,7 +231,10 @@ const checkPassword = asyncHandler(async (req: Request, res: Response) => {
     throw new ApiError(400, 'Please enter password!');
   }
 
-  const isCorrect = isPasswordCorrect(findUser.password, password as string);
+  const isCorrect = await isPasswordCorrect(
+    findUser.password,
+    password as string
+  );
 
   if (!isCorrect) {
     throw new ApiError(400, 'Invalid current password!');
