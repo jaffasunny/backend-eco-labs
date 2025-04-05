@@ -219,8 +219,6 @@ const checkPassword = asyncHandler(async (req: Request, res: Response) => {
   const { _id } = req.user;
   const { userId, password } = req.query;
 
-  console.log({ user: req.user });
-
   const findUser = await User.findById({ _id: userId ? userId : _id }).lean();
 
   if (!findUser) {
