@@ -143,7 +143,7 @@ export const isPasswordCorrect = async function (
   oldPassword: string,
   enteredPassword: string
 ) {
-  let correct = await bcrypt.compare(oldPassword, enteredPassword);
+  let correct = await bcrypt.compare(enteredPassword, oldPassword);
 
   return correct;
 };
