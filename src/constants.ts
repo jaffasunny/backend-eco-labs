@@ -16,9 +16,9 @@ export enum MODELS {
   PROPERTIES = 'properties',
   PROPERTIES_FILES = 'properties-files',
   BIDS = 'bids',
-  ASSIGNED_UNIVERSITY_REPORTS = 'assignUniversityReports',
-  ASSIGNED_RESEARCH_REPORTS = 'assignResearcherReports',
-  ASSIGNED_RESEARCH_PROPERTIES = 'assignResearcherProperties',
+  ASSIGNED_UNIVERSITY_REPORTS = 'assignuniversityreports',
+  ASSIGNED_RESEARCH_REPORTS = 'assignresearcherreports',
+  ASSIGNED_RESEARCH_PROPERTIES = 'assignresearcherproperties',
 }
 
 export const ALLOWED_UPLOAD_FORMATS = [

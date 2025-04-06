@@ -67,13 +67,13 @@ const paginatedResearchers = asyncHandler(
       },
       {
         $lookup: {
-          from: MODELS.ASSIGNED_RESEARCH_REPORTS,
-          let: { userId: '$_id' },
+          from: MODELS.ASSIGNED_RESEARCH_PROPERTIES,
+          let: { researcherId: '$_id' },
           pipeline: [
             {
               $match: {
                 $expr: {
-                  $in: ['$$userId', '$researchers'],
+                  $in: [{ $toObjectId: '$$researcherId' }, '$researchers'],
                 },
               },
             },
