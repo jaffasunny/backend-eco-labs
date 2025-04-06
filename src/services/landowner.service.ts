@@ -210,7 +210,13 @@ const universityAggregatePaginationService = async ({
   search,
   isArchived,
   assigned,
-}: IlandownerAggregatePaginationServiceParams): Promise<any> => {
+}: {
+  page: number;
+  limit: number;
+  search: string;
+  isArchived: boolean | null;
+  assigned: boolean | null;
+}): Promise<any> => {
   const assignedFilter = createDynamicFilter({ assigned, isArchived });
 
   const options = {

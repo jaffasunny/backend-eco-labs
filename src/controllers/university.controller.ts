@@ -121,15 +121,12 @@ const paginatedUniversityData = asyncHandler(
       assigned = null,
     } = req.query;
 
-    const { roles } = req.user;
-
     const renamedResult = await universityAggregatePaginationService({
       assigned: parseBooleanQueryParam(assigned),
       isArchived: parseBooleanQueryParam(isArchived),
       limit: Number(limit),
       page: Number(page),
       search: search.toString(),
-      roles,
     });
 
     res

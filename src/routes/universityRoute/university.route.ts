@@ -18,7 +18,7 @@ const router = Router();
 
 router
   .route('/')
-  .get(authMiddleware, paginatedUniversityData)
+  .get(paginatedUniversityData)
   .post(
     addUniversityValidation,
     validateRequest,
