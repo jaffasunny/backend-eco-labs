@@ -8,6 +8,7 @@ import { ENVIRONMENT, ROLES } from '../constants.js';
 import morgan from 'morgan';
 import { ApiError } from './ApiError.js';
 import bcrypt from 'bcrypt';
+import crypto from 'crypto';
 
 export const uploadCloudinary = async (fileUri: DataURIParser) => {
   const mycloud = await cloudinary.v2.uploader.upload(
@@ -18,15 +19,29 @@ export const uploadCloudinary = async (fileUri: DataURIParser) => {
 };
 
 export const generatePassword = () => {
-  const chars =
-    'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$!';
-  let password = '';
-  for (let i = 0; i < 10; i++) {
-    password += chars[Math.floor(Math.random() * chars.length)];
-  }
-  return password;
-};
+  const lowercase = 'abcdefghijklmnopqrstuvwxyz';
+  const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  const digits = '0123456789';
+  const specialChars = '@#$!';
 
+  const allChars = lowercase + uppercase + digits + specialChars;
+
+  let password = [
+    lowercase[Math.floor(Math.random() * lowercase.length)],
+    uppercase[Math.floor(Math.random() * uppercase.length)],
+    digits[Math.floor(Math.random() * digits.length)],
+    specialChars[Math.floor(Math.random() * specialChars.length)],
+  ];
+
+  while (password.length < 10) {
+    const randomIndex = crypto.randomInt(0, allChars.length);
+    password.push(allChars[randomIndex]);
+  }
+
+  password = password.sort(() => Math.random() - 0.5);
+
+  return password.join('');
+};
 export const transformPaginatedResponse = (
   result: mongoose.AggregatePaginateResult<any>,
   docName: string
