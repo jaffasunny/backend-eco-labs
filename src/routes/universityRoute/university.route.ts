@@ -18,11 +18,7 @@ const router = Router();
 
 router
   .route('/')
-  .get(
-    authMiddleware,
-    roleCheck([ROLES.LANDOWNER, ROLES.UNIVERSITY]),
-    paginatedUniversityData
-  )
+  .get(authMiddleware, paginatedUniversityData)
   .post(
     addUniversityValidation,
     validateRequest,
