@@ -503,7 +503,7 @@ const getPaginatedResearcherReportsOnProperty = async (
               pipeline: [
                 {
                   $match: {
-                    researcher: { $exists: false },
+                    researcher: { $exists: true },
                   },
                 },
                 ...(roles !== ROLES.ADMIN
