@@ -517,6 +517,7 @@ const getPaginatedResearcherReportsOnProperty = async (
                     description: 1,
                     createdAt: 1,
                     updatedAt: 1,
+                    archived: 1,
                   },
                 },
               ],
