@@ -17,12 +17,6 @@ router
 
 router
   .route('/:id')
-  .get(
-    getReportValidation,
-    validateRequest,
-    authMiddleware,
-    roleCheck([ROLES.LANDOWNER, ROLES.RESEARCHER]),
-    getReport
-  );
+  .get(getReportValidation, validateRequest, authMiddleware, getReport);
 
 export default router;
