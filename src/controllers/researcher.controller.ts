@@ -23,7 +23,6 @@ import sendEmail from '../utils/sendMail.js';
 import { Property } from '../models/property.model.js';
 import { Reports } from '../models/reports.model.js';
 import { TUploadedFileType } from '../types/index.js';
-import { AssignResearcherProperty } from '../models/assignResearcherProperties.model.js';
 
 const paginatedResearchers = asyncHandler(
   async (req: Request, res: Response) => {
@@ -154,6 +153,7 @@ const paginatedResearchers = asyncHandler(
           _id: 1,
           name: 1,
           email: 1,
+          advisor: 1,
           phone: 1,
           status: 1,
           assigned: 1,
@@ -228,6 +228,7 @@ const paginatedResearcherReportData = asyncHandler(
                 name: 1,
                 email: 1,
                 phone: 1,
+                advisor: 1,
               },
             },
           ],
@@ -272,21 +273,22 @@ const placeBidResearch = asyncHandler(async (req: Request, res: Response) => {
       .json(new ApiResponse(400, findProperty, `Property doesnot exists!`));
   }
 
-  const isAssigned = await AssignResearcherProperty.find({
-    property: toMongoId(propertyId),
-    researchers: toMongoId(userId),
-  });
+  //  NEW REQUIREMENT ANY RESEARCHER CAN BID ON ANY REPORT
+  // const isAssigned = await AssignResearcherProperty.find({
+  //   property: toMongoId(propertyId),
+  //   researchers: toMongoId(userId),
+  // });
 
-  if (!isAssigned.length) {
-    return res
-      .status(400)
-      .json(
-        new ApiError(
-          400,
-          `Property must be assigned to researcher in order to place bid!`
-        )
-      );
-  }
+  // if (!isAssigned.length) {
+  //   return res
+  //     .status(400)
+  //     .json(
+  //       new ApiError(
+  //         400,
+  //         `Property must be assigned to researcher in order to place bid!`
+  //       )
+  //     );
+  // }
 
   const [findBid] = await Bids.find({
     researcher: userId,
@@ -579,7 +581,8 @@ const updateResearcher = asyncHandler(async (req: Request, res: Response) => {
 
 // Add Landowner by email
 const addResearcher = asyncHandler(async (req: Request, res: Response) => {
-  const { name, email, phone, university }: IUpdateResearcher = req.body;
+  const { name, email, phone, university, advisor }: IUpdateResearcher =
+    req.body;
 
   // Start a transaction
   const session = await mongoose.startSession();
@@ -596,6 +599,7 @@ const addResearcher = asyncHandler(async (req: Request, res: Response) => {
     roles: ROLES.RESEARCHER,
     status: RESEARCHER_STATUS.APPROVED,
     university,
+    advisor,
   };
 
   // Send the password to the user's email
@@ -754,6 +758,7 @@ const fetchResearcher = asyncHandler(async (req: Request, res: Response) => {
         name: 1,
         email: 1,
         phone: 1,
+        advisor: 1,
         university: 1,
         assigned: 1,
         pending: 1,

@@ -38,6 +38,9 @@ const userSchema = new Schema<IUser>(
       type: Boolean,
       default: false,
     },
+    advisor: {
+      type: String,
+    },
     university: { type: mongoose.Schema.Types.ObjectId, ref: MODELS.USERS },
     status: {
       type: String,

@@ -93,15 +93,7 @@ const addLandowner = asyncHandler(async (req: Request, res: Response) => {
 
 const updateLandowner = asyncHandler(async (req: Request, res: Response) => {
   const { id: userId } = req.params;
-  const {
-    name,
-    email,
-    password,
-    propertyName,
-    propertyLocation,
-    propertySize,
-    phone,
-  }: IUpdateLandowner = req.body;
+  const { name, email, password, phone }: IUpdateLandowner = req.body;
 
   // Start a transaction
   const session = await mongoose.startSession();
@@ -121,23 +113,6 @@ const updateLandowner = asyncHandler(async (req: Request, res: Response) => {
       { name, email, password, phone },
       session
     );
-
-    // Check if property exists
-    // const { property } = await findOrUpdatePropertySession(
-    //   propertyName,
-    //   propertyLocation,
-    //   propertySize,
-    //   null,
-    //   userId,
-    //   session
-    // );
-
-    // if (property) {
-    //   // Fetch updated property details
-    //   const userWithProperty = await fetchPopulatedProperty(
-    //     property._id.toString(),
-    //     session
-    //   );
 
     // Commit transaction
     await session.commitTransaction();
