@@ -40,7 +40,7 @@ const generateAccessAndRefreshTokens = async (userId: string) => {
 
 // Signup
 const registerUser = asyncHandler(async (req: Request, res: Response) => {
-  const { name, email, password, roles, phone, university } = req.body;
+  const { name, email, password, roles, phone, university, advisor } = req.body;
 
   if (!name || !email || !password) {
     throw new ApiError(400, 'Please fill all details!');
@@ -63,6 +63,7 @@ const registerUser = asyncHandler(async (req: Request, res: Response) => {
       phone,
       isApproved: false,
       university,
+      advisor,
     });
   } else {
     user = await User.create({

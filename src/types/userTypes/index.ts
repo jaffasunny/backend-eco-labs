@@ -29,6 +29,7 @@ export interface IUser extends IUserDocument {
   updatedAt?: Date;
   _doc: any;
   skills?: string;
+  advisor?: string;
   reportsSubmitted?: mongoose.PaginateModel<IReportsInterface>;
 
   // Instance methods
