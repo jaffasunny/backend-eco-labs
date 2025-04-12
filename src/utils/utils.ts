@@ -168,3 +168,9 @@ export const normalizeEmailForGmail = (email: string): string => {
   const normalizedLocalPart = localPart.replace(/\./g, ''); // Remove all periods
   return `${normalizedLocalPart}@${domain}`;
 };
+
+export function enumToArray<T extends Record<string, any>>(
+  enumObject: T
+): T[keyof T][] {
+  return Object.values(enumObject) as T[keyof T][];
+}

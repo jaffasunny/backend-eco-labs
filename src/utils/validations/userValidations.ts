@@ -1,7 +1,7 @@
 // validations/userValidation.js
-import { body } from 'express-validator';
+import { body, query } from 'express-validator';
 import { ROLES } from '../../constants.js';
-import { normalizeEmailForGmail } from '../utils.js';
+import { enumToArray, normalizeEmailForGmail } from '../utils.js';
 
 export const registerUserValidation = [
   body('name')
@@ -83,4 +83,23 @@ export const updateProfileValidation = [
     .withMessage('Phone number must be numeric')
     .isLength({ min: 10, max: 15 })
     .withMessage('Phone number must be between 10 and 15 digits'),
+];
+
+export const getUsersInfoValidation = [
+  query('role')
+    .notEmpty()
+    .withMessage('Please enter a valid user role!')
+    .custom(async (value) => {
+      const validRoles = enumToArray(ROLES);
+
+      if (!validRoles.includes(value)) {
+        throw new Error('Invalid role provided!');
+      }
+
+      if (value === ROLES.ADMIN) {
+        throw new Error('Role cannot be super-admin!');
+      }
+
+      return true;
+    }),
 ];

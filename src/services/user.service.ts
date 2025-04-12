@@ -1,6 +1,7 @@
 import { RoleType } from './../constants.js';
 import { ClientSession } from 'mongoose';
 import { User } from '../models/user.model.js';
+import { ApiError } from '../utils/ApiError.js';
 
 const updateUserDetails = async (
   userId: string,
@@ -16,4 +17,16 @@ const updateUserDetails = async (
   await User.updateOne({ _id: userId }, { ...userDetails, roles }, { session });
 };
 
-export { updateUserDetails };
+const getUsersInfoService = async (role: RoleType) => {
+  const users = await User.find({
+    roles: role,
+  });
+
+  if (!users || !users.length) {
+    throw new ApiError(400, 'Users with the specified roles not found!');
+  }
+
+  return users;
+};
+
+export { updateUserDetails, getUsersInfoService };

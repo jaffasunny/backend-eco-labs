@@ -12,7 +12,7 @@ export enum CONSTANTS {
 export enum MODELS {
   USERS = 'users',
   REPORTS = 'reports',
-  RESETPASSWORD_TOKENS = 'resetPasswordTokens',
+  RESETPASSWORD_TOKENS = 'resetpasswordokens',
   PROPERTIES = 'properties',
   PROPERTIES_FILES = 'properties-files',
   BIDS = 'bids',

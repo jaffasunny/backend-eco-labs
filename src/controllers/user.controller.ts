@@ -5,8 +5,9 @@ import { User } from '../models/user.model.js';
 import { ResetPasswordToken } from '../models/resetPasswordToken.model.js';
 import sendEmail from '../utils/sendMail.js';
 import { Request, Response } from 'express';
-import { RESEARCHER_STATUS, ROLES } from '../constants.js';
+import { RESEARCHER_STATUS, ROLES, RoleType } from '../constants.js';
 import { isPasswordCorrect } from '../utils/utils.js';
+import { getUsersInfoService } from '../services/user.service.js';
 
 // Generate New Refresh Token and Access Token
 const generateAccessAndRefreshTokens = async (userId: string) => {
@@ -387,6 +388,16 @@ const resetPassword = asyncHandler(async (req: Request, res: Response) => {
     .json(new ApiResponse(200, 'Password Reset Successfully!'));
 });
 
+const getUsersInfo = asyncHandler(async (req: Request, res: Response) => {
+  const { role } = req.query;
+
+  const users = await getUsersInfoService(role as RoleType);
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, users, 'User fetched successfully!'));
+});
+
 export {
   registerUser,
   loginUser,
@@ -398,4 +409,5 @@ export {
   verifyResetPasswordOTP,
   updateUserProfile,
   checkPassword,
+  getUsersInfo,
 };
