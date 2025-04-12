@@ -2,13 +2,15 @@ import cloudinary from 'cloudinary';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import DataURIParser from 'datauri/parser';
-import { Express } from 'express';
+import { Parser } from 'json2csv';
+import { Express, Response } from 'express';
 import mongoose, { Query, Schema } from 'mongoose';
 import { ENVIRONMENT, ROLES } from '../constants.js';
 import morgan from 'morgan';
 import { ApiError } from './ApiError.js';
 import bcrypt from 'bcrypt';
 import crypto from 'crypto';
+import { DataItem, FieldDefinition } from '../types/index.js';
 
 export const uploadCloudinary = async (fileUri: DataURIParser) => {
   const mycloud = await cloudinary.v2.uploader.upload(
@@ -174,3 +176,43 @@ export function enumToArray<T extends Record<string, any>>(
 ): T[keyof T][] {
   return Object.values(enumObject) as T[keyof T][];
 }
+
+export const downloadResource = (
+  res: Response,
+  fileName: string,
+  fields: FieldDefinition[],
+  data: DataItem[]
+) => {
+  const json2csv = new Parser({ fields });
+  const csv = json2csv.parse(data);
+  res.header('Content-Type', 'text/csv');
+  res.attachment(fileName);
+  return res.send(csv);
+};
+
+export const extractAllFieldNames = (data: any): string[] => {
+  const keysSet = new Set<string>();
+
+  const extractKeys = (obj: any) => {
+    if (typeof obj === 'object' && obj !== null) {
+      for (const key in obj) {
+        if (obj.hasOwnProperty(key)) {
+          keysSet.add(key);
+          extractKeys(obj[key]); // Recursively extract keys from nested objects
+        }
+      }
+    }
+  };
+
+  if (Array.isArray(data)) {
+    data.forEach((item) => extractKeys(item));
+  } else {
+    extractKeys(data);
+  }
+
+  return [...keysSet];
+};
+
+export const extractFieldNames = (data: Record<string, any>[]): string[] => {
+  return data.length > 0 ? [...new Set(Object.keys(data[0]))] : [];
+};

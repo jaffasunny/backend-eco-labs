@@ -1,9 +1,10 @@
 import aggregatePaginate from 'mongoose-aggregate-paginate-v2';
 import mongoose, { PaginateModel, Schema } from 'mongoose';
 import { IProperty } from '../interface/property.interface.js';
-import { MODELS } from '../constants.js';
+import { deleteOperations, MODELS } from '../constants.js';
 import { Reports } from './reports.model.js';
 import { Bids } from './bids.model.js';
+import { handleDeleteMiddleware } from '../utils/utils.js';
 
 interface IPropertyDocument extends IProperty, Document {
   isNew: boolean; // Add Mongoose's isNew property
@@ -99,6 +100,16 @@ propertySchema.set('toObject', {
 
     return ret;
   },
+});
+
+deleteOperations.forEach((operation: any) => {
+  propertySchema.pre(
+    operation,
+    { document: false, query: true },
+    function (next) {
+      handleDeleteMiddleware.call(this, next, Property);
+    }
+  );
 });
 
 export const Property = mongoose.model<

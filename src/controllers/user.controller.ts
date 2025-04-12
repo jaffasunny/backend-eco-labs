@@ -6,7 +6,11 @@ import { ResetPasswordToken } from '../models/resetPasswordToken.model.js';
 import sendEmail from '../utils/sendMail.js';
 import { Request, Response } from 'express';
 import { RESEARCHER_STATUS, ROLES, RoleType } from '../constants.js';
-import { isPasswordCorrect } from '../utils/utils.js';
+import {
+  downloadResource,
+  extractFieldNames,
+  isPasswordCorrect,
+} from '../utils/utils.js';
 import { getUsersInfoService } from '../services/user.service.js';
 
 // Generate New Refresh Token and Access Token
@@ -389,9 +393,15 @@ const resetPassword = asyncHandler(async (req: Request, res: Response) => {
 });
 
 const getUsersInfo = asyncHandler(async (req: Request, res: Response) => {
-  const { role } = req.query;
+  const { role, isExport } = req.query;
 
   const users = await getUsersInfoService(role as RoleType);
+
+  if (isExport) {
+    const fieldNames = extractFieldNames(users);
+
+    return downloadResource(res, `${role}-users.csv`, fieldNames, users);
+  }
 
   return res
     .status(200)

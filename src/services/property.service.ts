@@ -281,10 +281,126 @@ const deletePropertyService = async (
 };
 
 const getPropertyService = async (propertyId: string) => {
-  const property = await Property.findById(toMongoId(propertyId)).populate({
-    path: 'landowner',
-    select: '_id name email phone status',
-  });
+  // const property = await Property.findById(toMongoId(propertyId)).populate({
+  //   path: 'landowner',
+  //   select: '_id name email phone status',
+  // });
+
+  const property = await Property.aggregate([
+    {
+      $match: {
+        _id: toMongoId(propertyId),
+      },
+    },
+    {
+      $lookup: {
+        from: MODELS.REPORTS,
+        let: { propertyId: '$_id' },
+        as: 'docs',
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $eq: ['$property', '$$propertyId'],
+              },
+              researcher: { $exists: false },
+            },
+          },
+          {
+            $project: {
+              _id: 1,
+              files: 1,
+              name: 1,
+              description: 1,
+              createdAt: 1,
+              updatedAt: 1,
+            },
+          },
+        ],
+      },
+    },
+    {
+      $lookup: {
+        from: MODELS.USERS,
+        localField: 'landowner',
+        foreignField: '_id',
+        as: 'landowner',
+        pipeline: [
+          {
+            $project: {
+              _id: 1,
+              name: 1,
+              email: 1,
+              phone: 1,
+            },
+          },
+        ],
+      },
+    },
+    {
+      $addFields: {
+        docs: { $arrayElemAt: ['$docs', 0] },
+        landowner: { $arrayElemAt: ['$landowner', 0] },
+      },
+    },
+    {
+      $project: {
+        _id: 1,
+        propertyName: 1,
+        propertyLocation: 1,
+        propertySize: 1,
+        landowner: 1,
+        docs: '$docs.files',
+      },
+    },
+    {
+      $lookup: {
+        from: MODELS.BIDS,
+        let: { propertyId: '$_id' },
+        pipeline: [
+          {
+            $match: {
+              $expr: { $eq: ['$property', '$$propertyId'] },
+            },
+          },
+          {
+            $lookup: {
+              from: MODELS.USERS,
+              localField: 'researcher',
+              foreignField: '_id',
+              as: 'researcher',
+              pipeline: [
+                {
+                  $project: {
+                    _id: 1,
+                    name: 1,
+                    email: 1,
+                  },
+                },
+              ],
+            },
+          },
+          {
+            $addFields: {
+              researcher: { $arrayElemAt: ['$researcher', 0] },
+            },
+          },
+          {
+            $project: {
+              _id: 1,
+              researcher: 1,
+              status: 1,
+              description: 1,
+              files: 1,
+              createdAt: 1,
+              updatedAt: 1,
+            },
+          },
+        ],
+        as: 'bids',
+      },
+    },
+  ]);
 
   return property;
 };
