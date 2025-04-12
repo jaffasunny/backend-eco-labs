@@ -232,13 +232,13 @@ const getProperty = asyncHandler(async (req: Request, res: Response) => {
 
   const property = await getPropertyService(propertyId);
 
-  if (!property) {
+  if (!property || !property.length) {
     return res.status(201).json(new ApiError(400, `Property not found!`));
   }
 
   res
     .status(200)
-    .json(new ApiResponse(200, property, 'Property fetched successfully'));
+    .json(new ApiResponse(200, property[0], 'Property fetched successfully'));
 });
 
 const paginatedProperties = asyncHandler(

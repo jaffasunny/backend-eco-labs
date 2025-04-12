@@ -29,3 +29,9 @@ export type TUploadedFileType = {
   size: number;
   filename: string;
 };
+
+// Define the type for the fields parameter
+export type FieldDefinition = string | { label: string; value: string };
+
+// Define the type for the data parameter
+export type DataItem = Record<string, any>;

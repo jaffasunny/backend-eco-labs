@@ -102,4 +102,5 @@ export const getUsersInfoValidation = [
 
       return true;
     }),
+  query('isExport').optional().isBoolean().withMessage('Invalid export type!'),
 ];
