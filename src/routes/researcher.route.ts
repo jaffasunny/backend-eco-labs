@@ -59,7 +59,6 @@ router
   .route('/:id')
   .get(
     authMiddleware,
-    roleCheck([ROLES.ADMIN, ROLES.RESEARCHER, ROLES.UNIVERSITY]),
     fetchResearcher
   )
   .patch(
