@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { ROLES } from '../../constants.js';
 import {
   addReports,
+  checkResearcherProposalStatus,
   updateReport,
 } from '../../controllers/researcher.controller.js';
 import { authMiddleware } from '../../middlewares/auth.middleware.js';
@@ -15,6 +16,8 @@ import {
 } from '../../utils/validations/researcherValidations.js';
 
 const router = Router();
+
+router.route('/:id').get(authMiddleware, checkResearcherProposalStatus);
 
 router
   .route('/reports')
