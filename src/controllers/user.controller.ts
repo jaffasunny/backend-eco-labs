@@ -10,8 +10,10 @@ import {
   downloadResource,
   extractFieldNames,
   isPasswordCorrect,
+  parseBooleanQueryParam,
 } from '../utils/utils.js';
 import { getUsersInfoService } from '../services/user.service.js';
+import { TSort } from '../types/index.js';
 
 // Generate New Refresh Token and Access Token
 const generateAccessAndRefreshTokens = async (userId: string) => {
@@ -393,9 +395,12 @@ const resetPassword = asyncHandler(async (req: Request, res: Response) => {
 });
 
 const getUsersInfo = asyncHandler(async (req: Request, res: Response) => {
-  const { role, isExport } = req.query;
+  const { role, isExport, sort } = req.query;
 
-  const users = await getUsersInfoService(role as RoleType);
+  const users = await getUsersInfoService(
+    role as RoleType,
+    sort as TSort
+  );
 
   if (isExport) {
     const fieldNames = extractFieldNames(users);

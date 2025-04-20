@@ -533,6 +533,36 @@ const archiveResearcher = asyncHandler(async (req: Request, res: Response) => {
     );
 });
 
+const checkResearcherProposalStatus = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { id: propertyId } = req.params;
+    const { researcherId } = req.query;
+
+    const [isValid] = await Bids.find({
+      property: toMongoId(propertyId),
+      researcher: toMongoId(researcherId as string),
+    });
+
+    if (!isValid) {
+      return res
+        .status(400)
+        .json(
+          new ApiError(400, `There is no bids for this property made by the researcher!`)
+        );
+    }
+
+    res
+      .status(200)
+      .json(
+        new ApiResponse(
+          200,
+          isValid,
+          'Researcher bid fetched!'
+        )
+      );
+  }
+);
+
 const deleteResearcher = asyncHandler(async (req: Request, res: Response) => {
   const { id: researcherId } = req.params;
 
@@ -795,4 +825,5 @@ export {
   removeBidResearch,
   addReports,
   updateReport,
+  checkResearcherProposalStatus,
 };

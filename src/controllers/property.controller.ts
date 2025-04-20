@@ -20,15 +20,24 @@ import { IPagination } from '../interface/index.interface.js';
 import { ROLES } from '../constants.js';
 
 const addProperty = asyncHandler(async (req: Request, res: Response) => {
-  const { propertyName, propertyLocation, propertySize, landownerId, files } =
-    req.body;
+  const {
+    propertyName,
+    propertyLocation,
+    propertySize,
+    landownerId,
+    files,
+    country,
+    startDate,
+  } = req.body;
 
   const property = await findOrUpdateProperty(
     propertyName,
     propertyLocation,
     propertySize,
     files,
-    landownerId
+    landownerId,
+    country,
+    startDate
   );
 
   if (!property) {

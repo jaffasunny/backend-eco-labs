@@ -82,7 +82,9 @@ const findOrUpdateProperty = async (
   propertyLocation: string,
   propertySize: string | undefined = undefined,
   files: Express.Multer.File[],
-  userId: mongoose.Schema.Types.ObjectId | string
+  userId: mongoose.Schema.Types.ObjectId | string,
+  country: string,
+  startDate: string
 ) => {
   let property = await Property.findOne({
     propertyName,
@@ -101,6 +103,8 @@ const findOrUpdateProperty = async (
         propertyName,
         propertyLocation,
         propertySize,
+        country,
+        startDate,
       });
 
       // Ensure validation is skipped for required fields during updates
@@ -115,6 +119,8 @@ const findOrUpdateProperty = async (
             propertyLocation,
             propertySize,
             landowner: userId,
+            country,
+            startDate,
           },
         ],
         { session }
@@ -674,6 +680,8 @@ const getAllPaginatedPropertiesService = async (
           { propertyName: { $regex: search, $options: 'i' } },
           { propertyLocation: { $regex: search, $options: 'i' } },
           { propertySize: { $regex: search, $options: 'i' } },
+          { startDate: { $regex: search, $options: 'i' } },
+          { country: { $regex: search, $options: 'i' } },
         ],
       }
     : {};
@@ -747,6 +755,8 @@ const getAllPaginatedPropertiesService = async (
         propertyLocation: 1,
         propertySize: 1,
         landowner: 1,
+        country: 1,
+        startDate: 1,
         docs: '$docs.files',
       },
     },

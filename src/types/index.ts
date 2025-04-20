@@ -35,3 +35,5 @@ export type FieldDefinition = string | { label: string; value: string };
 
 // Define the type for the data parameter
 export type DataItem = Record<string, any>;
+
+export type TSort = 'asc' | 'desc'
