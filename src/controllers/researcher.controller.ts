@@ -359,7 +359,10 @@ const addReports = asyncHandler(async (req: Request, res: Response) => {
     originalName: file.originalname,
   }));
 
-  if (researcherPermission.status !== PROPOSAL_STATUS.APPROVED) {
+  if (
+    !researcherPermission ||
+    researcherPermission.status !== PROPOSAL_STATUS.APPROVED
+  ) {
     return res
       .status(201)
       .json(
