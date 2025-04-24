@@ -5,8 +5,7 @@ import { FilesType } from '../types/index.js';
 
 export interface IProperty {
   propertyName: string;
-  propertyLocation: string;
-  country: string;
+  propertyLocation: string; 
   startDate: string;
   propertySize: string | undefined;
   landowner: mongoose.Schema.Types.ObjectId;
