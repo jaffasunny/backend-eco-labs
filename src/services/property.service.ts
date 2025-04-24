@@ -83,7 +83,6 @@ const findOrUpdateProperty = async (
   propertySize: string | undefined = undefined,
   files: Express.Multer.File[],
   userId: mongoose.Schema.Types.ObjectId | string,
-  country: string,
   startDate: string
 ) => {
   let property = await Property.findOne({
@@ -103,7 +102,6 @@ const findOrUpdateProperty = async (
         propertyName,
         propertyLocation,
         propertySize,
-        country,
         startDate,
       });
 
@@ -119,7 +117,6 @@ const findOrUpdateProperty = async (
             propertyLocation,
             propertySize,
             landowner: userId,
-            country,
             startDate,
           },
         ],
@@ -681,7 +678,6 @@ const getAllPaginatedPropertiesService = async (
           { propertyLocation: { $regex: search, $options: 'i' } },
           { propertySize: { $regex: search, $options: 'i' } },
           { startDate: { $regex: search, $options: 'i' } },
-          { country: { $regex: search, $options: 'i' } },
         ],
       }
     : {};
@@ -755,7 +751,6 @@ const getAllPaginatedPropertiesService = async (
         propertyLocation: 1,
         propertySize: 1,
         landowner: 1,
-        country: 1,
         startDate: 1,
         docs: '$docs.files',
       },

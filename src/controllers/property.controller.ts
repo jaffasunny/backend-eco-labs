@@ -25,8 +25,7 @@ const addProperty = asyncHandler(async (req: Request, res: Response) => {
     propertyLocation,
     propertySize,
     landownerId,
-    files,
-    country,
+    files, 
     startDate,
   } = req.body;
 
@@ -35,8 +34,7 @@ const addProperty = asyncHandler(async (req: Request, res: Response) => {
     propertyLocation,
     propertySize,
     files,
-    landownerId,
-    country,
+    landownerId, 
     startDate
   );
 

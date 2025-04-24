@@ -45,13 +45,9 @@ const propertySchema = new Schema<IPropertyDocument>(
       type: String, // Use String to accommodate flexible size formats (e.g., "500 sq ft")
       trim: true,
     },
-    country:{
-      type:String,
-      required:[true,'Country is required']
-    },
-    startDate:{
-      type:String,
-      required:[true,'Start Date is required']
+    startDate: {
+      type: String,
+      required: [true, 'Start Date is required'],
     },
     landowner: { type: mongoose.Schema.Types.ObjectId, ref: MODELS.USERS },
     assignedResearchers: [

@@ -4,9 +4,6 @@ import { User } from '../../models/user.model.js';
 import { findModel } from '../../services/index.service.js';
 import { ApiError } from '../ApiError.js';
 import { filesValidation } from './filesValidations.js';
-import countryList from 'country-list';
-
-const validCountries = countryList.getNames();
 
 export const addPropertyValidation = [
   body('propertyName')
@@ -35,19 +32,6 @@ export const addPropertyValidation = [
         return Promise.reject('User does not exist!');
       }
 
-      return true;
-    }),
-  body('country')
-    .notEmpty()
-    .withMessage('Country name is required')
-    .custom((value) => {
-      const lowerCaseValue = value.trim().toLowerCase();
-      const lowerCaseCountries = validCountries.map((country) =>
-        country.toLowerCase()
-      );
-      if (!lowerCaseCountries.includes(lowerCaseValue)) {
-        throw new Error('Invalid country name');
-      }
       return true;
     }),
   body('startDate')
