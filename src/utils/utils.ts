@@ -216,3 +216,22 @@ export const extractAllFieldNames = (data: any): string[] => {
 export const extractFieldNames = (data: Record<string, any>[]): string[] => {
   return data.length > 0 ? [...new Set(Object.keys(data[0]))] : [];
 };
+
+export const parseSortParameter = (
+  sort: string | undefined,
+  defaultField: string = 'createdAt',
+  defaultOrder: 1 | -1 = -1
+): { field: string; order: 1 | -1 } => {
+  let sortField = defaultField;
+  let sortOrder = defaultOrder;
+
+  if (sort) {
+    const [field, order] = sort.split(':'); // Expected format: "field:asc" or "field:desc"
+    if (field && (order === 'asc' || order === 'desc')) {
+      sortField = field;
+      sortOrder = order === 'asc' ? 1 : -1;
+    }
+  }
+
+  return { field: sortField, order: sortOrder };
+};

@@ -6,7 +6,7 @@ import { Bids } from '../models/bids.model.js';
 import { Reports } from '../models/reports.model.js';
 import { Property } from '../models/property.model.js';
 import { ApiError } from '../utils/ApiError.js';
-import { toMongoId } from '../utils/utils.js';
+import { parseSortParameter, toMongoId } from '../utils/utils.js';
 
 const findOrUpdatePropertySession = async (
   propertyName: string,
@@ -669,7 +669,8 @@ const getPaginatedResearcherReportsOnProperty = async (
 const getAllPaginatedPropertiesService = async (
   search: string,
   options: IPagination,
-  roles: string
+  roles: string,
+  sort: string
 ) => {
   const searchQuery = search
     ? {
@@ -684,12 +685,20 @@ const getAllPaginatedPropertiesService = async (
 
   const assignedFilter: Record<string, any> = {};
 
+  // Parse the sort parameter using the helper function
+  const { field: sortField, order: sortOrder } = parseSortParameter(sort);
+
   const aggregatedProperties = Property.aggregate([
     ...(roles !== ROLES.ADMIN ? [{ $match: { archived: false } }] : []),
     {
       $match: {
         ...searchQuery,
         ...assignedFilter,
+      },
+    },
+    {
+      $sort: {
+        [sortField]: sortOrder,
       },
     },
     {
