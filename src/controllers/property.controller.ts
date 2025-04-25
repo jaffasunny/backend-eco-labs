@@ -25,7 +25,7 @@ const addProperty = asyncHandler(async (req: Request, res: Response) => {
     propertyLocation,
     propertySize,
     landownerId,
-    files, 
+    files,
     startDate,
   } = req.body;
 
@@ -34,7 +34,7 @@ const addProperty = asyncHandler(async (req: Request, res: Response) => {
     propertyLocation,
     propertySize,
     files,
-    landownerId, 
+    landownerId,
     startDate
   );
 
@@ -250,7 +250,7 @@ const getProperty = asyncHandler(async (req: Request, res: Response) => {
 
 const paginatedProperties = asyncHandler(
   async (req: Request, res: Response) => {
-    const { page = 1, limit = 10, search = '' } = req.query;
+    const { page = 1, limit = 10, search = '', sort } = req.query;
     const { roles } = req.user;
 
     const options = {
@@ -261,7 +261,8 @@ const paginatedProperties = asyncHandler(
     const result = await getAllPaginatedPropertiesService(
       search as string,
       options,
-      roles
+      roles,
+      sort as string
     );
 
     const renamedResult = transformPaginatedResponse(result, 'properties');

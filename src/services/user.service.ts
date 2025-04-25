@@ -1,8 +1,11 @@
-import { RoleType } from './../constants.js';
+import { MODELS, RoleType } from './../constants.js';
 import { ClientSession } from 'mongoose';
 import { User } from '../models/user.model.js';
-import { ApiError } from '../utils/ApiError.js';
-import { TSort } from '../types/index.js';
+import {
+  parseSortParameter,
+  transformPaginatedResponse,
+} from '../utils/utils.js';
+import { getUsersInfoServiceParams } from '../interface/user.interface.js';
 
 const updateUserDetails = async (
   userId: string,
@@ -18,27 +21,67 @@ const updateUserDetails = async (
   await User.updateOne({ _id: userId }, { ...userDetails, roles }, { session });
 };
 
-const getUsersInfoService = async (
-  role: RoleType,
-  sort: TSort | null = null
-) => {
-  const query = User.find({
+const getUsersInfoService = async ({
+  role,
+  sort,
+  page,
+  limit,
+  search,
+}: getUsersInfoServiceParams): Promise<any> => {
+  const options = {
+    page,
+    limit,
+  };
+
+  const searchQuery = search
+    ? {
+        $or: [
+          { name: { $regex: search, $options: 'i' } },
+          { email: { $regex: search, $options: 'i' } },
+        ],
+      }
+    : {};
+
+  const matchQuery = {
+    ...searchQuery,
     roles: role,
-  });
+  };
 
-  if (sort === 'asc') {
-    query.sort({ name: 1 });
-  } else if (sort === 'desc') {
-    query.sort({ name: -1 });
-  }
+  // Parse the sort parameter using the helper function
+  const { field: sortField, order: sortOrder } = parseSortParameter(sort);
 
-  const users = await query;
+  const aggregatePipeline = [
+    {
+      $match: matchQuery,
+    },
+    {
+      $sort: {
+        [sortField]: sortOrder,
+      },
+    },
+    {
+      $lookup: {
+        from: MODELS.USERS,
+        localField: 'researcher',
+        foreignField: '_id',
+        as: 'researcher',
+      },
+    },
+    {
+      $project: {
+        _id: 1,
+        name: 1,
+        email: 1,
+        phone: 1,
+      },
+    },
+  ];
 
-  if (!users || !users.length) {
-    throw new ApiError(400, 'Users with the specified roles not found!');
-  }
+  const aggregateUsersData = User.aggregate(aggregatePipeline);
 
-  return users;
+  const result = await User.aggregatePaginate(aggregateUsersData, options);
+
+  return transformPaginatedResponse(result, MODELS.USERS);
 };
 
 export { updateUserDetails, getUsersInfoService };

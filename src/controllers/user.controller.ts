@@ -1,3 +1,4 @@
+import { getUsersInfoServiceParams } from './../interface/user.interface.js';
 import { ApiError } from '../utils/ApiError.js';
 import { ApiResponse } from '../utils/ApiResponse.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
@@ -99,6 +100,10 @@ const loginUser = asyncHandler(async (req: Request, res: Response) => {
 
   if (!user) {
     throw new ApiError(400, 'User with given email address doesnot exist!');
+  }
+
+  if (user.isArchived) {
+    throw new ApiError(400, 'User is archived!');
   }
 
   // compare password with hashed password
@@ -395,22 +400,28 @@ const resetPassword = asyncHandler(async (req: Request, res: Response) => {
 });
 
 const getUsersInfo = asyncHandler(async (req: Request, res: Response) => {
-  const { role, isExport, sort } = req.query;
+  const { role, isExport, page, limit, search = '', sort } = req.query;
 
-  const users = await getUsersInfoService(
-    role as RoleType,
-    sort as TSort
-  );
+  let updatedLimit = isExport ? Number.MAX_SAFE_INTEGER : Number(limit) || 10;
 
+  const usersData = await getUsersInfoService({
+    role: role?.toString() as RoleType,
+    sort: sort?.toString() as TSort,
+    limit: updatedLimit,
+    page: Number(page),
+    search: search?.toString(),
+  });
+  console.log({ usersData });
   if (isExport) {
-    const fieldNames = extractFieldNames(users);
+    const fieldNames = extractFieldNames(usersData.users);
+    console.log({ fieldNames, 'usersData.data': usersData.data });
 
-    return downloadResource(res, `${role}-users.csv`, fieldNames, users);
+    return downloadResource(res, `${role}-users.csv`, fieldNames, usersData.users);
   }
 
   return res
     .status(200)
-    .json(new ApiResponse(200, users, 'User fetched successfully!'));
+    .json(new ApiResponse(200, usersData, 'User fetched successfully!'));
 });
 
 export {
