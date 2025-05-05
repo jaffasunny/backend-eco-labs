@@ -14,6 +14,7 @@ const findOrUpdatePropertySession = async (
   propertySize: string | undefined = undefined,
   files: Express.Multer.File[] | null,
   userId: mongoose.Schema.Types.ObjectId | string,
+  startDate: string,
   session: ClientSession
 ) => {
   let property = await Property.findOne({
@@ -28,6 +29,7 @@ const findOrUpdatePropertySession = async (
       propertyName,
       propertyLocation,
       propertySize,
+      startDate,
     });
 
     // Ensure validation is skipped for required fields during updates
@@ -42,6 +44,7 @@ const findOrUpdatePropertySession = async (
           propertyLocation,
           propertySize,
           landowner: userId,
+          startDate,
         },
       ],
       { session }

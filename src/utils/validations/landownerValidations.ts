@@ -21,10 +21,36 @@ export const addLandownerValidation = [
     .trim()
     .notEmpty()
     .withMessage('Phone number is required')
-    .isNumeric()
-    .withMessage('Phone number must be numeric')
-    .isLength({ min: 10, max: 15 })
-    .withMessage('Phone number must be between 10 and 15 digits'),
+    .custom((value) => {
+      // Remove all non-digit characters
+      const digits = value.replace(/[^\d]/g, '');
+
+      // Check if the cleaned value contains only digits
+      if (!/^\d+$/.test(digits)) {
+        throw new Error('Phone number must be numeric');
+      }
+
+      // Validate length (10–15 digits)
+      if (digits.length < 10 || digits.length > 15) {
+        throw new Error('Phone number must be between 10 and 15 digits');
+      }
+
+      return true;
+    }),
+  body('startDate')
+    .notEmpty()
+    .withMessage('Start date is required')
+    .isISO8601()
+    .withMessage('Start date must be a valid ISO 8601 date (YYYY-MM-DD)')
+    .custom((value) => {
+      const currentDate = new Date();
+      const inputDate = new Date(value);
+
+      if (inputDate < currentDate) {
+        throw new Error('Start date cannot be in the past');
+      }
+      return true;
+    }),
 
   ...filesValidation,
 ];
