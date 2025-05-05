@@ -29,6 +29,7 @@ const addLandowner = asyncHandler(async (req: Request, res: Response) => {
     propertyLocation,
     propertySize,
     files,
+    startDate,
   } = req.body;
 
   // Start a transaction
@@ -57,6 +58,7 @@ const addLandowner = asyncHandler(async (req: Request, res: Response) => {
         propertySize,
         files,
         user._id,
+        startDate,
         session
       );
 
