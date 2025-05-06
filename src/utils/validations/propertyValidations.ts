@@ -34,20 +34,7 @@ export const addPropertyValidation = [
 
       return true;
     }),
-  body('startDate')
-    .notEmpty()
-    .withMessage('Start date is required')
-    .isISO8601()
-    .withMessage('Start date must be a valid ISO 8601 date (YYYY-MM-DD)')
-    .custom((value) => {
-      const currentDate = new Date();
-      const inputDate = new Date(value);
-
-      if (inputDate < currentDate) {
-        throw new Error('Start date cannot be in the past');
-      }
-      return true;
-    }),
+  body('startDate').notEmpty().withMessage('Start date is required'),
 
   // Custom validation for files (if needed)
   ...filesValidation,
