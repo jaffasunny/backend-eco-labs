@@ -10,7 +10,7 @@ export const validateFiles: CustomValidator = (value, { req }) => {
       'image/png',
       'image/gif',
     ];
-    const maxSize = 2 * 1024 * 1024; // 2MB per file
+    const maxSize = 10 * 1024 * 1024; // 2MB per file
     for (const file of req.files) {
       if (!allowedTypes.includes(file.mimetype)) {
         throw new Error(
