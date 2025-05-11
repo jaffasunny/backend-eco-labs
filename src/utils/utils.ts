@@ -141,6 +141,9 @@ export const handleDeleteMiddleware = async function <
     const documents = await model.find(queryFilter);
 
     for (const document of documents) {
+      if (!document.files) continue;
+      if (!Array.isArray(document.files)) document.files = [document.files];
+
       for (const file of document.files) {
         const publicId = extractPublicIdFromUrl(file.url); // Extract public ID
         if (publicId) {
