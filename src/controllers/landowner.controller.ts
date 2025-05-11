@@ -294,9 +294,6 @@ const deleteLandowner = asyncHandler(async (req: Request, res: Response) => {
     if (properties.length > 0) {
       const propertyIds = properties.map((property) => property._id);
 
-      // Delete all related reports
-      await Bids.deleteMany({ property: { $in: propertyIds } }, session);
-
       // Delete properties
       await Property.deleteMany({ _id: { $in: propertyIds } }, session);
     }

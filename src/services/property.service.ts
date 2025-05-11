@@ -56,7 +56,7 @@ const findOrUpdatePropertySession = async (
   // Check if property files already exist
   const existingFiles = await Reports.findOne({
     property: property._id,
-  }).session(session);
+  });
 
   // Create property files only if they don't already exist
   if (!existingFiles && files) {

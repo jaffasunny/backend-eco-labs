@@ -71,7 +71,9 @@ propertySchema.pre('deleteOne', { document: true }, async function (next) {
 
   try {
     // Delete all reports associated with this property
-    await Reports.deleteMany({ property: propertyId });
+    await Reports.deleteMany({
+      property: propertyId,
+    });
 
     // Delete all bids associated with this property
     await Bids.deleteMany({ property: propertyId });
@@ -110,8 +112,22 @@ deleteOperations.forEach((operation: any) => {
   propertySchema.pre(
     operation,
     { document: false, query: true },
-    function (next) {
-      handleDeleteMiddleware.call(this, next, Property);
+    async function (
+      this: mongoose.Query<any, any>,
+      next: (err?: Error) => void
+    ) {
+      // const propertyId = this._id;
+      const queryFilter = this.getFilter();
+
+      // Find all documents that will be deleted
+      const docs = await Property.find(queryFilter).lean();
+
+      const propertyIds = docs.map((doc) => doc._id);
+
+      await Reports.deleteMany({ property: { $in: propertyIds } });
+      await Bids.deleteMany({ property: { $in: propertyIds } });
+
+      await handleDeleteMiddleware.call(this, next, Property);
     }
   );
 });
