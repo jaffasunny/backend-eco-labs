@@ -194,8 +194,6 @@ const landownerAggregatePaginationService = async ({
         createdAt: 1,
       },
     },
-    { $skip: (page - 1) * limit },
-    { $limit: limit },
   ];
 
   const aggregateLandownerData = User.aggregate(aggregatePipeline);
@@ -279,8 +277,6 @@ const universityAggregatePaginationService = async ({
         createdAt: 1,
       },
     },
-    { $skip: (page - 1) * limit },
-    { $limit: limit },
   ];
 
   const aggregateLandownerData = User.aggregate(aggregatePipeline);
@@ -471,8 +467,6 @@ const getPaginatedUniversityResearchersService = async ({
         createdAt: 1,
       },
     },
-    { $skip: (page - 1) * limit },
-    { $limit: limit },
   ];
 
   const aggregateLandownerData = User.aggregate(aggregatePipeline);
