@@ -411,12 +411,16 @@ const getUsersInfo = asyncHandler(async (req: Request, res: Response) => {
     page: Number(page),
     search: search?.toString(),
   });
-  console.log({ usersData });
+
   if (isExport) {
     const fieldNames = extractFieldNames(usersData.users);
-    console.log({ fieldNames, 'usersData.data': usersData.data });
 
-    return downloadResource(res, `${role}-users.csv`, fieldNames, usersData.users);
+    return downloadResource(
+      res,
+      `${role}-users.csv`,
+      fieldNames,
+      usersData.users
+    );
   }
 
   return res

@@ -18,6 +18,7 @@ import {
 } from '../services/landowner.service.js';
 import { Bids } from '../models/bids.model.js';
 import { Property } from '../models/property.model.js';
+import { TSort } from '../types/index.js';
 
 // Add Landowner by email
 const addLandowner = asyncHandler(async (req: Request, res: Response) => {
@@ -149,6 +150,7 @@ const paginatedLandownerData = asyncHandler(
       search = '',
       isArchived = null,
       assigned = null,
+      sort,
     } = req.query;
 
     const { roles } = req.user;
@@ -160,6 +162,7 @@ const paginatedLandownerData = asyncHandler(
       page: Number(page),
       search: search.toString(),
       roles,
+      sort: sort?.toString() as TSort,
     });
 
     res
@@ -196,6 +199,7 @@ const paginatedPropertyData = asyncHandler(
       search = '',
       assigned = null,
       landownerId,
+      sort,
     } = req.query;
     const { _id: userId, roles } = req.user;
 
@@ -206,6 +210,7 @@ const paginatedPropertyData = asyncHandler(
       search: search.toString(),
       userId: landownerId ? landownerId : userId,
       roles,
+      sort: sort?.toString() as TSort,
     });
 
     res

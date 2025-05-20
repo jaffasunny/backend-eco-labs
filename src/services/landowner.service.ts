@@ -3,6 +3,7 @@ import { CONSTANTS, MODELS, ResearchStatusType, ROLES } from '../constants.js';
 import { User } from '../models/user.model.js';
 import {
   createDynamicFilter,
+  parseSortParameter,
   toMongoId,
   transformPaginatedResponse,
 } from '../utils/utils.js';
@@ -75,6 +76,7 @@ const landownerAggregatePaginationService = async ({
   isArchived,
   assigned,
   roles,
+  sort,
 }: IlandownerAggregatePaginationServiceParams): Promise<any> => {
   const assignedFilter = createDynamicFilter({ assigned, isArchived });
 
@@ -82,6 +84,9 @@ const landownerAggregatePaginationService = async ({
     page,
     limit,
   };
+
+  // Parse the sort parameter using the helper function
+  const { field: sortField, order: sortOrder } = parseSortParameter(sort);
 
   const searchQuery = search
     ? {
@@ -107,6 +112,11 @@ const landownerAggregatePaginationService = async ({
 
   const aggregatePipeline = [
     { $match: filters },
+    {
+      $sort: {
+        [sortField]: sortOrder,
+      },
+    },
     {
       $lookup: {
         from: MODELS.PROPERTIES,
@@ -293,6 +303,7 @@ const landownerPropertyAggregatePaginationService = async ({
   assigned,
   userId,
   roles,
+  sort,
 }: IlandownerPropertyAggregatePaginationServiceParams): Promise<any> => {
   const assignedFilter = createDynamicFilter({ assigned });
 
@@ -300,6 +311,9 @@ const landownerPropertyAggregatePaginationService = async ({
     page,
     limit,
   };
+
+  // Parse the sort parameter using the helper function
+  const { field: sortField, order: sortOrder } = parseSortParameter(sort);
 
   const searchQuery = search
     ? {
@@ -327,6 +341,11 @@ const landownerPropertyAggregatePaginationService = async ({
 
   const aggregatePipeline = [
     { $match: matchQuery },
+    {
+      $sort: {
+        [sortField]: sortOrder,
+      },
+    },
     {
       $lookup: {
         from: MODELS.REPORTS,
