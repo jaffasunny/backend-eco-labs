@@ -15,9 +15,10 @@ import {
   getPropertyService,
   toggleArchivePropertyService,
 } from '../services/property.service.js';
-import { transformPaginatedResponse } from '../utils/utils.js';
+import { toMongoId, transformPaginatedResponse } from '../utils/utils.js';
 import { IPagination } from '../interface/index.interface.js';
-import { ROLES } from '../constants.js';
+import { PROPOSAL_STATUS, ROLES } from '../constants.js';
+import { Bids } from '../models/bids.model.js';
 
 const addProperty = asyncHandler(async (req: Request, res: Response) => {
   const {
@@ -74,6 +75,34 @@ const removeFiles = asyncHandler(async (req: Request, res: Response) => {
 const assignResearcherProperty = asyncHandler(
   async (req: Request, res: Response) => {
     const { propertyId, researcherId } = req.body;
+    const { roles, _id } = req.user;
+
+    if (roles === ROLES.ADMIN) {
+      const [findBid] = await Bids.find({
+        researcher: toMongoId(_id),
+        property: propertyId,
+      });
+
+      if (!findBid) {
+        const createdBid = await Bids.create({
+          property: propertyId,
+          researcher: toMongoId(_id),
+          status: PROPOSAL_STATUS.APPROVED,
+          description: 'This is a bid created by admin for researcher',
+        });
+
+        if (!createdBid) {
+          return res
+            .status(201)
+            .json(
+              new ApiError(
+                400,
+                `Something went wrong while creating admins bid!`
+              )
+            );
+        }
+      }
+    }
 
     const assignedResearcherProperty = await assignResearcherPropertyService(
       propertyId,
