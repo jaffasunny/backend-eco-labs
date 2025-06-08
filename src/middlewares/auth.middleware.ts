@@ -2,7 +2,6 @@ import jwt from 'jsonwebtoken';
 import { User } from '../models/user.model.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { ApiError } from '../utils/ApiError.js';
-import { ApiResponse } from '../utils/ApiResponse.js';
 import { Request, Response, NextFunction } from 'express';
 import { JwtPayload } from '../types/index.js';
 
@@ -27,9 +26,7 @@ const authMiddleware = asyncHandler(
         process.env.ACCESS_TOKEN_SECRET as string
       ) as { _id: string };
 
-      const user = await User.findById(decoded._id).select(
-        '-password -refreshToken'
-      );
+      const user = await User.findById(decoded._id).select('-password');
 
       if (!user) {
         throw new ApiError(404, 'User not found');
