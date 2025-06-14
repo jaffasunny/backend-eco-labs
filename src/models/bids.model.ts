@@ -41,6 +41,8 @@ const bidsSchema = new Schema<IBids>(
   }
 );
 
+bidsSchema.index({ property: 1, status: 1, researcher: 1 }); // Compound index for property and status
+
 bidsSchema.plugin(aggregatePaginate);
 
 deleteOperations.forEach((operation: any) => {

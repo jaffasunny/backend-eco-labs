@@ -65,6 +65,34 @@ const paginatedResearchers = asyncHandler(
         $match: matchQuery,
       },
       {
+        $addFields: {
+          statusPriority: {
+            $switch: {
+              branches: [
+                {
+                  case: { $eq: ['$status', RESEARCHER_STATUS.PENDING] },
+                  then: 1,
+                },
+                {
+                  case: { $eq: ['$status', RESEARCHER_STATUS.APPROVED] },
+                  then: 2,
+                },
+                {
+                  case: { $eq: ['$status', RESEARCHER_STATUS.REJECTED] },
+                  then: 3,
+                },
+              ],
+              default: 4,
+            },
+          },
+        },
+      },
+      {
+        $sort: {
+          statusPriority: 1
+        }
+      },
+      {
         $lookup: {
           from: MODELS.ASSIGNED_RESEARCH_PROPERTIES,
           let: { researcherId: '$_id' },
@@ -547,19 +575,16 @@ const checkResearcherProposalStatus = asyncHandler(
       return res
         .status(400)
         .json(
-          new ApiError(400, `There is no bids for this property made by the researcher!`)
+          new ApiError(
+            400,
+            `There is no bids for this property made by the researcher!`
+          )
         );
     }
 
     res
       .status(200)
-      .json(
-        new ApiResponse(
-          200,
-          isValid,
-          'Researcher bid fetched!'
-        )
-      );
+      .json(new ApiResponse(200, isValid, 'Researcher bid fetched!'));
   }
 );
 

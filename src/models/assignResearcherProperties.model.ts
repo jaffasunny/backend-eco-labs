@@ -16,6 +16,8 @@ const assignPropertyProperties = new Schema<IAssignResearcherProperty>(
   }
 );
 
+assignPropertyProperties.index({ property: 1, researchers: 1 }); // Compound index for property and researchers
+
 assignPropertyProperties.plugin(aggregatePaginate);
 
 export const AssignResearcherProperty = mongoose.model<

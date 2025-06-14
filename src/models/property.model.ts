@@ -66,6 +66,8 @@ const propertySchema = new Schema<IPropertyDocument>(
   }
 );
 
+propertySchema.index({ archived: 1, landowner: 1 }); // Compound index for archived and landowner
+
 propertySchema.pre('deleteOne', { document: true }, async function (next) {
   const propertyId = this._id;
 

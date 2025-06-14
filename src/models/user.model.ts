@@ -159,6 +159,9 @@ userSchema.set('toObject', {
   },
 });
 
+userSchema.index({ roles: 1, status: 1 }); // Compound index for roles and status
+userSchema.index({ university: 1, isArchived: 1 }); // Compound index for university and isArchived
+
 userSchema.plugin(aggregatePaginate);
 
 export const User = mongoose.model<IUser, PaginateModel<IUser>>(
