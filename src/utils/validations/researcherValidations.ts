@@ -26,8 +26,7 @@ export const placeBidResearchValidations = [
       PROPOSAL_STATUS.REJECTED,
     ])
     .withMessage(
-      `Invalid status. Must be ${
-        (PROPOSAL_STATUS.APPROVED,
+      `Invalid status. Must be ${(PROPOSAL_STATUS.APPROVED,
         PROPOSAL_STATUS.PENDING,
         PROPOSAL_STATUS.REJECTED)
       }`
@@ -77,8 +76,7 @@ export const changeResearchersStatusValidations = [
       RESEARCHER_STATUS.REJECTED,
     ])
     .withMessage(
-      `Invalid status. Must be ${
-        (RESEARCHER_STATUS.APPROVED,
+      `Invalid status. Must be ${(RESEARCHER_STATUS.APPROVED,
         RESEARCHER_STATUS.PENDING,
         RESEARCHER_STATUS.REJECTED)
       }`
@@ -124,10 +122,9 @@ export const updateResearcherValidation = [
   body('phone')
     .optional()
     .trim()
-    .isNumeric()
-    .withMessage('Phone number must be numeric')
-    .isLength({ min: 10, max: 15 })
-    .withMessage('Phone number must be between 10 and 15 digits'),
+    .isLength({ min: 9, max: 15 })
+    .withMessage('Phone number must be between 9 and 15 digits'),
+
 ];
 
 export const addResearcherValidation = [
@@ -148,10 +145,8 @@ export const addResearcherValidation = [
     .trim()
     .notEmpty()
     .withMessage('Phone number is required')
-    .isNumeric()
-    .withMessage('Phone number must be numeric')
-    .isLength({ min: 10, max: 15 })
-    .withMessage('Phone number must be between 10 and 15 digits'),
+    .isLength({ min: 9, max: 15 })
+    .withMessage('Phone number must be between 9 and 15 digits'),
   body('university')
     .trim()
     .notEmpty()

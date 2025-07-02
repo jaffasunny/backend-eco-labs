@@ -51,7 +51,6 @@ const reportSchema = new Schema<IReports>(
     timestamps: true,
   }
 );
-
 reportSchema.index({ property: 1, archived: 1, researcher: 1 }); // Compound index for property and archived
 
 reportSchema.plugin(aggregatePaginate);

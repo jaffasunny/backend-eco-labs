@@ -21,7 +21,7 @@ import {
 
 // Add University by email
 const addUniversity = asyncHandler(async (req: Request, res: Response) => {
-  const { name, email, phone }: IAddUniversityParams = req.body;
+  const { name, email, phone ,contactName}: IAddUniversityParams = req.body;
 
   // Start a transaction
   const session = await mongoose.startSession();
@@ -30,17 +30,18 @@ const addUniversity = asyncHandler(async (req: Request, res: Response) => {
   // Generate system-generated password
   const password = generatePassword();
 
-  const landownerData = {
+  const universityData = {
     name,
     email,
     phone,
     password,
+    contactName,
     roles: ROLES.UNIVERSITY,
   };
 
   // Send the password to the user's email
   try {
-    const user = await findOrUpdateUser(landownerData, session);
+    const user = await findOrUpdateUser(universityData, session);
 
     // Commit transaction
     await session.commitTransaction();
@@ -73,7 +74,7 @@ const addUniversity = asyncHandler(async (req: Request, res: Response) => {
 
 const updateUniversity = asyncHandler(async (req: Request, res: Response) => {
   const { id: userId } = req.params;
-  const { name, email, password, phone }: IUpdateUniversity = req.body;
+  const { name, email, password, phone,contactName }: IUpdateUniversity = req.body;
 
   // Start a transaction
   const session = await mongoose.startSession();
@@ -90,7 +91,7 @@ const updateUniversity = asyncHandler(async (req: Request, res: Response) => {
     await updateUserDetails(
       userId,
       ROLES.UNIVERSITY,
-      { name, email, password, phone },
+      { name, email, password, phone ,contactName},
       session
     );
 

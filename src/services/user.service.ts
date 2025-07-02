@@ -15,11 +15,18 @@ const updateUserDetails = async (
     email: string;
     password: string;
     phone: string;
+    //new fields added
+    contactName:string;
+    universityName:string;
+    advisor:string
   }>,
   session: ClientSession
 ) => {
   await User.updateOne({ _id: userId }, { ...userDetails, roles }, { session });
 };
+
+
+
 
 const getUsersInfoService = async ({
   role,

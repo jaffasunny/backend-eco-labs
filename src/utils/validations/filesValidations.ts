@@ -19,7 +19,7 @@ export const validateFiles: CustomValidator = (value, { req }) => {
       }
       if (file.size > maxSize) {
         throw new Error(
-          `File size for ${file.originalname} exceeds the 2MB limit.`
+          `File size for ${file.originalname} exceeds the 10MB limit.`
         );
       }
     }

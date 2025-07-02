@@ -23,6 +23,7 @@ const findOrUpdateUser = async (
     email: string;
     phone: string | undefined;
     password: string;
+    contactName?: string;
     status?: ResearchStatusType;
     roles: ROLES;
     university?: Schema.Types.ObjectId;
@@ -56,6 +57,7 @@ const findOrUpdateUser = async (
           email: userData.email,
           phone: userData.phone,
           password: userData.password,
+          contactName: userData.contactName,
           roles: userData.roles,
           status: userData.status,
           university: userData.university,
@@ -282,6 +284,7 @@ const universityAggregatePaginationService = async ({
         name: 1,
         email: 1,
         phone: 1,
+        contactName:1,
         researchers: 1,
         isArchived: 1,
         createdAt: 1,

@@ -40,7 +40,6 @@ const bidsSchema = new Schema<IBids>(
     timestamps: true,
   }
 );
-
 bidsSchema.index({ property: 1, status: 1, researcher: 1 }); // Compound index for property and status
 
 bidsSchema.plugin(aggregatePaginate);

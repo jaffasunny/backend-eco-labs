@@ -79,10 +79,8 @@ export const updateProfileValidation = [
   body('phone')
     .optional()
     .trim()
-    .isNumeric()
-    .withMessage('Phone number must be numeric')
-    .isLength({ min: 10, max: 15 })
-    .withMessage('Phone number must be between 10 and 15 digits'),
+    .isLength({ min: 9, max: 15 })
+    .withMessage('Phone number must be between 9 and 15 digits'),
 ];
 
 export const getUsersInfoValidation = [

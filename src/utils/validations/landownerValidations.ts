@@ -31,7 +31,7 @@ export const addLandownerValidation = [
       }
 
       // Validate length (10–15 digits)
-      if (digits.length < 10 || digits.length > 15) {
+      if (digits.length < 9 || digits.length > 15) {
         throw new Error('Phone number must be between 10 and 15 digits');
       }
 
@@ -75,12 +75,9 @@ export const updateLandownerValidation = [
     .withMessage('Valid email is required')
     .normalizeEmail(),
   body('phone')
-    .optional()
     .trim()
-    .isNumeric()
-    .withMessage('Phone number must be numeric')
-    .isLength({ min: 10, max: 15 })
-    .withMessage('Phone number must be between 10 and 15 digits'),
+    .notEmpty()
+    .withMessage('Phone number is required'),
   body('description')
     .optional()
     .trim()
@@ -143,8 +140,7 @@ export const changeResearcherBidStatusValidation = [
       PROPOSAL_STATUS.REJECTED,
     ])
     .withMessage(
-      `Invalid status. Must be ${
-        (PROPOSAL_STATUS.APPROVED,
+      `Invalid status. Must be ${(PROPOSAL_STATUS.APPROVED,
         PROPOSAL_STATUS.PENDING,
         PROPOSAL_STATUS.REJECTED)
       }`

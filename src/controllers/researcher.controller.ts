@@ -26,7 +26,13 @@ import { TUploadedFileType } from '../types/index.js';
 
 const paginatedResearchers = asyncHandler(
   async (req: Request, res: Response) => {
-    const { page = 1, limit = 10, search = '', isApproved = null } = req.query;
+    const {
+      page = 1,
+      limit = 10,
+      search = '',
+      isApproved = null,
+      status = '', // this comes as a string from query
+    } = req.query;
 
     const assignedFilter: Record<string, any> = {};
 
@@ -34,36 +40,35 @@ const paginatedResearchers = asyncHandler(
       assignedFilter.isApproved = isApproved === 'true';
     }
 
+    if (status && ['approved', 'pending', 'rejected'].includes(status as string)) {
+      assignedFilter.status = status;
+    }
+
     assignedFilter.roles = 'researcher';
 
     const options = {
-      page,
-      limit,
+      page: Number(page),
+      limit: Number(limit),
     };
 
     const searchQuery = search
       ? {
-          $or: [
-            { name: { $regex: search, $options: 'i' } },
-            { email: { $regex: search, $options: 'i' } },
-            { phone: { $regex: search, $options: 'i' } },
-          ],
-        }
+        $or: [
+          { name: { $regex: search, $options: 'i' } },
+          { email: { $regex: search, $options: 'i' } },
+          { phone: { $regex: search, $options: 'i' } },
+        ],
+      }
       : {};
 
-    const matchQuery = assignedFilter
-      ? {
-          ...searchQuery,
-          ...assignedFilter,
-        }
-      : {
-          ...searchQuery,
-        };
+    const matchQuery = {
+      ...searchQuery,
+      ...assignedFilter,
+    };
 
     const aggregateResearcherData = User.aggregate([
-      {
-        $match: matchQuery,
-      },
+      { $match: matchQuery },
+
       {
         $addFields: {
           statusPriority: {
@@ -71,27 +76,21 @@ const paginatedResearchers = asyncHandler(
               branches: [
                 {
                   case: { $eq: ['$status', RESEARCHER_STATUS.PENDING] },
-                  then: 1,
-                },
-                {
-                  case: { $eq: ['$status', RESEARCHER_STATUS.APPROVED] },
-                  then: 2,
-                },
-                {
-                  case: { $eq: ['$status', RESEARCHER_STATUS.REJECTED] },
-                  then: 3,
+                  then: 0,
                 },
               ],
-              default: 4,
+              default: 1, // All others
             },
           },
         },
       },
       {
         $sort: {
-          statusPriority: 1
-        }
+          statusPriority: 1, // pending on top
+          name: 1,           // alphabetical A-Z
+        },
       },
+
       {
         $lookup: {
           from: MODELS.ASSIGNED_RESEARCH_PROPERTIES,
@@ -110,19 +109,14 @@ const paginatedResearchers = asyncHandler(
                 count: { $sum: 1 },
               },
             },
-            {
-              $project: {
-                _id: 0,
-                count: 1,
-              },
-            },
+            { $project: { _id: 0, count: 1 } },
           ],
           as: 'assigned',
         },
       },
       {
         $addFields: {
-          assigned: { $arrayElemAt: ['$assigned.count', 0] },
+          assigned: { $ifNull: [{ $arrayElemAt: ['$assigned.count', 0] }, 0] },
         },
       },
       {
@@ -182,6 +176,8 @@ const paginatedResearchers = asyncHandler(
           name: 1,
           email: 1,
           advisor: 1,
+          universityName: 1,
+          isArchived: 1,
           phone: 1,
           status: 1,
           assigned: 1,
@@ -193,26 +189,16 @@ const paginatedResearchers = asyncHandler(
       },
     ]);
 
-    const result = await User.aggregatePaginate(
-      aggregateResearcherData,
-      options
-    );
+    const result = await User.aggregatePaginate(aggregateResearcherData, options);
 
     const renamedResult = transformPaginatedResponse(result, 'researchers');
 
-    res
-      .status(200)
-      .json(
-        new ApiResponse(
-          200,
-          renamedResult,
-          'Paginated data fetched successfully'
-        )
-      );
+    res.status(200).json(
+      new ApiResponse(200, renamedResult, 'Paginated data fetched successfully')
+    );
   }
 );
 
-// fix in the end
 const paginatedResearcherReportData = asyncHandler(
   async (req: Request, res: Response) => {
     const { page = 1, limit = 10, search = '' } = req.query;
@@ -225,15 +211,15 @@ const paginatedResearcherReportData = asyncHandler(
 
     const searchQuery = search
       ? {
-          $or: [
-            { landownerName: { $regex: search, $options: 'i' } },
-            { landownerEmail: { $regex: search, $options: 'i' } },
-            { reportName: { $regex: search, $options: 'i' } },
-            {
-              reportUrl: { $regex: search, $options: 'i' },
-            },
-          ],
-        }
+        $or: [
+          { landownerName: { $regex: search, $options: 'i' } },
+          { landownerEmail: { $regex: search, $options: 'i' } },
+          { reportName: { $regex: search, $options: 'i' } },
+          {
+            reportUrl: { $regex: search, $options: 'i' },
+          },
+        ],
+      }
       : {};
 
     const aggregateResearcherData = Bids.aggregate([
@@ -257,6 +243,8 @@ const paginatedResearcherReportData = asyncHandler(
                 email: 1,
                 phone: 1,
                 advisor: 1,
+                universityName: 1,
+                isArchived: 1,
               },
             },
           ],
@@ -575,16 +563,19 @@ const checkResearcherProposalStatus = asyncHandler(
       return res
         .status(400)
         .json(
-          new ApiError(
-            400,
-            `There is no bids for this property made by the researcher!`
-          )
+          new ApiError(400, `There is no bids for this property made by the researcher!`)
         );
     }
 
     res
       .status(200)
-      .json(new ApiResponse(200, isValid, 'Researcher bid fetched!'));
+      .json(
+        new ApiResponse(
+          200,
+          isValid,
+          'Researcher bid fetched!'
+        )
+      );
   }
 );
 
@@ -639,7 +630,7 @@ const updateResearcher = asyncHandler(async (req: Request, res: Response) => {
 
 // Add Landowner by email
 const addResearcher = asyncHandler(async (req: Request, res: Response) => {
-  const { name, email, phone, university, advisor }: IUpdateResearcher =
+  const { name, email, phone, university, advisor, isArchived, universityName }: IUpdateResearcher =
     req.body;
 
   // Start a transaction
@@ -648,7 +639,6 @@ const addResearcher = asyncHandler(async (req: Request, res: Response) => {
 
   // Generate system-generated password
   const password = generatePassword();
-
   const researcherData = {
     name,
     email,
@@ -658,6 +648,8 @@ const addResearcher = asyncHandler(async (req: Request, res: Response) => {
     status: RESEARCHER_STATUS.APPROVED,
     university,
     advisor,
+    universityName,
+    isArchived
   };
 
   // Send the password to the user's email
@@ -747,7 +739,8 @@ const fetchResearcher = asyncHandler(async (req: Request, res: Response) => {
               _id: 1,
               name: 1,
               email: 1,
-              phone: 1,
+              phone: 1
+
             },
           },
         ],
@@ -817,6 +810,8 @@ const fetchResearcher = asyncHandler(async (req: Request, res: Response) => {
         email: 1,
         phone: 1,
         advisor: 1,
+        universityName: 1,
+        isArchived: 1,
         university: 1,
         assigned: 1,
         pending: 1,

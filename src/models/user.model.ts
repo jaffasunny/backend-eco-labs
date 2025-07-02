@@ -41,6 +41,12 @@ const userSchema = new Schema<IUser>(
     advisor: {
       type: String,
     },
+    universityName: {
+      type: String,
+    },
+    contactName: {
+      type: String,
+    },
     university: { type: mongoose.Schema.Types.ObjectId, ref: MODELS.USERS },
     status: {
       type: String,
@@ -158,7 +164,6 @@ userSchema.set('toObject', {
     return ret;
   },
 });
-
 userSchema.index({ roles: 1, status: 1 }); // Compound index for roles and status
 userSchema.index({ university: 1, isArchived: 1 }); // Compound index for university and isArchived
 

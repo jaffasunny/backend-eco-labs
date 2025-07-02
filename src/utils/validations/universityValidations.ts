@@ -19,10 +19,14 @@ export const addUniversityValidation = [
     .trim()
     .notEmpty()
     .withMessage('Phone number is required')
-    .isNumeric()
-    .withMessage('Phone number must be numeric')
-    .isLength({ min: 10, max: 15 })
-    .withMessage('Phone number must be between 10 and 15 digits'),
+    .isLength({ min: 9, max: 15 })
+    .withMessage('Phone number must be between 9 and 15 digits'),
+  body('contactName')
+    .trim()
+    .notEmpty()
+    .withMessage('Contact Name is required')
+    .isLength({ min: 3 })
+    .withMessage('Contact Name must be at least 3 characters long'),
 ];
 
 export const updateUniversityValidation = [
@@ -56,10 +60,8 @@ export const updateUniversityValidation = [
   body('phone')
     .optional()
     .trim()
-    .isNumeric()
-    .withMessage('Phone number must be numeric')
-    .isLength({ min: 10, max: 15 })
-    .withMessage('Phone number must be between 10 and 15 digits'),
+    .isLength({ min: 9, max: 15 })
+    .withMessage('Phone number must be between 9 and 15 digits'),
   body('description')
     .optional()
     .trim()
