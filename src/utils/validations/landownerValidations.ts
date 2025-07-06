@@ -155,3 +155,31 @@ export const paginatedPropertyBidsValidation = [
     .isMongoId()
     .withMessage('Property Id must be a mongo id'),
 ];
+
+export const updateLandownerNoteValidation = [
+  param('id')
+    .notEmpty()
+    .withMessage('Landowner Id is required!')
+    .isMongoId()
+    .withMessage('Landowner Id must be a valid MongoDB ObjectId.')
+    .custom(async (value) => {
+      const { User } = await import('../../models/user.model.js');
+      const landowner = await User.findById(value);
+
+      if (!landowner) {
+        return Promise.reject('Landowner not found!');
+      }
+
+      if (landowner.roles !== 'landowner') {
+        return Promise.reject('User is not a landowner!');
+      }
+
+      return true;
+    }),
+  body('note')
+    .notEmpty()
+    .withMessage('Note is required!')
+    .trim()
+    .isLength({ min: 1, max: 1000 })
+    .withMessage('Note must be between 1 and 1000 characters long'),
+];
