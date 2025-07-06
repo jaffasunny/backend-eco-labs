@@ -57,6 +57,13 @@ const userSchema = new Schema<IUser>(
       ],
       default: RESEARCHER_STATUS.PENDING,
     },
+    note: {
+      type: String,
+    },
+    noteUpdatedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: MODELS.USERS,
+    },
     refreshTokens: [{ token: String }],
   },
   {
@@ -73,6 +80,20 @@ userSchema.pre<IUser>('save', async function (next) {
     if (!this.isModified('password')) return next();
 
     this.password = await bcrypt.hash(this.password, saltRounds);
+
+    // Only check for note updates if this is an update operation (not a new document) and user is landowner
+    if (!(this as any).isNew && (this as any).isModified('note') && this.roles === ROLES.LANDOWNER) {
+      // Get the user from the request context
+      // This will be set by the controller before calling save()
+      const user = (this as any).__user;
+      
+      if (!user || user.roles !== 'super-admin') {
+        return next(new Error('Only admins can update landowner notes'));
+      }
+      
+      // Set the noteUpdatedBy field
+      this.noteUpdatedBy = user._id;
+    }
 
     next();
   } catch (error) {
@@ -94,6 +115,18 @@ userSchema.pre<IUser>('updateOne', async function (next) {
 
       // Hash the password before updating
       update.password = await bcrypt.hash(update.password, saltRounds);
+    }
+
+    // Check if note is being updated for landowner users
+    if (update && (update as any).note !== undefined) {
+      const user = (this as any).__user;
+      
+      if (!user || user.roles !== 'super-admin') {
+        return next(new Error('Only admins can update landowner notes'));
+      }
+      
+      // Add noteUpdatedBy to the update
+      (update as any).noteUpdatedBy = user._id;
     }
 
     next();

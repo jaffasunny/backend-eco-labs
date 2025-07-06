@@ -356,6 +356,9 @@ const getPropertyService = async (propertyId: string) => {
         propertyLocation: 1,
         propertySize: 1,
         landowner: 1,
+        startDate: 1,
+        note: 1,
+        noteUpdatedBy: 1,
         docs: '$docs.files',
       },
     },
@@ -512,7 +515,14 @@ const getPaginatedAssignedResearcherProperties = async (
               as: 'landowner',
               pipeline: [
                 {
-                  $project: { _id: 1, name: 1, email: 1, phone: 1 },
+                  $project: { 
+                    _id: 1, 
+                    name: 1, 
+                    email: 1, 
+                    phone: 1,
+                    note: 1,
+                    noteUpdatedBy: 1,
+                  },
                 },
               ],
             },
@@ -521,6 +531,18 @@ const getPaginatedAssignedResearcherProperties = async (
             $unwind: {
               path: '$landowner',
               preserveNullAndEmptyArrays: true,
+            },
+          },
+          {
+            $project: {
+              _id: 1,
+              propertyName: 1,
+              propertyLocation: 1,
+              propertySize: 1,
+              startDate: 1,
+              note: 1,
+              noteUpdatedBy: 1,
+              landowner: 1,
             },
           },
         ],
@@ -585,7 +607,14 @@ const getPaginatedPropertiesAssignedToResearcher = async (
         newRoot: {
           $mergeObjects: [
             '$assignedResearchers',
-            { propertyDetails: { propertyName: '$propertyName', _id: '$_id' } },
+            { 
+              propertyDetails: { 
+                propertyName: '$propertyName', 
+                _id: '$_id',
+                note: '$note',
+                noteUpdatedBy: '$noteUpdatedBy'
+              } 
+            },
           ],
         },
       },
@@ -790,6 +819,8 @@ const getAllPaginatedPropertiesService = async (
         propertySize: 1,
         landowner: 1,
         startDate: 1,
+        note: 1,
+        noteUpdatedBy: 1,
         docs: '$docs.files',
       },
     },

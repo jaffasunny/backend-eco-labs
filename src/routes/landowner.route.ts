@@ -7,6 +7,7 @@ import {
   getSingleLandowner,
   paginatedLandownerData,
   updateLandowner,
+  updateLandownerNote,
 } from '../controllers/landowner.controller.js';
 import { authMiddleware } from '../middlewares/auth.middleware.js';
 import { validateRequest } from '../middlewares/validateRequest.js';
@@ -16,6 +17,7 @@ import {
   deleteLandownerValidation,
   getLandownerValidation,
   updateLandownerValidation,
+  updateLandownerNoteValidation,
 } from '../utils/validations/landownerValidations.js';
 import { roleCheck } from '../middlewares/roles.middleware.js';
 import landownerPropertyRouter from './landownerPropertyRoute/landowner.properties.route.js';
@@ -71,6 +73,16 @@ router
     authMiddleware,
     roleCheck(ROLES.LANDOWNER),
     archiveLandowner
+  );
+
+router
+  .route('/:id/note')
+  .patch(
+    updateLandownerNoteValidation,
+    validateRequest,
+    authMiddleware,
+    roleCheck([ROLES.ADMIN]),
+    updateLandownerNote
   );
 
 export default router;

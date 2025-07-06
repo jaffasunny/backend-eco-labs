@@ -80,6 +80,8 @@ const getUsersInfoService = async ({
         name: 1,
         email: 1,
         phone: 1,
+        note: 1,
+        noteUpdatedBy: 1,
       },
     },
   ];

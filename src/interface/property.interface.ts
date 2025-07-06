@@ -7,10 +7,12 @@ export interface IProperty {
   propertyName: string;
   propertyLocation: string; 
   startDate: string;
+  note: string;
   propertySize: string | undefined;
   landowner: mongoose.Schema.Types.ObjectId;
   assignedResearchers: mongoose.Schema.Types.ObjectId[];
   archived: boolean;
+  noteUpdatedBy?: mongoose.Schema.Types.ObjectId;
 }
 
 export interface IReports {

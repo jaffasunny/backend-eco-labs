@@ -9,6 +9,7 @@ import { handleDeleteMiddleware } from '../utils/utils.js';
 interface IPropertyDocument extends IProperty, Document {
   isNew: boolean; // Add Mongoose's isNew property
   archived: boolean;
+  noteUpdatedBy?: mongoose.Schema.Types.ObjectId; // Track who updated the note
 }
 
 const propertySchema = new Schema<IPropertyDocument>(
@@ -60,11 +61,56 @@ const propertySchema = new Schema<IPropertyDocument>(
       type: Boolean,
       default: false,
     },
+    note: {
+      type: String,
+    },
+    noteUpdatedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: MODELS.USERS,
+    },
   },
   {
     timestamps: true,
   }
 );
+
+// Pre-save middleware to check admin role for note updates
+propertySchema.pre('save', function(next) {
+  // Only check for note updates if this is an update operation (not a new document)
+  if (!this.isNew && this.isModified('note')) {
+    // Get the user from the request context
+    // This will be set by the controller before calling save()
+    const user = (this as any).__user;
+    
+    if (!user || user.roles !== 'super-admin') {
+      return next(new Error('Only admins can update property notes'));
+    }
+    
+    // Set the noteUpdatedBy field
+    this.noteUpdatedBy = user._id;
+  }
+  
+  next();
+});
+
+// Pre-update middleware for findOneAndUpdate operations
+propertySchema.pre(['updateOne', 'findOneAndUpdate', 'updateMany'], function(next) {
+  const update = this.getUpdate();
+  
+  // Check if note is being updated
+  if (update && (update as any).note !== undefined) {
+    const user = (this as any).__user;
+    
+    if (!user || user.roles !== 'super-admin') {
+      return next(new Error('Only admins can update property notes'));
+    }
+    
+    // Add noteUpdatedBy to the update
+    (update as any).noteUpdatedBy = user._id;
+  }
+  
+  next();
+});
 
 propertySchema.pre('deleteOne', { document: true }, async function (next) {
   const propertyId = this._id;

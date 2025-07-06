@@ -405,6 +405,36 @@ const changeResearchersBidStatus = asyncHandler(
   }
 );
 
+const updateLandownerNote = asyncHandler(async (req: Request, res: Response) => {
+  const { id: landownerId } = req.params;
+  const { note } = req.body;
+  const { _id: userId } = req.user;
+
+  // Find the landowner
+  const landowner = await User.findById(landownerId);
+  
+  if (!landowner) {
+    return res.status(404).json(new ApiError(404, 'Landowner not found!'));
+  }
+
+  if (landowner.roles !== 'landowner') {
+    return res.status(400).json(new ApiError(400, 'User is not a landowner!'));
+  }
+
+  // Set the user context for the middleware
+  (landowner as any).__user = req.user;
+  
+  // Update the note
+  landowner.note = note;
+  landowner.noteUpdatedBy = userId;
+  
+  await landowner.save();
+
+  res
+    .status(200)
+    .json(new ApiResponse(200, landowner, 'Landowner note updated successfully'));
+});
+
 export {
   addLandowner,
   updateLandowner,
@@ -415,4 +445,5 @@ export {
   changeResearchersBidStatus,
   paginatedPropertyBidsData,
   getSingleLandowner,
+  updateLandownerNote,
 };
