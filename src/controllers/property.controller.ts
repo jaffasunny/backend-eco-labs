@@ -14,6 +14,7 @@ import {
   getPaginatedResearcherReportsOnProperty,
   getPropertyService,
   toggleArchivePropertyService,
+  transferPropertyService,
 } from '../services/property.service.js';
 import { toMongoId, transformPaginatedResponse } from '../utils/utils.js';
 import { IPagination } from '../interface/index.interface.js';
@@ -263,6 +264,20 @@ const toggleArchiveProperty = asyncHandler(
   }
 );
 
+const transferProperty = asyncHandler(async (req: Request, res: Response) => {
+  const { id: propertyId } = req.params;
+  const { landowner } = req.query;
+
+  console.log({ propertyId, landowner });
+
+  const transferedProperty = await transferPropertyService(
+    propertyId,
+    landowner as string
+  );
+
+  return res.status(200).json(new ApiResponse(200, transferedProperty));
+});
+
 const getProperty = asyncHandler(async (req: Request, res: Response) => {
   const { id: propertyId } = req.params;
 
@@ -334,4 +349,5 @@ export {
   researcherSubmittedReports,
   getSingleBid,
   toggleArchiveProperty,
+  transferProperty,
 };

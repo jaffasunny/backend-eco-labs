@@ -22,6 +22,7 @@ import {
   removeFiles,
   researcherSubmittedReports,
   toggleArchiveProperty,
+  transferProperty,
 } from '../controllers/property.controller.js';
 import propertyBidsRouter from './propertyBids.route.js';
 import upload from '../middlewares/multer.js';
@@ -93,6 +94,10 @@ router
     roleCheck([ROLES.LANDOWNER]),
     deleteProperty
   );
+
+router
+  .route('/:id/transfer')
+  .patch(authMiddleware, roleCheck([ROLES.ADMIN]), transferProperty);
 
 router
   .route('/files/:fileId')

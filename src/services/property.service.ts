@@ -429,6 +429,32 @@ const toggleArchivePropertyService = async (reportId: string) => {
   }
 };
 
+const transferPropertyService = async (
+  propertyId: string,
+  newLandowner: string
+) => {
+  console.log({
+    propertyId,
+    newLandowner,
+  });
+  const property = await Property.findById(toMongoId(propertyId));
+
+  if (!property) {
+    throw new Error('Property not found');
+  }
+
+  const updatedLandowner = toMongoId(newLandowner);
+
+  if (updatedLandowner) {
+    property.landowner =
+      updatedLandowner as unknown as mongoose.Schema.Types.ObjectId;
+  }
+
+  const updatedProperty = await property.save();
+
+  return updatedProperty;
+};
+
 const getBidService = async (id: string) => {
   const foundBid = await Bids.findById(id)
     .populate({
@@ -838,4 +864,5 @@ export {
   getPaginatedResearcherReportsOnProperty,
   getBidService,
   toggleArchivePropertyService,
+  transferPropertyService,
 };
