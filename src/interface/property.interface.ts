@@ -5,7 +5,7 @@ import { FilesType } from '../types/index.js';
 
 export interface IProperty {
   propertyName: string;
-  propertyLocation: string; 
+  propertyLocation: string;
   startDate: string;
   note: string;
   propertySize: string | undefined;
@@ -24,7 +24,15 @@ export interface IReports {
   archived: boolean;
 }
 
-export interface IUpdateLandowner extends IProperty, IUser {}
+export interface IUpdateLandowner extends IProperty {
+  // Extend only IProperty to avoid the 'note' property conflict
+  // Add specific IUser properties that don't conflict
+  name: string;
+  email: string;
+  phone: string;
+  role: string;
+  password: string;
+}
 
 export interface IAssignReport extends IReport {}
 

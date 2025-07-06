@@ -16,9 +16,9 @@ const updateUserDetails = async (
     password: string;
     phone: string;
     //new fields added
-    contactName:string;
-    universityName:string;
-    advisor:string
+    contactName: string;
+    universityName: string;
+    advisor: string;
   }>,
   session: ClientSession
 ) => {
