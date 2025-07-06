@@ -1,4 +1,4 @@
-import { MODELS, RoleType } from './../constants.js';
+import { MODELS, RoleType, ROLES } from './../constants.js';
 import { ClientSession } from 'mongoose';
 import { User } from '../models/user.model.js';
 import {
@@ -25,16 +25,14 @@ const updateUserDetails = async (
   await User.updateOne({ _id: userId }, { ...userDetails, roles }, { session });
 };
 
-
-
-
 const getUsersInfoService = async ({
   role,
   sort,
   page,
   limit,
   search,
-}: getUsersInfoServiceParams): Promise<any> => {
+  roles,
+}: getUsersInfoServiceParams & { roles?: string }): Promise<any> => {
   const options = {
     page,
     limit,
@@ -80,8 +78,7 @@ const getUsersInfoService = async ({
         name: 1,
         email: 1,
         phone: 1,
-        note: 1,
-        noteUpdatedBy: 1,
+        ...(roles === ROLES.ADMIN ? { note: 1, noteUpdatedBy: 1 } : {}),
       },
     },
   ];

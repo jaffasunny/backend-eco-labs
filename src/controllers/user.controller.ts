@@ -413,6 +413,7 @@ const resetPassword = asyncHandler(async (req: Request, res: Response) => {
 
 const getUsersInfo = asyncHandler(async (req: Request, res: Response) => {
   const { role, isExport, page, limit, search = '', sort } = req.query;
+  const { roles } = req.user;
 
   let updatedLimit = isExport ? Number.MAX_SAFE_INTEGER : Number(limit) || 10;
 
@@ -422,6 +423,7 @@ const getUsersInfo = asyncHandler(async (req: Request, res: Response) => {
     limit: updatedLimit,
     page: Number(page),
     search: search?.toString(),
+    roles,
   });
 
   if (isExport) {

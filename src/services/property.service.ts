@@ -286,7 +286,7 @@ const deletePropertyService = async (
   }
 };
 
-const getPropertyService = async (propertyId: string) => {
+const getPropertyService = async (propertyId: string, roles?: string) => {
   // const property = await Property.findById(toMongoId(propertyId)).populate({
   //   path: 'landowner',
   //   select: '_id name email phone status',
@@ -357,8 +357,7 @@ const getPropertyService = async (propertyId: string) => {
         propertySize: 1,
         landowner: 1,
         startDate: 1,
-        note: 1,
-        noteUpdatedBy: 1,
+        ...(roles === ROLES.ADMIN ? { note: 1, noteUpdatedBy: 1 } : {}),
         docs: '$docs.files',
       },
     },
@@ -520,8 +519,7 @@ const getPaginatedAssignedResearcherProperties = async (
                     name: 1, 
                     email: 1, 
                     phone: 1,
-                    note: 1,
-                    noteUpdatedBy: 1,
+                    ...(roles === ROLES.ADMIN ? { note: 1, noteUpdatedBy: 1 } : {}),
                   },
                 },
               ],
@@ -540,8 +538,7 @@ const getPaginatedAssignedResearcherProperties = async (
               propertyLocation: 1,
               propertySize: 1,
               startDate: 1,
-              note: 1,
-              noteUpdatedBy: 1,
+              ...(roles === ROLES.ADMIN ? { note: 1, noteUpdatedBy: 1 } : {}),
               landowner: 1,
             },
           },
@@ -566,7 +563,8 @@ const getPaginatedPropertiesAssignedToResearcher = async (
   options: {
     page: number;
     limit: number;
-  }
+  },
+  roles: string
 ) => {
   const searchQuery = search
     ? {
@@ -611,8 +609,7 @@ const getPaginatedPropertiesAssignedToResearcher = async (
               propertyDetails: { 
                 propertyName: '$propertyName', 
                 _id: '$_id',
-                note: '$note',
-                noteUpdatedBy: '$noteUpdatedBy'
+                ...(roles === ROLES.ADMIN ? { note: '$note', noteUpdatedBy: '$noteUpdatedBy' } : {}),
               } 
             },
           ],
@@ -819,8 +816,7 @@ const getAllPaginatedPropertiesService = async (
         propertySize: 1,
         landowner: 1,
         startDate: 1,
-        note: 1,
-        noteUpdatedBy: 1,
+        ...(roles === ROLES.ADMIN ? { note: 1, noteUpdatedBy: 1 } : {}),
         docs: '$docs.files',
       },
     },

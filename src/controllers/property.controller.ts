@@ -137,6 +137,7 @@ const assignResearcherProperty = asyncHandler(
 const assignedResearchersToProperty = asyncHandler(
   async (req: Request, res: Response) => {
     const { page = 1, limit = 10, search = '', propertyId } = req.query;
+    const { roles } = req.user;
 
     const options = {
       page,
@@ -146,7 +147,8 @@ const assignedResearchersToProperty = asyncHandler(
     const result = await getPaginatedPropertiesAssignedToResearcher(
       search as string,
       propertyId as string,
-      options
+      options,
+      roles
     );
 
     const renamedResult = transformPaginatedResponse(
@@ -281,8 +283,9 @@ const transferProperty = asyncHandler(async (req: Request, res: Response) => {
 
 const getProperty = asyncHandler(async (req: Request, res: Response) => {
   const { id: propertyId } = req.params;
+  const { roles } = req.user;
 
-  const property = await getPropertyService(propertyId);
+  const property = await getPropertyService(propertyId, roles);
 
   if (!property || !property.length) {
     return res.status(201).json(new ApiError(400, `Property not found!`));
