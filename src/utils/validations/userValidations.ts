@@ -102,3 +102,17 @@ export const getUsersInfoValidation = [
     }),
   query('isExport').optional().isBoolean().withMessage('Invalid export type!'),
 ];
+
+export const updateUserPasswordValidation = [
+  body('userId')
+    .notEmpty()
+    .withMessage('User ID is required')
+    .isMongoId()
+    .withMessage('Invalid user ID format'),
+  body('newPassword')
+    .isLength({ min: 6 })
+    .notEmpty()
+    .withMessage('Password must be at least 6 characters long')
+    .matches(/\d/)
+    .withMessage('Password must contain at least one number'),
+];

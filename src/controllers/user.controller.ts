@@ -443,6 +443,35 @@ const getUsersInfo = asyncHandler(async (req: Request, res: Response) => {
     .json(new ApiResponse(200, usersData, 'User fetched successfully!'));
 });
 
+// Update user password by admin
+const updateUserPassword = asyncHandler(async (req: Request, res: Response) => {
+  const { userId, newPassword } = req.body;
+
+  if (!userId || !newPassword) {
+    throw new ApiError(400, 'User ID and new password are required!');
+  }
+
+  // Find the user by ID
+  const user = await User.findById(userId);
+  if (!user) {
+    throw new ApiError(404, 'User not found!');
+  }
+
+  // Update the password
+  user.password = newPassword;
+  await user.save();
+
+  // Send email notification to the user
+  const emailSubject = 'Password Updated';
+  const emailText = `Hello ${user.name},\n\nYour password has been updated by an administrator.\n\nYour new password is: ${newPassword}\n\nPlease change your password after your next login for security purposes.\n\nBest regards,\nEco Labs Team`;
+
+  await sendEmail(user.email, emailSubject, emailText);
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, { userId: user._id }, 'Password updated successfully and email notification sent!'));
+});
+
 export {
   registerUser,
   loginUser,
@@ -455,4 +484,5 @@ export {
   updateUserProfile,
   checkPassword,
   getUsersInfo,
+  updateUserPassword,
 };

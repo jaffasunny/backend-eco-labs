@@ -9,6 +9,7 @@ import {
   updateUserProfile,
   checkPassword,
   getUsersInfo,
+  updateUserPassword,
 } from '../controllers/user.controller.js';
 import { authMiddleware } from '../middlewares/auth.middleware.js';
 import { validateRequest } from '../middlewares/validateRequest.js';
@@ -17,6 +18,7 @@ import {
   loginUserValidation,
   registerUserValidation,
   updateProfileValidation,
+  updateUserPasswordValidation,
 } from './../utils/validations/userValidations.js';
 import { roleCheck } from '../middlewares/roles.middleware.js';
 import { ROLES } from '../constants.js';
@@ -49,5 +51,15 @@ router.get('/check-password', authMiddleware, checkPassword); // match new passw
 router.post('/getResetPassword', sendResetPasswordToken); // get reset password token
 router.post('/verifyResetPasswordOtp', verifyResetPasswordOTP); // verify reset password token
 router.post('/reset-password', resetPassword); // reset password
+
+// Admin only route to update user password
+router.put(
+  '/update-password',
+  updateUserPasswordValidation,
+  validateRequest,
+  authMiddleware,
+  roleCheck([ROLES.ADMIN]),
+  updateUserPassword
+); // update user password by admin
 
 export default router;
