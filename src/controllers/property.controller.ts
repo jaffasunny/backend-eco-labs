@@ -76,7 +76,7 @@ const removeFiles = asyncHandler(async (req: Request, res: Response) => {
 
 const assignResearcherProperty = asyncHandler(
   async (req: Request, res: Response) => {
-    const { propertyId, researcherId } = req.body;
+    const { propertyId, researcherId, assignDate } = req.body;
     const { roles, _id } = req.user;
 
     if (roles === ROLES.ADMIN) {
@@ -108,7 +108,8 @@ const assignResearcherProperty = asyncHandler(
 
     const assignedResearcherProperty = await assignResearcherPropertyService(
       propertyId,
-      researcherId
+      researcherId,
+      assignDate
     );
 
     if (!assignedResearcherProperty) {
@@ -348,18 +349,18 @@ const updatePropertyNote = asyncHandler(async (req: Request, res: Response) => {
 
   // Find the property
   const property = await Property.findById(propertyId);
-  
+
   if (!property) {
     return res.status(404).json(new ApiError(404, 'Property not found!'));
   }
 
   // Set the user context for the middleware
   (property as any).__user = req.user;
-  
+
   // Update the note
   property.note = note;
   property.noteUpdatedBy = userId;
-  
+
   await property.save();
 
   res

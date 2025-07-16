@@ -59,6 +59,7 @@ export const assignResearcherPropertyValidation = [
     .withMessage('Researcher Id is required!')
     .isMongoId()
     .withMessage('Researcher Id must be a valid MongoDB ObjectId.'),
+  body('assignDate').notEmpty().withMessage('Assign date is required!'),
 ];
 
 export const deletePropertyValidation = [

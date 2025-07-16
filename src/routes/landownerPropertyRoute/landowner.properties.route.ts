@@ -32,7 +32,7 @@ router
     changeResearcherBidStatusValidation,
     validateRequest,
     authMiddleware,
-    roleCheck(ROLES.LANDOWNER),
+    roleCheck([ROLES.ADMIN, ROLES.LANDOWNER]),
     changeResearchersBidStatus
   );
 

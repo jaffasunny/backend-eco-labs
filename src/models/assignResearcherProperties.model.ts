@@ -9,13 +9,22 @@ const assignPropertyProperties = new Schema<IAssignResearcherProperty>(
       type: mongoose.Schema.Types.ObjectId,
       ref: MODELS.PROPERTIES,
     },
-    researchers: [{ type: mongoose.Schema.Types.ObjectId, ref: MODELS.USERS }],
+    researchers: [{
+      researcher: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: MODELS.USERS,
+      },
+      assignDate: {
+        type: String,
+        required: true,
+      },
+    }],
   },
   {
     timestamps: true,
   }
 );
-assignPropertyProperties.index({ property: 1, researchers: 1 }); // Compound index for property and researchers
+assignPropertyProperties.index({ property: 1, 'researchers.researcher': 1 }); // Updated compound index
 assignPropertyProperties.plugin(aggregatePaginate);
 
 export const AssignResearcherProperty = mongoose.model<

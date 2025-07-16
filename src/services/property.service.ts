@@ -206,12 +206,13 @@ const deletePropertyFileService = async (id: string, fileId: string) => {
 
 const assignResearcherPropertyService = async (
   propertyId: string,
-  researcherId: string
+  researcherId: string,
+  assignDate: string
 ) => {
   const existingProperty = await AssignResearcherProperty.findOne({
     property: propertyId,
-    researchers: { $in: [researcherId] },
-  }).populate('researchers');
+    'researchers.researcher': researcherId,
+  }).populate('researchers.researcher');
 
   if (existingProperty) {
     throw new ApiError(409, `Researcher is already assigned to this property!`);
@@ -224,21 +225,31 @@ const assignResearcherPropertyService = async (
   if (property) {
     const updatedProperty = await AssignResearcherProperty.findOneAndUpdate(
       { property: propertyId },
-      { $addToSet: { researchers: researcherId } },
+      { 
+        $addToSet: { 
+          researchers: {
+            researcher: researcherId,
+            assignDate: assignDate
+          }
+        } 
+      },
       { new: true, runValidators: true }
-    ).populate('researchers');
+    ).populate('researchers.researcher');
     return updatedProperty;
   }
 
   const assignedResearcherProperty = await AssignResearcherProperty.create({
     property: propertyId,
-    researchers: [researcherId],
+    researchers: [{
+      researcher: researcherId,
+      assignDate: assignDate
+    }],
   });
 
   // Populate researchers in the created property
   const populatedProperty = await AssignResearcherProperty.findById(
     assignedResearcherProperty._id
-  ).populate('researchers');
+  ).populate('researchers.researcher');
 
   return populatedProperty;
 };
@@ -485,8 +496,7 @@ const getPaginatedAssignedResearcherProperties = async (
   const searchQuery = search
     ? {
         $or: [
-          { 'property.name': { $regex: search, $options: 'i' } }, // Assuming `report` has a `name` field
-          { 'researchers.name': { $regex: search, $options: 'i' } }, // Assuming `User` has a `name` field
+          { 'property.propertyName': { $regex: search, $options: 'i' } },
         ],
       }
     : {};
@@ -494,7 +504,7 @@ const getPaginatedAssignedResearcherProperties = async (
   const pipeline = [
     {
       $match: {
-        researchers: { $in: [toMongoId(researcherId)] },
+        'researchers.researcher': toMongoId(researcherId),
         ...searchQuery,
       },
     },
@@ -514,12 +524,14 @@ const getPaginatedAssignedResearcherProperties = async (
               as: 'landowner',
               pipeline: [
                 {
-                  $project: { 
-                    _id: 1, 
-                    name: 1, 
-                    email: 1, 
+                  $project: {
+                    _id: 1,
+                    name: 1,
+                    email: 1,
                     phone: 1,
-                    ...(roles === ROLES.ADMIN ? { note: 1, noteUpdatedBy: 1 } : {}),
+                    ...(roles === ROLES.ADMIN
+                      ? { note: 1, noteUpdatedBy: 1 }
+                      : {}),
                   },
                 },
               ],
@@ -545,6 +557,70 @@ const getPaginatedAssignedResearcherProperties = async (
         ],
       },
     },
+    {
+      $addFields: {
+        property: { $arrayElemAt: ['$property', 0] }
+      }
+    },
+    {
+      $lookup: {
+        from: MODELS.USERS,
+        localField: 'researchers.researcher',
+        foreignField: '_id',
+        as: 'populatedResearchers',
+        pipeline: [
+          {
+            $project: {
+              _id: 1,
+              name: 1,
+              email: 1,
+              phone: 1,
+              status: 1,
+              roles: 1,
+              advisor: 1,
+              universityName: 1,
+              isArchived: 1,
+              createdAt: 1,
+              updatedAt: 1,
+            },
+          },
+        ],
+      },
+    },
+    {
+      $addFields: {
+        researchers: {
+          $map: {
+            input: '$researchers',
+            as: 'researcher',
+            in: {
+              $mergeObjects: [
+                '$$researcher',
+                {
+                  researcher: {
+                    $arrayElemAt: [
+                      {
+                        $filter: {
+                          input: '$populatedResearchers',
+                          as: 'populatedResearcher',
+                          cond: { $eq: ['$$populatedResearcher._id', '$$researcher.researcher'] }
+                        }
+                      },
+                      0
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      $project: {
+        populatedResearchers: 0
+      }
+    }
   ];
 
   const aggregateData = AssignResearcherProperty.aggregate(pipeline);
@@ -605,12 +681,14 @@ const getPaginatedPropertiesAssignedToResearcher = async (
         newRoot: {
           $mergeObjects: [
             '$assignedResearchers',
-            { 
-              propertyDetails: { 
-                propertyName: '$propertyName', 
+            {
+              propertyDetails: {
+                propertyName: '$propertyName',
                 _id: '$_id',
-                ...(roles === ROLES.ADMIN ? { note: '$note', noteUpdatedBy: '$noteUpdatedBy' } : {}),
-              } 
+                ...(roles === ROLES.ADMIN
+                  ? { note: '$note', noteUpdatedBy: '$noteUpdatedBy' }
+                  : {}),
+              },
             },
           ],
         },

@@ -99,7 +99,7 @@ const paginatedResearchers = asyncHandler(
             {
               $match: {
                 $expr: {
-                  $in: [{ $toObjectId: '$$researcherId' }, '$researchers'],
+                  $in: [{ $toObjectId: '$$researcherId' }, '$researchers.researcher'],
                 },
               },
             },

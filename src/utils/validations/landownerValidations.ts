@@ -74,10 +74,7 @@ export const updateLandownerValidation = [
     .isEmail()
     .withMessage('Valid email is required')
     .normalizeEmail(),
-  body('phone')
-    .trim()
-    .notEmpty()
-    .withMessage('Phone number is required'),
+  body('phone').trim().notEmpty().withMessage('Phone number is required'),
   body('description')
     .optional()
     .trim()
@@ -130,6 +127,7 @@ export const changeResearcherBidStatusValidation = [
     .withMessage('Researcher is required')
     .isMongoId()
     .withMessage('Researcher must be a mongo id'),
+  body('assignDate').trim().notEmpty().withMessage('Researcher is required'),
   body('status')
     .trim()
     .notEmpty()
@@ -140,7 +138,8 @@ export const changeResearcherBidStatusValidation = [
       PROPOSAL_STATUS.REJECTED,
     ])
     .withMessage(
-      `Invalid status. Must be ${(PROPOSAL_STATUS.APPROVED,
+      `Invalid status. Must be ${
+        (PROPOSAL_STATUS.APPROVED,
         PROPOSAL_STATUS.PENDING,
         PROPOSAL_STATUS.REJECTED)
       }`

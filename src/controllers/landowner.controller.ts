@@ -1,4 +1,8 @@
-import { generatePassword, parseBooleanQueryParam } from './../utils/utils.js';
+import {
+  generatePassword,
+  parseBooleanQueryParam,
+  toMongoId,
+} from './../utils/utils.js';
 import { Response, Request } from 'express';
 import { User } from '../models/user.model.js';
 import { ApiError } from '../utils/ApiError.js';
@@ -8,7 +12,10 @@ import sendEmail from '../utils/sendMail.js';
 import { PLATFORM_NAME, ROLES } from '../constants.js';
 import mongoose from 'mongoose';
 import { updateUserDetails } from '../services/user.service.js';
-import { findOrUpdatePropertySession } from '../services/property.service.js';
+import {
+  assignResearcherPropertyService,
+  findOrUpdatePropertySession,
+} from '../services/property.service.js';
 import { IUpdateLandowner } from '../interface/property.interface.js';
 import {
   findOrUpdateUser,
@@ -336,7 +343,6 @@ const deleteLandowner = asyncHandler(async (req: Request, res: Response) => {
     await session.abortTransaction();
     throw new ApiError(500, error.message || 'Failed to update landowner!');
   } finally {
-    // End session
     session.endSession();
   }
 });
@@ -344,7 +350,7 @@ const deleteLandowner = asyncHandler(async (req: Request, res: Response) => {
 const changeResearchersBidStatus = asyncHandler(
   async (req: Request, res: Response) => {
     const { id: bidId } = req.params;
-    const { status, researcherId } = req.body;
+    const { status, researcherId, assignDate } = req.body;
 
     const [findBid] = await Bids.find({
       _id: bidId,
@@ -355,7 +361,6 @@ const changeResearchersBidStatus = asyncHandler(
       return res.status(201).json(new ApiError(400, `This user has not bid!`));
     }
 
-    // Start a transaction
     const session = await mongoose.startSession();
     session.startTransaction();
 
@@ -376,17 +381,37 @@ const changeResearchersBidStatus = asyncHandler(
           .json(new ApiError(400, `Something went wrong while updating bid!`));
       }
 
-      await Property.findByIdAndUpdate(
-        findBid.property,
-        {
-          $addToSet: {
-            assignedResearchers: researcherId,
-          },
-        },
-        { new: true }
-      ).session(session);
+      if (findBid.property) {
+        try {
+          const assignedResearcherProperty =
+            await assignResearcherPropertyService(
+              String(findBid.property),
+              researcherId,
+              assignDate
+            );
 
-      // Commit transaction
+          if (!assignedResearcherProperty) {
+            return res
+              .status(201)
+              .json(
+                new ApiError(
+                  400,
+                  `Something went wrong while assigning researcher property!`
+                )
+              );
+          }
+        } catch (error: any) {
+          if (error.statusCode === 409) {
+            console.log(
+              'Researcher already assigned to property:',
+              error.message
+            );
+          } else {
+            throw error;
+          }
+        }
+      }
+
       await session.commitTransaction();
 
       res
@@ -395,45 +420,49 @@ const changeResearchersBidStatus = asyncHandler(
           new ApiResponse(200, updatedBidStatus, 'Bid updated successfully!')
         );
     } catch (error: any) {
-      // Rollback transaction
       await session.abortTransaction();
       throw new ApiError(500, error.message || 'Failed to update bid!');
     } finally {
-      // End session
       session.endSession();
     }
   }
 );
 
-const updateLandownerNote = asyncHandler(async (req: Request, res: Response) => {
-  const { id: landownerId } = req.params;
-  const { note } = req.body;
-  const { _id: userId } = req.user;
+const updateLandownerNote = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { id: landownerId } = req.params;
+    const { note } = req.body;
+    const { _id: userId } = req.user;
 
-  // Find the landowner
-  const landowner = await User.findById(landownerId);
-  
-  if (!landowner) {
-    return res.status(404).json(new ApiError(404, 'Landowner not found!'));
+    // Find the landowner
+    const landowner = await User.findById(landownerId);
+
+    if (!landowner) {
+      return res.status(404).json(new ApiError(404, 'Landowner not found!'));
+    }
+
+    if (landowner.roles !== 'landowner') {
+      return res
+        .status(400)
+        .json(new ApiError(400, 'User is not a landowner!'));
+    }
+
+    // Set the user context for the middleware
+    (landowner as any).__user = req.user;
+
+    // Update the note
+    landowner.note = note;
+    landowner.noteUpdatedBy = userId;
+
+    await landowner.save();
+
+    res
+      .status(200)
+      .json(
+        new ApiResponse(200, landowner, 'Landowner note updated successfully')
+      );
   }
-
-  if (landowner.roles !== 'landowner') {
-    return res.status(400).json(new ApiError(400, 'User is not a landowner!'));
-  }
-
-  // Set the user context for the middleware
-  (landowner as any).__user = req.user;
-  
-  // Update the note
-  landowner.note = note;
-  landowner.noteUpdatedBy = userId;
-  
-  await landowner.save();
-
-  res
-    .status(200)
-    .json(new ApiResponse(200, landowner, 'Landowner note updated successfully'));
-});
+);
 
 export {
   addLandowner,
