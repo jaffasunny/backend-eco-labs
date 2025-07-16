@@ -661,6 +661,9 @@ const getPaginatedPropertiesAssignedToResearcher = async (
       },
     },
     {
+      $unwind: '$researchers',
+    },
+    {
       $lookup: {
         from: MODELS.PROPERTIES,
         localField: 'property',
@@ -900,7 +903,6 @@ const getPaginatedResearcherReportsOnProperty = async (
               name: 1,
               email: 1,
               phone: 1,
-              reports: 1,
             },
           },
         ],
