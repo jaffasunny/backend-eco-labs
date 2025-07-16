@@ -225,13 +225,13 @@ const assignResearcherPropertyService = async (
   if (property) {
     const updatedProperty = await AssignResearcherProperty.findOneAndUpdate(
       { property: propertyId },
-      { 
-        $addToSet: { 
+      {
+        $addToSet: {
           researchers: {
             researcher: researcherId,
-            assignDate: assignDate
-          }
-        } 
+            assignDate: assignDate,
+          },
+        },
       },
       { new: true, runValidators: true }
     ).populate('researchers.researcher');
@@ -240,10 +240,12 @@ const assignResearcherPropertyService = async (
 
   const assignedResearcherProperty = await AssignResearcherProperty.create({
     property: propertyId,
-    researchers: [{
-      researcher: researcherId,
-      assignDate: assignDate
-    }],
+    researchers: [
+      {
+        researcher: researcherId,
+        assignDate: assignDate,
+      },
+    ],
   });
 
   // Populate researchers in the created property
@@ -495,9 +497,7 @@ const getPaginatedAssignedResearcherProperties = async (
 ) => {
   const searchQuery = search
     ? {
-        $or: [
-          { 'property.propertyName': { $regex: search, $options: 'i' } },
-        ],
+        $or: [{ 'property.propertyName': { $regex: search, $options: 'i' } }],
       }
     : {};
 
@@ -559,8 +559,8 @@ const getPaginatedAssignedResearcherProperties = async (
     },
     {
       $addFields: {
-        property: { $arrayElemAt: ['$property', 0] }
-      }
+        property: { $arrayElemAt: ['$property', 0] },
+      },
     },
     {
       $lookup: {
@@ -603,24 +603,29 @@ const getPaginatedAssignedResearcherProperties = async (
                         $filter: {
                           input: '$populatedResearchers',
                           as: 'populatedResearcher',
-                          cond: { $eq: ['$$populatedResearcher._id', '$$researcher.researcher'] }
-                        }
+                          cond: {
+                            $eq: [
+                              '$$populatedResearcher._id',
+                              '$$researcher.researcher',
+                            ],
+                          },
+                        },
                       },
-                      0
-                    ]
-                  }
-                }
-              ]
-            }
-          }
-        }
-      }
+                      0,
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        },
+      },
     },
     {
       $project: {
-        populatedResearchers: 0
-      }
-    }
+        populatedResearchers: 0,
+      },
+    },
   ];
 
   const aggregateData = AssignResearcherProperty.aggregate(pipeline);
@@ -644,23 +649,49 @@ const getPaginatedPropertiesAssignedToResearcher = async (
 ) => {
   const searchQuery = search
     ? {
-        $or: [{ propertyName: { $regex: search, $options: 'i' } }],
+        $or: [{ 'property.propertyName': { $regex: search, $options: 'i' } }],
       }
     : {};
 
   const pipeline = [
     {
       $match: {
-        _id: toMongoId(propertyId),
+        property: toMongoId(propertyId),
         ...searchQuery,
       },
     },
     {
       $lookup: {
-        from: MODELS.USERS,
-        localField: 'assignedResearchers',
+        from: MODELS.PROPERTIES,
+        localField: 'property',
         foreignField: '_id',
-        as: 'assignedResearchers',
+        as: 'property',
+        pipeline: [
+          ...(roles !== ROLES.ADMIN ? [{ $match: { archived: false } }] : []),
+          {
+            $project: {
+              _id: 1,
+              propertyName: 1,
+              propertyLocation: 1,
+              propertySize: 1,
+              startDate: 1,
+              ...(roles === ROLES.ADMIN ? { note: 1, noteUpdatedBy: 1 } : {}),
+            },
+          },
+        ],
+      },
+    },
+    {
+      $addFields: {
+        property: { $arrayElemAt: ['$property', 0] },
+      },
+    },
+    {
+      $lookup: {
+        from: MODELS.USERS,
+        localField: 'researchers.researcher',
+        foreignField: '_id',
+        as: 'populatedResearchers',
         pipeline: [
           {
             $project: {
@@ -668,25 +699,75 @@ const getPaginatedPropertiesAssignedToResearcher = async (
               name: 1,
               email: 1,
               phone: 1,
+              status: 1,
+              roles: 1,
+              advisor: 1,
+              universityName: 1,
+              isArchived: 1,
+              createdAt: 1,
+              updatedAt: 1,
             },
           },
         ],
       },
     },
     {
-      $unwind: '$assignedResearchers',
+      $addFields: {
+        researchers: {
+          $map: {
+            input: '$researchers',
+            as: 'researcher',
+            in: {
+              $mergeObjects: [
+                '$$researcher',
+                {
+                  researcher: {
+                    $arrayElemAt: [
+                      {
+                        $filter: {
+                          input: '$populatedResearchers',
+                          as: 'populatedResearcher',
+                          cond: {
+                            $eq: [
+                              '$$populatedResearcher._id',
+                              '$$researcher.researcher',
+                            ],
+                          },
+                        },
+                      },
+                      0,
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        },
+      },
+    },
+    {
+      $project: {
+        populatedResearchers: 0,
+      },
+    },
+    {
+      $unwind: '$researchers',
     },
     {
       $replaceRoot: {
         newRoot: {
           $mergeObjects: [
-            '$assignedResearchers',
+            '$researchers.researcher',
             {
+              assignDate: '$researchers.assignDate',
               propertyDetails: {
-                propertyName: '$propertyName',
-                _id: '$_id',
+                propertyName: '$property.propertyName',
+                _id: '$property._id',
+                propertyLocation: '$property.propertyLocation',
+                propertySize: '$property.propertySize',
+                startDate: '$property.startDate',
                 ...(roles === ROLES.ADMIN
-                  ? { note: '$note', noteUpdatedBy: '$noteUpdatedBy' }
+                  ? { note: '$property.note', noteUpdatedBy: '$property.noteUpdatedBy' }
                   : {}),
               },
             },
@@ -700,13 +781,22 @@ const getPaginatedPropertiesAssignedToResearcher = async (
         name: 1,
         email: 1,
         phone: 1,
+        status: 1,
+        roles: 1,
+        advisor: 1,
+        universityName: 1,
+        isArchived: 1,
+        assignDate: 1,
+        propertyDetails: 1,
+        createdAt: 1,
+        updatedAt: 1,
       },
     },
   ];
 
-  const aggregateData = Property.aggregate(pipeline);
+  const aggregateData = AssignResearcherProperty.aggregate(pipeline);
 
-  const result = await Property.aggregatePaginate(aggregateData, options);
+  const result = await AssignResearcherProperty.aggregatePaginate(aggregateData, options);
 
   return result;
 };
