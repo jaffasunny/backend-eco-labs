@@ -152,6 +152,11 @@ const assignedResearchersToProperty = asyncHandler(
       roles
     );
 
+    console.log({
+      result,
+      propertyId,
+    });
+
     const renamedResult = transformPaginatedResponse(
       result,
       'researchersToProperty'

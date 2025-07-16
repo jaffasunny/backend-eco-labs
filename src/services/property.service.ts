@@ -642,25 +642,21 @@ const getPaginatedPropertiesAssignedToResearcher = async (
   },
   roles: string
 ) => {
-  const searchQuery = search
-    ? {
-        $or: [{ propertyName: { $regex: search, $options: 'i' } }],
-      }
-    : {};
-
   const pipeline = [
     {
       $match: {
-        _id: toMongoId(propertyId),
-        ...searchQuery,
+        property: toMongoId(propertyId),
       },
+    },
+    {
+      $unwind: '$researchers',
     },
     {
       $lookup: {
         from: MODELS.USERS,
-        localField: 'assignedResearchers',
+        localField: 'researchers.researcher',
         foreignField: '_id',
-        as: 'assignedResearchers',
+        as: 'researcher',
         pipeline: [
           {
             $project: {
@@ -674,21 +670,48 @@ const getPaginatedPropertiesAssignedToResearcher = async (
       },
     },
     {
-      $unwind: '$assignedResearchers',
+      $addFields: {
+        researcher: { $arrayElemAt: ['$researcher', 0] },
+      },
+    },
+    ...(search ? [{
+      $match: {
+        'researcher.name': { $regex: search, $options: 'i' },
+      },
+    }] : []),
+    {
+      $lookup: {
+        from: MODELS.PROPERTIES,
+        localField: 'property',
+        foreignField: '_id',
+        as: 'propertyDetails',
+        pipeline: [
+          ...(roles !== ROLES.ADMIN ? [{ $match: { archived: false } }] : []),
+          {
+            $project: {
+              _id: 1,
+              propertyName: 1,
+              ...(roles === ROLES.ADMIN
+                ? { note: 1, noteUpdatedBy: 1 }
+                : {}),
+            },
+          },
+        ],
+      },
+    },
+    {
+      $addFields: {
+        propertyDetails: { $arrayElemAt: ['$propertyDetails', 0] },
+      },
     },
     {
       $replaceRoot: {
         newRoot: {
           $mergeObjects: [
-            '$assignedResearchers',
+            '$researcher',
             {
-              propertyDetails: {
-                propertyName: '$propertyName',
-                _id: '$_id',
-                ...(roles === ROLES.ADMIN
-                  ? { note: '$note', noteUpdatedBy: '$noteUpdatedBy' }
-                  : {}),
-              },
+              assignDate: '$researchers.assignDate',
+              propertyDetails: '$propertyDetails',
             },
           ],
         },
@@ -700,13 +723,15 @@ const getPaginatedPropertiesAssignedToResearcher = async (
         name: 1,
         email: 1,
         phone: 1,
+        assignDate: 1,
+        propertyDetails: 1,
       },
     },
   ];
 
-  const aggregateData = Property.aggregate(pipeline);
+  const aggregateData = AssignResearcherProperty.aggregate(pipeline);
 
-  const result = await Property.aggregatePaginate(aggregateData, options);
+  const result = await AssignResearcherProperty.aggregatePaginate(aggregateData, options);
 
   return result;
 };
@@ -721,80 +746,106 @@ const getPaginatedResearcherReportsOnProperty = async (
   },
   roles: string
 ) => {
-  const searchQuery = search
-    ? {
-        $or: [{ propertyName: { $regex: search, $options: 'i' } }],
-      }
-    : {};
-
   const pipeline = [
     {
       $match: {
-        _id: toMongoId(propertyId),
-        ...searchQuery,
+        property: toMongoId(propertyId),
+        'researchers.researcher': toMongoId(researcherId),
+      },
+    },
+    {
+      $unwind: '$researchers',
+    },
+    {
+      $match: {
+        'researchers.researcher': toMongoId(researcherId),
       },
     },
     {
       $lookup: {
         from: MODELS.USERS,
-        localField: 'assignedResearchers',
+        localField: 'researchers.researcher',
         foreignField: '_id',
-        as: 'assignedResearchers',
+        as: 'researcher',
         pipeline: [
-          {
-            $match: {
-              _id: toMongoId(researcherId),
-            },
-          },
-          {
-            $lookup: {
-              from: MODELS.REPORTS,
-              localField: '_id',
-              foreignField: 'researcher',
-              as: 'reports',
-              pipeline: [
-                {
-                  $match: {
-                    researcher: { $exists: true },
-                  },
-                },
-                ...(roles !== ROLES.ADMIN
-                  ? [{ $match: { archived: false } }]
-                  : []),
-                {
-                  $project: {
-                    _id: 1,
-                    files: 1,
-                    name: 1,
-                    description: 1,
-                    createdAt: 1,
-                    updatedAt: 1,
-                    archived: 1,
-                  },
-                },
-              ],
-            },
-          },
           {
             $project: {
               _id: 1,
               name: 1,
               email: 1,
               phone: 1,
-              reports: 1,
             },
           },
         ],
       },
     },
     {
-      $unwind: '$assignedResearchers',
+      $addFields: {
+        researcher: { $arrayElemAt: ['$researcher', 0] },
+      },
+    },
+    ...(search ? [{
+      $match: {
+        'researcher.name': { $regex: search, $options: 'i' },
+      },
+    }] : []),
+    {
+      $lookup: {
+        from: MODELS.REPORTS,
+        let: { researcherId: '$researchers.researcher' },
+        pipeline: [
+          {
+            $match: {
+              $expr: { $eq: ['$researcher', '$$researcherId'] },
+              property: toMongoId(propertyId),
+            },
+          },
+          ...(roles !== ROLES.ADMIN
+            ? [{ $match: { archived: false } }]
+            : []),
+          {
+            $project: {
+              _id: 1,
+              files: 1,
+              name: 1,
+              description: 1,
+              createdAt: 1,
+              updatedAt: 1,
+              archived: 1,
+            },
+          },
+        ],
+        as: 'reports',
+      },
+    },
+    {
+      $replaceRoot: {
+        newRoot: {
+          $mergeObjects: [
+            '$researcher',
+            {
+              assignDate: '$researchers.assignDate',
+              reports: '$reports',
+            },
+          ],
+        },
+      },
+    },
+    {
+      $project: {
+        _id: 1,
+        name: 1,
+        email: 1,
+        phone: 1,
+        assignDate: 1,
+        reports: 1,
+      },
     },
   ];
 
-  const aggregateData = Property.aggregate(pipeline);
+  const aggregateData = AssignResearcherProperty.aggregate(pipeline);
 
-  const result = await Property.aggregatePaginate(aggregateData, options);
+  const result = await AssignResearcherProperty.aggregatePaginate(aggregateData, options);
 
   return result;
 };

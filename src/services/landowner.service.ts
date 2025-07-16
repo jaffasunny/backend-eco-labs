@@ -586,20 +586,53 @@ const landownerPropertyBidsPaginationService = async ({
           },
           {
             $lookup: {
-              from: MODELS.USERS,
-              localField: 'assignedResearchers',
-              foreignField: '_id',
-              as: 'assignedResearchers',
+              from: MODELS.ASSIGNED_RESEARCH_PROPERTIES,
+              let: { propertyId: '$_id' },
               pipeline: [
                 {
-                  $project: {
-                    _id: 1,
-                    name: 1,
-                    email: 1,
-                    phone: 1,
+                  $match: {
+                    $expr: { $eq: ['$property', '$$propertyId'] },
+                  },
+                },
+                {
+                  $unwind: '$researchers',
+                },
+                {
+                  $lookup: {
+                    from: MODELS.USERS,
+                    localField: 'researchers.researcher',
+                    foreignField: '_id',
+                    as: 'researcher',
+                    pipeline: [
+                      {
+                        $project: {
+                          _id: 1,
+                          name: 1,
+                          email: 1,
+                          phone: 1,
+                        },
+                      },
+                    ],
+                  },
+                },
+                {
+                  $addFields: {
+                    researcher: { $arrayElemAt: ['$researcher', 0] },
+                    assignDate: '$researchers.assignDate',
+                  },
+                },
+                {
+                  $replaceRoot: {
+                    newRoot: {
+                      $mergeObjects: [
+                        '$researcher',
+                        { assignDate: '$assignDate' },
+                      ],
+                    },
                   },
                 },
               ],
+              as: 'assignedResearchers',
             },
           },
           {
