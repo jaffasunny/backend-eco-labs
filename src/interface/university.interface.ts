@@ -3,7 +3,13 @@ import { IPagination } from './index.interface.js';
 import { IProperty } from './property.interface.js';
 import { IPReport } from './report.interface.js';
 
-export interface IAddUniversityParams extends IUser, IProperty {}
+export interface IAddUniversityParams extends Omit<IUser, 'note' | 'noteUpdatedBy'>, Omit<IProperty, 'note' | 'noteUpdatedBy'> {
+  // Add back the note properties with more specific names to avoid conflicts
+  userNote?: string;
+  propertyNote?: string;
+  userNoteUpdatedBy?: string;
+  propertyNoteUpdatedBy?: string;
+}
 
 export interface IUniversityAggregatePaginationServiceParams
   extends IPagination {
@@ -23,4 +29,12 @@ export interface IUniversityReportBidsAggregatePaginationServiceParams
   userId?: string;
 }
 
-export interface IUpdateUniversity extends IProperty, IPReport, IUser {}
+export interface IUpdateUniversity extends Omit<IProperty, 'note' | 'noteUpdatedBy'>, Omit<IPReport, 'note' | 'noteUpdatedBy'>, Omit<IUser, 'note' | 'noteUpdatedBy'> {
+  // Add back the note properties with more specific names to avoid conflicts
+  userNote?: string;
+  propertyNote?: string;
+  reportNote?: string;
+  userNoteUpdatedBy?: string;
+  propertyNoteUpdatedBy?: string;
+  reportNoteUpdatedBy?: string;
+}

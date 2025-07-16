@@ -2,7 +2,14 @@ import { IUser } from '../types/userTypes/index.js';
 import { IPagination } from './index.interface.js';
 import { IProperty } from './property.interface.js';
 
-export interface IAddLandownerParams extends IUser, IProperty {}
+// Create a combined interface that avoids conflicts by being more specific
+export interface IAddLandownerParams extends Omit<IUser, 'note' | 'noteUpdatedBy'>, Omit<IProperty, 'note' | 'noteUpdatedBy'> {
+  // Add back the note properties with more specific names to avoid conflicts
+  userNote?: string;
+  propertyNote?: string;
+  userNoteUpdatedBy?: string;
+  propertyNoteUpdatedBy?: string;
+}
 
 export interface IlandownerAggregatePaginationServiceParams
   extends IPagination {

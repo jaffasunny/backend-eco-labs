@@ -24,7 +24,13 @@ export interface IReports {
   archived: boolean;
 }
 
-export interface IUpdateLandowner extends IProperty, IUser {}
+export interface IUpdateLandowner extends Omit<IProperty, 'note' | 'noteUpdatedBy'>, Omit<IUser, 'note' | 'noteUpdatedBy'> {
+  // Add back the note properties with more specific names to avoid conflicts
+  userNote?: string;
+  propertyNote?: string;
+  userNoteUpdatedBy?: string;
+  propertyNoteUpdatedBy?: string;
+}
 
 export interface IAssignReport extends IReport {}
 
