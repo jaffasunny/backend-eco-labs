@@ -3,9 +3,7 @@ import { IPagination } from './index.interface.js';
 import { IProperty } from './property.interface.js';
 import { IPReport } from './report.interface.js';
 
-export interface IAddUniversityParams extends IUser, IProperty {
-  note: string;
-}
+export interface IAddUniversityParams extends IUser, IProperty {}
 
 export interface IUniversityAggregatePaginationServiceParams
   extends IPagination {
@@ -25,11 +23,4 @@ export interface IUniversityReportBidsAggregatePaginationServiceParams
   userId?: string;
 }
 
-export interface IUpdateUniversity extends IProperty, IPReport {
-  note: string;
-  name: string;
-  email: string;
-  password: string;
-  phone: string;
-  contactName: string;
-}
+export interface IUpdateUniversity extends IProperty, IPReport, IUser {}

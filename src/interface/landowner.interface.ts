@@ -2,9 +2,7 @@ import { IUser } from '../types/userTypes/index.js';
 import { IPagination } from './index.interface.js';
 import { IProperty } from './property.interface.js';
 
-export interface IAddLandownerParams extends IUser {
-  property: IProperty;
-}
+export interface IAddLandownerParams extends IUser, IProperty {}
 
 export interface IlandownerAggregatePaginationServiceParams
   extends IPagination {
