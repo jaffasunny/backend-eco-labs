@@ -588,33 +588,39 @@ const getPaginatedAssignedResearcherProperties = async (
     {
       $addFields: {
         researchers: {
-          $map: {
-            input: '$researchers',
-            as: 'researcher',
-            in: {
-              $mergeObjects: [
-                '$$researcher',
-                {
-                  researcher: {
-                    $arrayElemAt: [
-                      {
-                        $filter: {
-                          input: '$populatedResearchers',
-                          as: 'populatedResearcher',
-                          cond: {
-                            $eq: [
-                              '$$populatedResearcher._id',
-                              '$$researcher.researcher',
-                            ],
+          $cond: {
+            if: { $isArray: '$researchers' },
+            then: {
+              $map: {
+                input: '$researchers',
+                as: 'researcher',
+                in: {
+                  $mergeObjects: [
+                    '$$researcher',
+                    {
+                      researcher: {
+                        $arrayElemAt: [
+                          {
+                            $filter: {
+                              input: '$populatedResearchers',
+                              as: 'populatedResearcher',
+                              cond: {
+                                $eq: [
+                                  '$$populatedResearcher._id',
+                                  '$$researcher.researcher',
+                                ],
+                              },
+                            },
                           },
-                        },
+                          0,
+                        ],
                       },
-                      0,
-                    ],
-                  },
+                    },
+                  ],
                 },
-              ],
+              },
             },
+            else: []
           },
         },
       },
@@ -692,7 +698,7 @@ const getPaginatedPropertiesAssignedToResearcher = async (
         from: MODELS.USERS,
         localField: 'researchers.researcher',
         foreignField: '_id',
-        as: 'populatedResearchers',
+        as: 'researcher',
         pipeline: [
           {
             $project: {
@@ -714,51 +720,14 @@ const getPaginatedPropertiesAssignedToResearcher = async (
     },
     {
       $addFields: {
-        researchers: {
-          $map: {
-            input: '$researchers',
-            as: 'researcher',
-            in: {
-              $mergeObjects: [
-                '$$researcher',
-                {
-                  researcher: {
-                    $arrayElemAt: [
-                      {
-                        $filter: {
-                          input: '$populatedResearchers',
-                          as: 'populatedResearcher',
-                          cond: {
-                            $eq: [
-                              '$$populatedResearcher._id',
-                              '$$researcher.researcher',
-                            ],
-                          },
-                        },
-                      },
-                      0,
-                    ],
-                  },
-                },
-              ],
-            },
-          },
-        },
+        researcher: { $arrayElemAt: ['$researcher', 0] },
       },
-    },
-    {
-      $project: {
-        populatedResearchers: 0,
-      },
-    },
-    {
-      $unwind: '$researchers',
     },
     {
       $replaceRoot: {
         newRoot: {
           $mergeObjects: [
-            '$researchers.researcher',
+            '$researcher',
             {
               assignDate: '$researchers.assignDate',
               propertyDetails: {
