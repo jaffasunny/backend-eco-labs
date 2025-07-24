@@ -901,6 +901,7 @@ const getPaginatedResearcherReportsOnProperty = async (
               name: 1,
               email: 1,
               phone: 1,
+              reports: 1,
             },
           },
         ],
