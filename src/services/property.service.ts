@@ -211,8 +211,8 @@ const assignResearcherPropertyService = async (
 ) => {
   const existingProperty = await AssignResearcherProperty.findOne({
     property: propertyId,
-    researchers: { $in: [researcherId] },
-  }).populate('researchers');
+    'researchers.researcher': researcherId,
+  }).populate('researchers.researcher');
 
   if (existingProperty) {
     throw new ApiError(409, `Researcher is already assigned to this property!`);
@@ -234,7 +234,7 @@ const assignResearcherPropertyService = async (
         },
       },
       { new: true, runValidators: true }
-    ).populate('researchers');
+    ).populate('researchers.researcher');
     return updatedProperty;
   }
 
@@ -251,7 +251,7 @@ const assignResearcherPropertyService = async (
   // Populate researchers in the created property
   const populatedProperty = await AssignResearcherProperty.findById(
     assignedResearcherProperty._id
-  ).populate('researchers');
+  ).populate('researchers.researcher');
 
   return populatedProperty;
 };
@@ -504,7 +504,7 @@ const getPaginatedAssignedResearcherProperties = async (
   const pipeline = [
     {
       $match: {
-        researchers: { $in: [toMongoId(researcherId)] },
+        'researchers.researcher': toMongoId(researcherId),
         ...searchQuery,
       },
     },
