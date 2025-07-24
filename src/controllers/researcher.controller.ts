@@ -276,35 +276,83 @@ const paginatedResearcherReportData = asyncHandler(
   }
 );
 
+// const placeBidResearch = asyncHandler(async (req: Request, res: Response) => {
+//   const { id: propertyId } = req.params;
+//   const { _id: userId } = req.user;
+//   const { status, description, files } = req.body;
+
+//   const findProperty = await Property.findById(propertyId);
+
+//   if (!findProperty) {
+//     return res
+//       .status(201)
+//       .json(new ApiResponse(400, findProperty, `Property doesnot exists!`));
+//   }
+
+//   //  NEW REQUIREMENT ANY RESEARCHER CAN BID ON ANY REPORT
+//   // const isAssigned = await AssignResearcherProperty.find({
+//   //   property: toMongoId(propertyId),
+//   //   researchers: toMongoId(userId),
+//   // });
+
+//   // if (!isAssigned.length) {
+//   //   return res
+//   //     .status(400)
+//   //     .json(
+//   //       new ApiError(
+//   //         400,
+//   //         `Property must be assigned to researcher in order to place bid!`
+//   //       )
+//   //     );
+//   // }
+
+//   const [findBid] = await Bids.find({
+//     researcher: userId,
+//     property: propertyId,
+//   });
+
+//   if (findBid) {
+//     return res
+//       .status(201)
+//       .json(new ApiResponse(400, findBid, `Bid already exists!`));
+//   }
+
+//   const filePayload = files.map((file: TUploadedFileType) => ({
+//     name: file.filename,
+//     url: file.path,
+//     type: file.mimetype,
+//     originalName: file.originalname,
+//   }));
+
+//   const createdBid = await Bids.create({
+//     property: propertyId,
+//     researcher: userId,
+//     status,
+//     description,
+//     files: filePayload,
+//   });
+
+//   if (!createdBid) {
+//     return res
+//       .status(201)
+//       .json(new ApiError(400, `Something went wrong while creating bid!`));
+//   }
+
+//   res
+//     .status(200)
+//     .json(new ApiResponse(200, createdBid, 'Bid created successfully!'));
+// });
 const placeBidResearch = asyncHandler(async (req: Request, res: Response) => {
   const { id: propertyId } = req.params;
   const { _id: userId } = req.user;
   const { status, description, files } = req.body;
 
   const findProperty = await Property.findById(propertyId);
-
   if (!findProperty) {
     return res
       .status(201)
-      .json(new ApiResponse(400, findProperty, `Property doesnot exists!`));
+      .json(new ApiResponse(400, null, `Property does not exist!`));
   }
-
-  //  NEW REQUIREMENT ANY RESEARCHER CAN BID ON ANY REPORT
-  // const isAssigned = await AssignResearcherProperty.find({
-  //   property: toMongoId(propertyId),
-  //   researchers: toMongoId(userId),
-  // });
-
-  // if (!isAssigned.length) {
-  //   return res
-  //     .status(400)
-  //     .json(
-  //       new ApiError(
-  //         400,
-  //         `Property must be assigned to researcher in order to place bid!`
-  //       )
-  //     );
-  // }
 
   const [findBid] = await Bids.find({
     researcher: userId,
@@ -338,11 +386,45 @@ const placeBidResearch = asyncHandler(async (req: Request, res: Response) => {
       .json(new ApiError(400, `Something went wrong while creating bid!`));
   }
 
+  // Fetch researcher details
+  const researcher = await User.findById(userId);
+  const propertyDetails = await Property.findById(propertyId);
+  const propertyName = propertyDetails?.propertyName || 'Unnamed Property';
+  // Format file links for email
+  const fileLinks: string = filePayload.length > 0
+    ? filePayload
+      .map((data: { originalName: string; url: string }) => ` File Name :${data.originalName} \n File URL : ${data.url} \n \n`)
+      .join('\n')
+    : 'No files uploaded.';
+
+  // Send notification email to admin
+  await sendEmail(
+    'texasecolabprogram@braungresham.com',
+    'New Research Proposal Submitted',
+    `Dear Admin,
+
+      A new research proposal has been submitted.
+
+    📌 Researcher:
+    Name: ${researcher?.name || 'N/A'}
+    Email: ${researcher?.email || 'N/A'}
+
+    🏠 Property : ${propertyName}
+
+    🧾 Description: ${description || 'No description provided'}
+
+    📎Files:
+    ${fileLinks}
+
+    Please review the proposal in the admin dashboard.
+
+    System Notification`,
+  );
+
   res
     .status(200)
     .json(new ApiResponse(200, createdBid, 'Bid created successfully!'));
 });
-
 const removeBidResearch = asyncHandler(async (req: Request, res: Response) => {
   const { id: bidId } = req.params;
 
@@ -405,7 +487,41 @@ const addReports = asyncHandler(async (req: Request, res: Response) => {
         new ApiResponse(400, `Something went wrong while adding property file!`)
       );
   }
+  const researcher = await User.findById(researcherId);
+  const propertyDetails = await Property.findById(property);
+  const propertyName = propertyDetails?.propertyName || 'Unnamed Property';
+  const fileLinks: string = filePayload.length > 0
+    ? filePayload
+      .map((data: { originalName: string; url: string }) =>
+        `File Name: ${data.originalName}\nFile URL: ${data.url}\n`
+      )
+      .join('\n')
+    : 'No files uploaded.';
 
+  // ✅ Send admin email
+  await sendEmail(
+    'texasecolabprogram@braungresham.com',
+    'New Report Uploaded by Researcher',
+    `Dear Admin,
+
+A new report has been submitted by a researcher.
+
+📌 Researcher:
+Name: ${researcher?.name || 'N/A'}
+Email: ${researcher?.email || 'N/A'}
+
+🏠 Property: ${propertyName} (ID: ${property})
+
+📝 Report Title: ${name}
+🧾 Description: ${description || 'No description provided.'}
+
+📎 Files:
+${fileLinks}
+
+Please review the report in the admin dashboard.
+
+System Notification`
+  );
   res
     .status(200)
     .json(
@@ -501,7 +617,13 @@ const changeResearchersStatus = asyncHandler(
         .status(201)
         .json(new ApiError(400, `Something went wrong while updating User!`));
     }
-
+    if (status === 'approved') {
+      await sendEmail(
+        updatedUserStatus.email,
+        'Researcher Approval Notification',
+        `Dear ${updatedUserStatus.name},\n\nYour researcher account has been approved.\n\nYou may now proceed with accessing the system.\n\nBest regards,\nTexas Eco Labs`,
+      );
+    }
     res
       .status(200)
       .json(
@@ -628,7 +750,7 @@ const updateResearcher = asyncHandler(async (req: Request, res: Response) => {
     );
 });
 
-// Add Landowner by email
+// Add researcher by email
 const addResearcher = asyncHandler(async (req: Request, res: Response) => {
   const { name, email, phone, university, advisor, isArchived, universityName }: IUpdateResearcher =
     req.body;

@@ -74,6 +74,19 @@ const registerUser = asyncHandler(async (req: Request, res: Response) => {
       advisor,
       universityName
     });
+     sendEmail(
+      email,
+      'Welcome to Texas Eco Labs!',
+      `Your researcher account has been created and is pending approval. We will notify you once your account is approved.`
+    ).catch((err) => console.error('Email sending failed:', err));
+     sendEmail(
+      "texasecolabprogram@braungresham.com",
+      'New User SignUp Notification',
+      `New Researcher account has been created and is pending approval. once your account is approved.
+      Name: ${name}
+      Email: ${email}
+      `
+    ).catch((err) => console.error('Email sending failed:', err));
   } else if (roles === ROLES.UNIVERSITY) {
     user = await User.create({
       name,
