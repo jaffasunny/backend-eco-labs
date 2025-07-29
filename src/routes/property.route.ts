@@ -27,6 +27,7 @@ import {
   transferProperty,
   updateProperty,
   unnassignResearcherProperty,
+  updateProperty,
   updatePropertyNote,
 } from '../controllers/property.controller.js';
 import propertyBidsRouter from './propertyBids.route.js';
