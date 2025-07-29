@@ -49,9 +49,9 @@ export const propertyFilesValidation = [
 ];
 
 export const assignResearcherPropertyValidation = [
-  body('propertyId')
+  body('propertyIds')
     .notEmpty()
-    .withMessage('Property Id is required!')
+    .withMessage('PropertyIds is required!')
     .isMongoId()
     .withMessage('Property Id must be a valid MongoDB ObjectId.'),
   body('researcherId')
