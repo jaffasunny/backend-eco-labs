@@ -16,7 +16,11 @@ import {
   toggleArchivePropertyService,
   transferPropertyService,
 } from '../services/property.service.js';
-import { toMongoId, transformPaginatedResponse } from '../utils/utils.js';
+import {
+  parseBooleanQueryParam,
+  toMongoId,
+  transformPaginatedResponse,
+} from '../utils/utils.js';
 import { IPagination } from '../interface/index.interface.js';
 import { PROPOSAL_STATUS, ROLES } from '../constants.js';
 import { Bids } from '../models/bids.model.js';
@@ -52,14 +56,53 @@ const addProperty = asyncHandler(async (req: Request, res: Response) => {
     .json(new ApiResponse(201, { property }, 'Property Added successfully!'));
 });
 
+const updateProperty = asyncHandler(async (req: Request, res: Response) => {
+  const {
+    propertyName,
+    propertyLocation,
+    propertySize,
+    landownerId,
+    files,
+    startDate,
+  } = req.body;
+
+  const { id } = req.params;
+
+  const property = await findOrUpdateProperty(
+    propertyName,
+    propertyLocation,
+    propertySize,
+    files,
+    landownerId,
+    startDate,
+    id
+  );
+
+  if (!property) {
+    return res
+      .status(201)
+      .json(new ApiError(400, 'Something went wrong while creating property!'));
+  }
+
+  return res
+    .status(201)
+    .json(new ApiResponse(201, { property }, 'Property Updated successfully!'));
+});
+
 const removeFiles = asyncHandler(async (req: Request, res: Response) => {
   const { fileId } = req.params;
-  const { propertyFilesId } = req.query;
+  const { propertyFilesId, propertyId } = req.query;
 
+  // propertyFilesId = reportId
   const deletedFile = await deletePropertyFileService(
     propertyFilesId as string,
-    fileId
+    fileId,
+    propertyId as string
   );
+
+  console.log({
+    deletedFile,
+  });
 
   if (!deletedFile) {
     return res
@@ -70,70 +113,9 @@ const removeFiles = asyncHandler(async (req: Request, res: Response) => {
   return res
     .status(201)
     .json(
-      new ApiResponse(201, { deletedFile }, 'Property Added successfully!')
+      new ApiResponse(201, { deletedFile }, 'Report Deleted successfully!')
     );
 });
-
-// const assignResearcherProperty = asyncHandler(
-//   async (req: Request, res: Response) => {
-//     const { propertyId, researcherId, assignDate } = req.body;
-//     const { roles, _id } = req.user;
-
-//     if (roles === ROLES.ADMIN) {
-//       const [findBid] = await Bids.find({
-//         researcher: toMongoId(_id),
-//         property: propertyId,
-//       });
-
-//       if (!findBid) {
-//         const createdBid = await Bids.create({
-//           property: propertyId,
-//           researcher: toMongoId(_id),
-//           status: PROPOSAL_STATUS.APPROVED,
-//           description: 'This is a bid created by admin for researcher',
-//         });
-
-//         if (!createdBid) {
-//           return res
-//             .status(201)
-//             .json(
-//               new ApiError(
-//                 400,
-//                 `Something went wrong while creating admins bid!`
-//               )
-//             );
-//         }
-//       }
-//     }
-
-//     const assignedResearcherProperty = await assignResearcherPropertyService(
-//       propertyId,
-//       researcherId,
-//       assignDate
-//     );
-
-//     if (!assignedResearcherProperty) {
-//       return res
-//         .status(201)
-//         .json(
-//           new ApiError(
-//             400,
-//             `Something went wrong while assigning researcher property!`
-//           )
-//         );
-//     }
-
-//     res
-//       .status(200)
-//       .json(
-//         new ApiResponse(
-//           200,
-//           assignedResearcherProperty,
-//           'Assigned researcher successfully'
-//         )
-//       );
-//   }
-// );
 
 const assignResearcherProperty = asyncHandler(
   async (req: Request, res: Response) => {
@@ -196,6 +178,7 @@ const assignResearcherProperty = asyncHandler(
       );
   }
 );
+
 const assignedResearchersToProperty = asyncHandler(
   async (req: Request, res: Response) => {
     const { page = 1, limit = 10, search = '', propertyId } = req.query;
@@ -212,11 +195,6 @@ const assignedResearchersToProperty = asyncHandler(
       options,
       roles
     );
-
-    console.log({
-      result,
-      propertyId,
-    });
 
     const renamedResult = transformPaginatedResponse(
       result,
@@ -338,8 +316,6 @@ const transferProperty = asyncHandler(async (req: Request, res: Response) => {
   const { id: propertyId } = req.params;
   const { landowner } = req.query;
 
-  console.log({ propertyId, landowner });
-
   const transferedProperty = await transferPropertyService(
     propertyId,
     landowner as string
@@ -448,4 +424,5 @@ export {
   toggleArchiveProperty,
   transferProperty,
   updatePropertyNote,
+  updateProperty,
 };

@@ -1,4 +1,4 @@
-import mongoose, { ClientSession } from 'mongoose';
+import mongoose, { ClientSession, ObjectId } from 'mongoose';
 import { MODELS, ROLES } from '../constants.js';
 import { IPagination } from '../interface/index.interface.js';
 import { AssignResearcherProperty } from '../models/assignResearcherProperties.model.js';
@@ -86,16 +86,28 @@ const findOrUpdateProperty = async (
   propertySize: string | undefined = undefined,
   files: Express.Multer.File[],
   userId: mongoose.Schema.Types.ObjectId | string,
-  startDate: string
+  startDate: string,
+  propertyId: mongoose.Schema.Types.ObjectId | string | null = null
 ) => {
-  let property = await Property.findOne({
-    propertyName,
-    landowner: userId,
+  const findCondition = propertyId
+    ? {
+        _id: propertyId,
+      }
+    : {
+        propertyName,
+        landowner: userId,
+      };
+
+  let property = await Property.findOne(findCondition);
+
+  console.log({
+    findCondition,
+    startDate,
+    propertyId,
   });
 
   let uploadedPropertyFiles = null;
 
-  // Start a transaction
   const session = await mongoose.startSession();
   session.startTransaction();
 
@@ -108,11 +120,9 @@ const findOrUpdateProperty = async (
         startDate,
       });
 
-      // Ensure validation is skipped for required fields during updates
       await property.save({ session, validateModifiedOnly: true });
-      property.isNew = false; // Flag for response
+      property.isNew = false;
     } else {
-      // Create a new property
       const [createdProperty] = await Property.create(
         [
           {
@@ -151,6 +161,22 @@ const findOrUpdateProperty = async (
         { session }
       );
       uploadedPropertyFiles = createdPropertyFiles.files;
+    } else if (existingFiles && files) {
+      // Push new files to existing reports array
+      const newFiles = files.map((file) => ({
+        url: file.path,
+        name: file.filename,
+        type: file.mimetype,
+        originalName: file.originalname,
+      }));
+
+      await Reports.findByIdAndUpdate(
+        existingFiles._id,
+        { $push: { files: { $each: newFiles } } },
+        { new: true, session }
+      );
+
+      uploadedPropertyFiles = newFiles;
     }
 
     // Commit transaction
@@ -184,9 +210,30 @@ const fetchPopulatedProperty = async (
   return property;
 };
 
-const deletePropertyFileService = async (id: string, fileId: string) => {
+const deletePropertyFileService = async (
+  id: string,
+  fileId: string,
+  propertyId: string
+) => {
+  let newId: string;
+
+  if (propertyId) {
+    const findReport = await Reports.findOne({
+      property: toMongoId(propertyId),
+      'files._id': fileId,
+    });
+
+    if (!findReport) {
+      throw new Error('Report with the specified file not found');
+    }
+
+    newId = String(findReport._id);
+  } else {
+    newId = id;
+  }
+
   const updatedDocument = await Reports.findByIdAndUpdate(
-    id,
+    toMongoId(newId),
     { $pull: { files: { _id: fileId } } }, // Remove the file with the specified ID
     { new: true } // Return the updated document
   );
@@ -197,8 +244,7 @@ const deletePropertyFileService = async (id: string, fileId: string) => {
 
   if (!updatedDocument.files.length) {
     // Delete the entire Reports document
-    await Reports.findByIdAndDelete(id);
-    return null; // Indicate that the document was deleted
+    return await Reports.findByIdAndDelete(newId);
   }
 
   return updatedDocument;
@@ -524,12 +570,14 @@ const getPaginatedAssignedResearcherProperties = async (
               as: 'landowner',
               pipeline: [
                 {
-                  $project: { 
-                    _id: 1, 
-                    name: 1, 
-                    email: 1, 
+                  $project: {
+                    _id: 1,
+                    name: 1,
+                    email: 1,
                     phone: 1,
-                    ...(roles === ROLES.ADMIN ? { note: 1, noteUpdatedBy: 1 } : {}),
+                    ...(roles === ROLES.ADMIN
+                      ? { note: 1, noteUpdatedBy: 1 }
+                      : {}),
                   },
                 },
               ],
@@ -620,7 +668,7 @@ const getPaginatedAssignedResearcherProperties = async (
                 },
               },
             },
-            else: []
+            else: [],
           },
         },
       },
@@ -737,7 +785,10 @@ const getPaginatedPropertiesAssignedToResearcher = async (
                 propertySize: '$property.propertySize',
                 startDate: '$property.startDate',
                 ...(roles === ROLES.ADMIN
-                  ? { note: '$property.note', noteUpdatedBy: '$property.noteUpdatedBy' }
+                  ? {
+                      note: '$property.note',
+                      noteUpdatedBy: '$property.noteUpdatedBy',
+                    }
                   : {}),
               },
             },
@@ -766,7 +817,10 @@ const getPaginatedPropertiesAssignedToResearcher = async (
 
   const aggregateData = AssignResearcherProperty.aggregate(pipeline);
 
-  const result = await AssignResearcherProperty.aggregatePaginate(aggregateData, options);
+  const result = await AssignResearcherProperty.aggregatePaginate(
+    aggregateData,
+    options
+  );
 
   return result;
 };
@@ -889,11 +943,11 @@ const getPaginatedResearcherReportsOnProperty = async (
         propertySize: '$property.propertySize',
         landowner: '$property.landowner',
         startDate: '$property.startDate',
-        ...(roles === ROLES.ADMIN 
-          ? { 
-              note: '$property.note', 
-              noteUpdatedBy: '$property.noteUpdatedBy' 
-            } 
+        ...(roles === ROLES.ADMIN
+          ? {
+              note: '$property.note',
+              noteUpdatedBy: '$property.noteUpdatedBy',
+            }
           : {}),
         assignedResearchers: 1,
         createdAt: '$property.createdAt',
@@ -904,7 +958,10 @@ const getPaginatedResearcherReportsOnProperty = async (
 
   const aggregateData = AssignResearcherProperty.aggregate(pipeline);
 
-  const result = await AssignResearcherProperty.aggregatePaginate(aggregateData, options);
+  const result = await AssignResearcherProperty.aggregatePaginate(
+    aggregateData,
+    options
+  );
 
   return result;
 };

@@ -43,7 +43,11 @@ export const addPropertyValidation = [
 export const propertyFilesValidation = [
   param('fileId').notEmpty().withMessage('Please enter a valid File Id'),
   query('propertyFilesId')
-    .notEmpty()
+    .optional()
+    .isMongoId()
+    .withMessage('Please enter a valid Property Files Id'),
+  query('propertyId')
+    .optional()
     .isMongoId()
     .withMessage('Please enter a valid Property Files Id'),
 ];

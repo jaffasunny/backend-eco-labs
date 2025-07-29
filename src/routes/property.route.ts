@@ -24,6 +24,7 @@ import {
   researcherSubmittedReports,
   toggleArchiveProperty,
   transferProperty,
+  updateProperty,
   updatePropertyNote,
 } from '../controllers/property.controller.js';
 import propertyBidsRouter from './propertyBids.route.js';
@@ -88,6 +89,13 @@ router
     authMiddleware,
     roleCheck([ROLES.LANDOWNER, ROLES.RESEARCHER, ROLES.UNIVERSITY]),
     getProperty
+  )
+  .patch(
+    authMiddleware,
+    upload.array('files', 20),
+    mapFilesToBody,
+    roleCheck([ROLES.LANDOWNER, ROLES.ADMIN]),
+    updateProperty
   )
   .delete(
     deletePropertyValidation,
