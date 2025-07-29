@@ -118,6 +118,67 @@ const removeFiles = asyncHandler(async (req: Request, res: Response) => {
     );
 });
 
+// const assignResearcherProperty = asyncHandler(
+//   async (req: Request, res: Response) => {
+//     const { propertyId, researcherId, assignDate } = req.body;
+//     const { roles, _id } = req.user;
+
+//     if (roles === ROLES.ADMIN) {
+//       const [findBid] = await Bids.find({
+//         researcher: toMongoId(_id),
+//         property: propertyId,
+//       });
+
+//       if (!findBid) {
+//         const createdBid = await Bids.create({
+//           property: propertyId,
+//           researcher: toMongoId(_id),
+//           status: PROPOSAL_STATUS.APPROVED,
+//           description: 'This is a bid created by admin for researcher',
+//         });
+
+//         if (!createdBid) {
+//           return res
+//             .status(201)
+//             .json(
+//               new ApiError(
+//                 400,
+//                 `Something went wrong while creating admins bid!`
+//               )
+//             );
+//         }
+//       }
+//     }
+
+//     const assignedResearcherProperty = await assignResearcherPropertyService(
+//       propertyId,
+//       researcherId,
+//       assignDate
+//     );
+
+//     if (!assignedResearcherProperty) {
+//       return res
+//         .status(201)
+//         .json(
+//           new ApiError(
+//             400,
+//             `Something went wrong while assigning researcher property!`
+//           )
+//         );
+//     }
+
+//     res
+//       .status(200)
+//       .json(
+//         new ApiResponse(
+//           200,
+//           assignedResearcherProperty,
+//           'Assigned researcher successfully'
+//         )
+//       );
+//   }
+// );
+
 const assignResearcherProperty = asyncHandler(
   async (req: Request, res: Response) => {
     const { propertyIds, researcherId, assignDate } = req.body; // array of property IDs
