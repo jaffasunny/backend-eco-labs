@@ -462,5 +462,4 @@ export {
   updatePropertyNote,
   updateProperty,
   unnassignResearcherProperty,
-  updateProperty,
 };
