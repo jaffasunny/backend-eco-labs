@@ -10,6 +10,7 @@ import {
   deletePropertyValidation,
   propertyFilesValidation,
   researcherSubmittedReportsValidation,
+  unnassignResearcherPropertyValidation,
   updatePropertyNoteValidation,
 } from '../utils/validations/propertyValidations.js';
 import {
@@ -25,6 +26,7 @@ import {
   toggleArchiveProperty,
   transferProperty,
   updateProperty,
+  unnassignResearcherProperty,
   updatePropertyNote,
 } from '../controllers/property.controller.js';
 import propertyBidsRouter from './propertyBids.route.js';
@@ -127,6 +129,16 @@ router
     authMiddleware,
     roleCheck([ROLES.ADMIN]),
     assignResearcherProperty
+  );
+
+router
+  .route('/unassignResearcherProperty')
+  .patch(
+    unnassignResearcherPropertyValidation,
+    validateRequest,
+    authMiddleware,
+    roleCheck([ROLES.ADMIN]),
+    unnassignResearcherProperty
   );
 
 router

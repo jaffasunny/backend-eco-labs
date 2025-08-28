@@ -302,6 +302,52 @@ const assignResearcherPropertyService = async (
   return populatedProperty;
 };
 
+const unassignResearcherPropertyService = async (
+  propertyId: string,
+  researcherId: string
+) => {
+  const existingProperty = await AssignResearcherProperty.findOne({
+    property: propertyId,
+    'researchers.researcher': researcherId,
+  }).populate('researchers.researcher');
+
+  if (!existingProperty) {
+    throw new ApiError(404, `Researcher is not assigned to this property!`);
+  }
+
+  const property = await AssignResearcherProperty.findOne({
+    property: propertyId,
+  });
+
+  if (!property) {
+    throw new ApiError(404, 'Property not found!');
+  }
+
+  if (researcherId) {
+    if (existingProperty.researchers.length === 1) {
+      await AssignResearcherProperty.findOneAndDelete({
+        property: propertyId,
+      });
+
+      return;
+    }
+
+    const updatedProperty = await AssignResearcherProperty.findOneAndUpdate(
+      { property: propertyId },
+      {
+        $pull: {
+          researchers: {
+            researcher: researcherId,
+          },
+        },
+      },
+      { new: true, runValidators: true }
+    ).populate('researchers.researcher');
+
+    return updatedProperty;
+  }
+};
+
 const deletePropertyService = async (
   propertyId: mongoose.Types.ObjectId | string
 ) => {
@@ -1137,4 +1183,5 @@ export {
   getBidService,
   toggleArchivePropertyService,
   transferPropertyService,
+  unassignResearcherPropertyService,
 };
