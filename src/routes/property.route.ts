@@ -82,36 +82,6 @@ router
 router.use('/bids', propertyBidsRouter);
 
 router
-  .route('/:id/toggle-archive')
-  .post(authMiddleware, roleCheck([ROLES.ADMIN]), toggleArchiveProperty);
-
-router
-  .route('/:id')
-  .get(
-    authMiddleware,
-    roleCheck([ROLES.LANDOWNER, ROLES.RESEARCHER, ROLES.UNIVERSITY]),
-    getProperty
-  )
-  .patch(
-    authMiddleware,
-    upload.array('files', 20),
-    mapFilesToBody,
-    roleCheck([ROLES.LANDOWNER, ROLES.ADMIN]),
-    updateProperty
-  )
-  .delete(
-    deletePropertyValidation,
-    validateRequest,
-    authMiddleware,
-    roleCheck([ROLES.LANDOWNER]),
-    deleteProperty
-  );
-
-router
-  .route('/:id/transfer')
-  .patch(authMiddleware, roleCheck([ROLES.ADMIN]), transferProperty);
-
-router
   .route('/files/:fileId')
   .delete(
     propertyFilesValidation,
@@ -140,6 +110,36 @@ router
     roleCheck([ROLES.ADMIN]),
     unnassignResearcherProperty
   );
+
+router
+  .route('/:id/toggle-archive')
+  .post(authMiddleware, roleCheck([ROLES.ADMIN]), toggleArchiveProperty);
+
+router
+  .route('/:id')
+  .get(
+    authMiddleware,
+    roleCheck([ROLES.LANDOWNER, ROLES.RESEARCHER, ROLES.UNIVERSITY]),
+    getProperty
+  )
+  .patch(
+    authMiddleware,
+    upload.array('files', 20),
+    mapFilesToBody,
+    roleCheck([ROLES.LANDOWNER, ROLES.ADMIN]),
+    updateProperty
+  )
+  .delete(
+    deletePropertyValidation,
+    validateRequest,
+    authMiddleware,
+    roleCheck([ROLES.LANDOWNER]),
+    deleteProperty
+  );
+
+router
+  .route('/:id/transfer')
+  .patch(authMiddleware, roleCheck([ROLES.ADMIN]), transferProperty);
 
 router
   .route('/:id/note')

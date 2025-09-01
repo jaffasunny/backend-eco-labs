@@ -1,4 +1,3 @@
-import { getUsersInfoServiceParams } from './../interface/user.interface.js';
 import { ApiError } from '../utils/ApiError.js';
 import { ApiResponse } from '../utils/ApiResponse.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
@@ -11,7 +10,6 @@ import {
   downloadResource,
   extractFieldNames,
   isPasswordCorrect,
-  parseBooleanQueryParam,
 } from '../utils/utils.js';
 import { getUsersInfoService } from '../services/user.service.js';
 import { TSort } from '../types/index.js';
@@ -48,7 +46,17 @@ const generateAccessAndRefreshTokens = async (userId: string) => {
 
 // Signup
 const registerUser = asyncHandler(async (req: Request, res: Response) => {
-  const { name, email, password, roles, phone, university, advisor,contactName,universityName } = req.body;
+  const {
+    name,
+    email,
+    password,
+    roles,
+    phone,
+    university,
+    advisor,
+    contactName,
+    universityName,
+  } = req.body;
 
   if (!name || !email || !password) {
     throw new ApiError(400, 'Please fill all details!');
@@ -72,15 +80,15 @@ const registerUser = asyncHandler(async (req: Request, res: Response) => {
       isApproved: false,
       university,
       advisor,
-      universityName
+      universityName,
     });
-     sendEmail(
+    sendEmail(
       email,
       'Welcome to Texas Eco Labs!',
       `Your researcher account has been created and is pending approval. We will notify you once your account is approved.`
     ).catch((err) => console.error('Email sending failed:', err));
-     sendEmail(
-      "texasecolabprogram@braungresham.com",
+    sendEmail(
+      'texasecolabprogram@braungresham.com',
       'New User SignUp Notification',
       `New Researcher account has been created and is pending approval. once your account is approved.
       Name: ${name}
@@ -94,11 +102,9 @@ const registerUser = asyncHandler(async (req: Request, res: Response) => {
       password,
       roles,
       phone,
-      contactName
+      contactName,
     });
-
-  }
-  else {
+  } else {
     user = await User.create({
       name,
       email,
@@ -121,7 +127,7 @@ const loginUser = asyncHandler(async (req: Request, res: Response) => {
     throw new ApiError(400, 'Please fill all details!');
   }
 
-  const user = await User.findOne({ email: email.trim().toLowerCase() });
+  const user = await User.findOne({ email: email.trim() });
 
   if (!user) {
     throw new ApiError(400, 'User with given email address doesnot exist!');
@@ -132,7 +138,6 @@ const loginUser = asyncHandler(async (req: Request, res: Response) => {
   }
 
   // compare password with hashed password
-  // const matched = await bcrypt.compare(password, user.password);
   const matched = await user.isPasswordCorrect(password);
 
   if (!user) {
@@ -148,8 +153,6 @@ const loginUser = asyncHandler(async (req: Request, res: Response) => {
       throw new ApiError(401, `Researcher status is ${user.status}!`);
     }
   }
-
-  // const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET_KEY);
 
   const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(
     user._id.toString()
@@ -440,9 +443,6 @@ const getUsersInfo = asyncHandler(async (req: Request, res: Response) => {
   });
 
   if (isExport) {
-
-  
-    
     const fieldNames = extractFieldNames(usersData.users);
 
     return downloadResource(
@@ -484,7 +484,13 @@ const updateUserPassword = asyncHandler(async (req: Request, res: Response) => {
 
   return res
     .status(200)
-    .json(new ApiResponse(200, { userId: user._id }, 'Password updated successfully and email notification sent!'));
+    .json(
+      new ApiResponse(
+        200,
+        { userId: user._id },
+        'Password updated successfully and email notification sent!'
+      )
+    );
 });
 
 export {

@@ -307,8 +307,8 @@ const unassignResearcherPropertyService = async (
   researcherId: string
 ) => {
   const existingProperty = await AssignResearcherProperty.findOne({
-    property: propertyId,
-    'researchers.researcher': researcherId,
+    property: toMongoId(propertyId),
+    'researchers.researcher': toMongoId(researcherId),
   }).populate('researchers.researcher');
 
   if (!existingProperty) {
@@ -316,7 +316,7 @@ const unassignResearcherPropertyService = async (
   }
 
   const property = await AssignResearcherProperty.findOne({
-    property: propertyId,
+    property: toMongoId(propertyId),
   });
 
   if (!property) {
@@ -326,18 +326,18 @@ const unassignResearcherPropertyService = async (
   if (researcherId) {
     if (existingProperty.researchers.length === 1) {
       await AssignResearcherProperty.findOneAndDelete({
-        property: propertyId,
+        property: toMongoId(propertyId),
       });
 
       return;
     }
 
     const updatedProperty = await AssignResearcherProperty.findOneAndUpdate(
-      { property: propertyId },
+      { property: toMongoId(propertyId) },
       {
         $pull: {
           researchers: {
-            researcher: researcherId,
+            researcher: toMongoId(researcherId),
           },
         },
       },
